@@ -39,6 +39,7 @@ build/
 .next/
 .nuxt/
 .cache/
+structure.md
 
 # Docker
 .env
@@ -77,11 +78,14 @@ config/secrets/
 *.tiff
 *.geotiff
 *.nc
+*.zip
 *.hdf
 *.h5
 data/raw/
 data/processed/
 data/cache/
+data_pipeline/sample_data/*
+!data_pipeline/sample_data/.gitkeep
 
 # Logs
 *.log

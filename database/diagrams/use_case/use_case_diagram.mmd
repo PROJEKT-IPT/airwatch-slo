@@ -1,0 +1,42 @@
+flowchart LR
+    user([Uporabnik])
+    admin([Administrator / Razvijalec])
+    copernicus([Copernicus Data Space])
+
+    subgraph AirWatch_SLO["Sistem AirWatch SLO"]
+        uc1((Pregled dashboarda))
+        uc2((Izbira regije))
+        uc3((Prikaz zadnje NO₂ meritve))
+        uc4((Pregled osnovnih statistik))
+        uc5((Primerjava regij))
+        uc6((Pregled zgodovine meritev))
+        uc7((Izvoz podatkov))
+
+        uc8((Zagon zajema podatkov))
+        uc9((Zagon obdelave podatkov))
+        uc10((Shranjevanje rezultatov v bazo))
+        uc11((Pregled statusa obdelave))
+        uc12((Pridobivanje Copernicus podatkov))
+    end
+
+    user --> uc1
+    user --> uc2
+    user --> uc3
+    user --> uc4
+    user --> uc5
+    user --> uc6
+    user --> uc7
+
+    admin --> uc8
+    admin --> uc9
+    admin --> uc10
+    admin --> uc11
+
+    copernicus --> uc12
+
+    uc8 --> uc12
+    uc9 --> uc10
+    uc3 --> uc2
+    uc4 --> uc3
+    uc5 --> uc2
+    uc6 --> uc2
