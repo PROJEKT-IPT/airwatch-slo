@@ -19,6 +19,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.get("/health")
 def health_check():
     return JSONResponse(content={"status": "healthy"}, status_code=200)
@@ -54,37 +55,52 @@ def get_regions(db: Session = Depends(get_db)):
 @app.get("/measurements/latest", response_model=LatestMeasurementResponse)
 def get_latest_measurement(
     region_code: Optional[str] = Query(default=None),
-    fk_region: Optional[int] = Query(default=None),
+    id_region: Optional[int] = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    if region_code is None and fk_region is None:
+    if region_code is None and id_region is None:
         raise HTTPException(
             status_code=400,
-            detail="Provide either region_code or fk_region.",
+            detail="Provide either region_code or id_region.",
         )
 
-    if region_code is not None and fk_region is not None:
+    if region_code is not None and id_region is not None:
         raise HTTPException(
             status_code=400,
-            detail="Provide only one region selector: region_code or fk_region.",
+            detail="Provide only one region selector: region_code or id_region.",
         )
 
-    region_filter = "r.region_code = :region_code" if region_code else "r.id_region = :fk_region"
-    params = {"region_code": region_code, "fk_region": fk_region}
+    region_filter = (
+        "region_code = :region_code" if region_code else "id_region = :id_region"
+    )
+    params = {"region_code": region_code, "id_region": id_region}
+
+    region = db.execute(
+        text(
+            f"""
+            SELECT id_region
+            FROM region
+            WHERE {region_filter}
+            """
+        ),
+        params,
+    ).mappings().first()
+
+    if region is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Region not found.",
+        )
 
     row = db.execute(
         text(
-            f"""
+            """
             SELECT
-                rm.id_region_measurement,
-                rm.fk_region,
+                r.id_region,
                 r.region_code,
                 r.region_name,
-                rm.fk_indicator,
                 i.indicator_code,
                 i.indicator_name,
-                rm.measurement_start_time,
-                rm.measurement_end_time,
                 rm.value_mean,
                 rm.value_min,
                 rm.value_max,
@@ -92,28 +108,29 @@ def get_latest_measurement(
                 rm.qa_threshold,
                 rm.quality_status,
                 rm.unit,
-                rm.fk_source_file AS source_file_id,
-                sf.external_product_id,
-                sf.product_name,
-                rm.fk_processing_run AS processing_run_id,
-                pr.run_status
+                rm.measurement_start_time,
+                rm.measurement_end_time,
+                sf.product_name AS source_product_name,
+                ds.source_name AS data_source_name
             FROM region_measurement rm
             JOIN region r ON r.id_region = rm.fk_region
             JOIN indicator i ON i.id_indicator = rm.fk_indicator
             JOIN source_file sf ON sf.id_source_file = rm.fk_source_file
-            JOIN processing_run pr ON pr.id_processing_run = rm.fk_processing_run
-            WHERE {region_filter}
+            JOIN data_product dp ON dp.id_data_product = sf.fk_data_product
+            JOIN data_source ds ON ds.id_data_source = dp.fk_data_source
+            WHERE rm.fk_region = :selected_id_region
+                AND i.indicator_code = 'NO2'
             ORDER BY rm.measurement_end_time DESC
             LIMIT 1
             """
         ),
-        params,
+        {"selected_id_region": region["id_region"]},
     ).mappings().first()
 
     if row is None:
         raise HTTPException(
             status_code=404,
-            detail="No latest measurement found for the requested region.",
+            detail="No NO2 measurement found for the requested region.",
         )
 
     return dict(row)
