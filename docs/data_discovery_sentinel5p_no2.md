@@ -8,6 +8,43 @@ Namen pregleda je preveriti, ali lahko iz Copernicus Data Space pridobimo realen
 
 Rezultat tega dokumenta je podlaga za nadaljnjo zasnovo baze, podatkovnega pipeline-a in dashboarda.
 
+## Izbira Copernicus NO₂ produkta (product choice)
+
+Za Sprint 1/MVP smo izbrali Sentinel-5P TROPOMI NO₂ produkt na procesnem nivoju L2.
+
+### Izbrani produkt
+
+- Product code: `S5P_OFFL_L2__NO2`
+- Platform: `Sentinel-5P`
+- Instrument: `TROPOMI`
+- Processing level: `L2`
+- Format: `NetCDF` (`.nc`)
+- Group za branje v NetCDF: `PRODUCT`
+- Glavna spremenljivka (NO₂): `nitrogendioxide_tropospheric_column`
+- Spremenljivka kakovosti: `qa_value`
+
+### Razlogi za izbiro (scope Sprint 1)
+
+- Izbrana je OFFL (offline) varianta, ker je primerna za stabilen MVP tok in ponuja konsistentne rezultate za osnovne statistike po regiji.
+- Produkt vsebuje ključne sloje, potrebne za MVP agregacijo: geolokacijo (`latitude`, `longitude`), NO₂ polje in indikator kakovosti.
+
+### Način dostopa
+
+- Vir: Copernicus Data Space Ecosystem (CDSE) katalog in download.
+- Avtentikacija: uporabniški račun + pridobitev access tokena (skripta `data_pipeline/scripts/get_copernicus_token.py`).
+- Iskanje produktov: `data_pipeline/scripts/search_s5p_no2_products.py` (časovni interval + bbox Slovenije).
+- Prenos produkta: `data_pipeline/scripts/download_s5p_no2_product.py --product-id ...`.
+- Branje podatkov: `xarray.open_dataset(file, group="PRODUCT")` (zahteva nameščen `netCDF4`).
+
+### Omejitve in tradeoffi
+
+- Velikost datotek: posamezen `.nc` produkt je velik (v praksi ~ 500–700 MB), zato ni primeren za commit v Git in ni primeren za prenos iz browserja.
+- OFFL latenca: OFFL produkt ni real-time; na voljo je z zamikom glede na čas zajema (primerno za analitiko, ne pa za takojšnje opozarjanje).
+- Geometrija podatkov: produkt je L2 swath (ne nujno regularna mreža); za Sprint 1 je uporabljena poenostavitev z bounding box filtrom, kasneje je potrebna prava prostorska agregacija po regijah.
+- Kakovost podatkov: priporočena je filtracija z `qa_value` pragom (v Sprint 1: `qa_value >= 0.75`). Prag neposredno vpliva na število veljavnih pikslov in stabilnost statistike.
+- Dostop in omejitve storitve: dostop zahteva CDSE račun; prenos lahko traja in je odvisen od omrežja/omejitev storitve (rate limiting). Skripte zato uporabljajo lokalni, ročno sprožen download.
+- Reproducibilnost: za seed/test v Sprint 1 je uporabljen en konkreten prenesen produkt (Product ID je zapisan v dokumentu in seed podatkih), vendar datoteka sama ni del repozitorija.
+
 ---
 
 ## Iskanje produktov
