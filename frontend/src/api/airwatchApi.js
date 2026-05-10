@@ -13,3 +13,18 @@ export async function getRegions() {
 
   return response.json()
 }
+
+export async function getLatestMeasurement(regionCode) {
+  const params = new URLSearchParams({ region_code: regionCode })
+  const response = await fetch(`${getApiBaseUrl()}/measurements/latest?${params}`)
+
+  if (response.status === 404) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to load latest measurement: ${response.status}`)
+  }
+
+  return response.json()
+}

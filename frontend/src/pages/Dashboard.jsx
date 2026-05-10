@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
-import { getRegions } from '../api/airwatchApi'
+import { getLatestMeasurement, getRegions } from '../api/airwatchApi'
+import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import RegionSelect from '../components/RegionSelect'
 
 const FALLBACK_REGIONS = [
@@ -21,6 +22,9 @@ function Dashboard() {
   const [selectedRegionCode, setSelectedRegionCode] = useState('')
   const [isLoadingRegions, setIsLoadingRegions] = useState(true)
   const [regionsError, setRegionsError] = useState('')
+  const [latestMeasurement, setLatestMeasurement] = useState(null)
+  const [isLoadingMeasurement, setIsLoadingMeasurement] = useState(false)
+  const [measurementError, setMeasurementError] = useState('')
 
   useEffect(() => {
     let isMounted = true
@@ -58,6 +62,48 @@ function Dashboard() {
     }
   }, [])
 
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadLatestMeasurement() {
+      if (!selectedRegionCode) {
+        setLatestMeasurement(null)
+        setMeasurementError('')
+        return
+      }
+
+      setIsLoadingMeasurement(true)
+      setMeasurementError('')
+
+      try {
+        const measurement = await getLatestMeasurement(selectedRegionCode)
+
+        if (!isMounted) {
+          return
+        }
+
+        setLatestMeasurement(measurement)
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        setLatestMeasurement(null)
+        setMeasurementError('Could not load the latest NO2 measurement from the backend.')
+      } finally {
+        if (isMounted) {
+          setIsLoadingMeasurement(false)
+        }
+      }
+    }
+
+    loadLatestMeasurement()
+
+    return () => {
+      isMounted = false
+    }
+  }, [selectedRegionCode])
+
   return (
     <main style={styles.page}>
       <section style={styles.panel}>
@@ -74,9 +120,11 @@ function Dashboard() {
           error={regionsError}
         />
 
-        {selectedRegionCode ? (
-          <p style={styles.selected}>Selected region code: {selectedRegionCode}</p>
-        ) : null}
+        <LatestMeasurementCard
+          measurement={latestMeasurement}
+          isLoading={isLoadingMeasurement}
+          error={measurementError}
+        />
       </section>
     </main>
   )
@@ -105,10 +153,6 @@ const styles = {
   subtitle: {
     margin: '0 0 1.5rem',
     color: '#53616f',
-  },
-  selected: {
-    marginTop: '1rem',
-    color: '#314256',
   },
 }
 
