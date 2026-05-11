@@ -102,6 +102,18 @@ data_pipeline/sample_data/S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38
 - Format: `NetCDF`
 - Opomba: `.nc` datoteke niso vključene v Git repozitorij, ker so dodane v `.gitignore`.
 
+### Sprint 2 izbrani vhodni produkt
+
+Isti produkt je izbran kot fiksni vhod za Sprint 2 regionalno agregacijo po slovenskih statističnih regijah.
+
+Namen izbire je reproducibilnost: regionalno agregacijo bomo najprej razvijali nad že preverjeno Sentinel-5P NO₂ datoteko, preden razširimo pipeline na več produktov ali časovne serije.
+
+Podrobnosti in ukazi za preverjanje/prenos so dokumentirani v:
+
+```text
+docs/sprint2_selected_no2_input_product.md
+```
+
 ---
 
 ## Struktura NetCDF datoteke
@@ -233,6 +245,12 @@ Predvidena polja:
 - `created_at`
 
 Za Sprint 1 lahko rezultat bounding box obdelave uporabimo kot testno meritev. V Sprintu 2 je treba obdelavo nadgraditi iz slovenskega bounding boxa na agregacijo po statističnih regijah.
+
+Strategija za Sprint 2 regionalno agregacijo je dokumentirana v:
+
+```text
+docs/regional_no2_aggregation_strategy.md
+```
 
 ---
 

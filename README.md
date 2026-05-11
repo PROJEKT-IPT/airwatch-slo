@@ -25,7 +25,7 @@ Uporabnik mora v končni verziji MVP-ja lahko:
 - primerjati regije,
 - izvoziti rezultate v CSV.
 
-Sprint 1 trenutno pokriva podatkovno odkrivanje za Sentinel-5P NO2, začetni ER model in inicializacijske SQL skripte za bazo.
+Sprint 1 trenutno pokriva podatkovno odkrivanje za Sentinel-5P NO2, začetni ER model, Alembic migracije in seed podatke za bazo.
 
 ## Tehnologije
 
@@ -74,6 +74,8 @@ COPERNICUS_USERNAME=your_email_here
 COPERNICUS_PASSWORD=your_password_here
 ```
 
+Frontend privzeto uporablja relativno pot `/api`. Lokalni Vite server in Docker nginx to pot preusmerita na backend. Če frontend kliče API neposredno iz brskalnika, nastavi `CORS_ORIGINS` v `.env.example` slogu.
+
 Datoteka `.env` vsebuje skrivnosti in ne sme biti commitana v Git.
 
 ## Zagon z Dockerjem
@@ -99,21 +101,24 @@ Dostop:
 
 ## Inicializacija baze
 
-SQL skripte so v `database/init/`:
+Primarni način inicializacije baze je Alembic. Zaženi migracije znotraj backend Docker servisa, da se poveže na Compose database service `db`:
+
+```bash
+docker compose up -d db
+docker compose run --rm backend alembic upgrade head
+```
+
+Preveri tabele:
+
+```bash
+docker compose exec db psql -U postgres -d airwatch -c "\dt"
+```
+
+Raw SQL skripte v `database/init/` ostajajo kot referenca, vendar za razvoj uporabljaj Alembic:
 
 - `001_create_extensions.sql` omogoči PostGIS.
 - `002_create_tables.sql` ustvari core MVP tabele.
 - `003_seed_initial_data.sql` doda Sprint 1 seed podatke.
-
-Po zagonu database containerja zaženi:
-
-```bash
-docker exec -i airwatch_db psql -U postgres -d airwatch < database/init/001_create_extensions.sql
-docker exec -i airwatch_db psql -U postgres -d airwatch < database/init/002_create_tables.sql
-docker exec -i airwatch_db psql -U postgres -d airwatch < database/init/003_seed_initial_data.sql
-```
-
-Če v `.env` uporabljaš drugačen `POSTGRES_USER` ali `POSTGRES_DB`, zamenjaj `postgres` in `airwatch` v ukazih.
 
 Sprint 1 seed podatki predstavljajo:
 
@@ -154,6 +159,7 @@ Prenesene `.nc` in `.zip` datoteke ostanejo v `data_pipeline/sample_data/` in ne
 - ER diagram: `database/diagrams/er_diagram.md`
 - Database navodila: `database/README.md`
 - Data pipeline navodila: `data_pipeline/README.md`
+- CI navodila: `docs/ci.md`
 - Sentinel-5P NO2 discovery template: `docs/data_discovery_sentinel5p_no2.md`
 - Predlagana struktura projekta: `structure.md`
 
@@ -176,6 +182,8 @@ cd frontend
 npm install
 npm run dev
 ```
+
+Frontend lokalno teče na `http://localhost:3000` in kliče backend prek `/api` proxyja na `http://localhost:8000`.
 
 ## Varnost in Git pravila
 

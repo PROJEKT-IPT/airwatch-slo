@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -11,9 +12,23 @@ from schemas import LatestMeasurementResponse, RegionResponse
 
 app = FastAPI(title="AirWatch SLO API")
 
+
+def get_cors_origins() -> list[str]:
+    raw_origins = os.getenv(
+        "CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000,"
+        "http://localhost:5173,http://127.0.0.1:5173",
+    )
+    return [
+        origin.strip()
+        for origin in raw_origins.split(",")
+        if origin.strip()
+    ]
+
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,24 +71,33 @@ def get_regions(db: Session = Depends(get_db)):
 def get_latest_measurement(
     region_code: Optional[str] = Query(default=None),
     id_region: Optional[int] = Query(default=None),
+    fk_region: Optional[int] = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    if region_code is None and id_region is None:
+    region_code = region_code.strip() if region_code else None
+    selectors = [
+        region_code is not None,
+        id_region is not None,
+        fk_region is not None,
+    ]
+
+    if not any(selectors):
         raise HTTPException(
             status_code=400,
-            detail="Provide either region_code or id_region.",
+            detail="Provide one region selector: region_code, id_region, or fk_region.",
         )
 
-    if region_code is not None and id_region is not None:
+    if sum(selectors) > 1:
         raise HTTPException(
             status_code=400,
-            detail="Provide only one region selector: region_code or id_region.",
+            detail="Provide only one region selector: region_code, id_region, or fk_region.",
         )
 
+    selected_id_region = id_region if id_region is not None else fk_region
     region_filter = (
         "region_code = :region_code" if region_code else "id_region = :id_region"
     )
-    params = {"region_code": region_code, "id_region": id_region}
+    params = {"region_code": region_code, "id_region": selected_id_region}
 
     region = db.execute(
         text(

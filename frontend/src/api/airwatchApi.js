@@ -1,4 +1,4 @@
-const DEFAULT_API_URL = 'http://localhost:8000'
+const DEFAULT_API_URL = '/api'
 
 function getApiBaseUrl() {
   return (import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace(/\/$/, '')

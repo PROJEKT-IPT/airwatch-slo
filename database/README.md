@@ -38,6 +38,7 @@ Migration order:
 6. `006_create_processing_run.py`
 7. `007_create_region_measurement.py`
 8. `008_seed_sprint_1_initial_data.py`
+9. `009_region_geometry_postgis.py`
 
 Install backend dependencies:
 

@@ -127,7 +127,7 @@ Primer odgovora:
 
 ## Endpoint: Zadnja NO2 Meritev
 
-Vrne najnovejšo NO2 meritev za izbrano regijo. Regijo lahko izberemo z `region_code` ali z `id_region`.
+Vrne najnovejšo NO2 meritev za izbrano regijo. Regijo lahko izberemo z `region_code`, `id_region` ali z aliasom `fk_region`.
 
 ```http
 GET /measurements/latest?region_code=SI_BBOX
@@ -137,6 +137,12 @@ ali:
 
 ```http
 GET /measurements/latest?id_region=1
+```
+
+ali:
+
+```http
+GET /measurements/latest?fk_region=1
 ```
 
 Primer z `region_code`:
@@ -149,6 +155,12 @@ Primer z `id_region`:
 
 ```bash
 curl "http://localhost:8000/measurements/latest?id_region=1"
+```
+
+Primer z `fk_region`:
+
+```bash
+curl "http://localhost:8000/measurements/latest?fk_region=1"
 ```
 
 Primer odgovora:
@@ -178,8 +190,9 @@ Primer odgovora:
 
 - `region_code`: oznaka regije, na primer `SI_BBOX`.
 - `id_region`: interni ID regije v bazi.
+- `fk_region`: alias za interni ID regije, uporaben pri povezavi z imeni stolpcev v tabelah.
 
-Uporabi se natanko en parameter. Če sta poslana oba ali nobeden, API vrne napako `400`.
+Uporabi se natanko en parameter. Če je poslanih več selectorjev ali nobeden, API vrne napako `400`.
 
 ### Polja Odgovora
 
@@ -202,7 +215,7 @@ Uporabi se natanko en parameter. Če sta poslana oba ali nobeden, API vrne napak
 
 ```json
 {
-  "detail": "Provide either region_code or id_region."
+  "detail": "Provide one region selector: region_code, id_region, or fk_region."
 }
 ```
 
@@ -216,7 +229,7 @@ Status:
 
 ```json
 {
-  "detail": "Provide only one region selector: region_code or id_region."
+  "detail": "Provide only one region selector: region_code, id_region, or fk_region."
 }
 ```
 

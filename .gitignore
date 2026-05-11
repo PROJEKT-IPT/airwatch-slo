@@ -86,6 +86,12 @@ data/processed/
 data/cache/
 data_pipeline/sample_data/*
 !data_pipeline/sample_data/.gitkeep
+data_pipeline/reference_data/regions/raw/*
+!data_pipeline/reference_data/regions/raw/.gitkeep
+data_pipeline/outputs/no2_crop_filter/*
+!data_pipeline/outputs/no2_crop_filter/.gitkeep
+data_pipeline/outputs/no2_by_region/*
+!data_pipeline/outputs/no2_by_region/.gitkeep
 
 # Logs
 *.log
@@ -93,6 +99,8 @@ logs/
 
 # Database dumps
 *.sql
+!database/init/
+!database/init/*.sql
 *.dump
 *.bak
 

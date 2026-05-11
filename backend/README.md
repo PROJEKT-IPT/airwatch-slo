@@ -65,6 +65,12 @@ Get latest measurement by region id:
 curl "http://localhost:8000/measurements/latest?id_region=1"
 ```
 
+Get latest measurement by foreign-key style region id alias:
+
+```bash
+curl "http://localhost:8000/measurements/latest?fk_region=1"
+```
+
 The latest measurement endpoint returns `400` when no region selector is provided,
 `404` when the region does not exist, and `404` when no NO2 measurement exists for
 the requested region.
