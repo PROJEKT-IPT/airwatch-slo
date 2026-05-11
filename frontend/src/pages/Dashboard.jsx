@@ -170,6 +170,7 @@ function Dashboard() {
 
           <RegionDetailsCard
             measurement={latestMeasurement}
+            selectedRegion={selectedRegion}
             isLoading={isLoadingMeasurement}
             error={measurementError}
             hasRegion={Boolean(selectedRegionCode)}

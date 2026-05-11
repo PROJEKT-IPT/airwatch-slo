@@ -1,28 +1,40 @@
-function RegionDetailsCard({ measurement, isLoading, error, hasRegion }) {
+function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasRegion }) {
+  const regionName = measurement?.region_name || selectedRegion?.region_name || 'Izbrana regija'
+  const qualityStatus = getQualityStatus(measurement?.quality_status)
+
   return (
     <section className="card detail-card">
       <div className="card-heading">
         <div>
-          <p className="section-kicker">Podrobnosti regije</p>
-          <h2>Merilni razpon</h2>
+          <p className="section-kicker">Izbrana regija</p>
+          <h2>{hasRegion ? regionName : 'Regija ni izbrana'}</h2>
         </div>
+        {measurement ? (
+          <span className={`quality-badge ${qualityStatus.className}`}>
+            {qualityStatus.label}
+          </span>
+        ) : null}
       </div>
 
       {!hasRegion ? (
-        <p className="muted-text">Izberite regijo za prikaz podrobnosti.</p>
+        <p className="muted-text">Izberite regijo za prikaz zadnje meritve NO₂.</p>
       ) : isLoading ? (
-        <p className="muted-text">Nalagam podrobnosti ...</p>
+        <p className="muted-text">Nalagam podatke za izbrano regijo ...</p>
       ) : error ? (
         <p className="error-text">{error}</p>
       ) : !measurement ? (
         <p className="muted-text">Za izbrano regijo ni zadnje meritve.</p>
       ) : (
         <dl className="details-list">
-          <DetailRow label="Najnižja vrednost NO₂" value={formatNo2Value(measurement.value_min)} />
-          <DetailRow label="Najvišja vrednost NO₂" value={formatNo2Value(measurement.value_max)} />
+          <DetailRow label="Zadnja NO₂ vrednost" value={formatNo2Value(measurement.value_mean)} />
+          <DetailRow
+            label="Min / max NO₂"
+            value={`${formatNo2Value(measurement.value_min)} / ${formatNo2Value(measurement.value_max)}`}
+          />
+          <DetailRow label="Enota" value={measurement.unit || 'Ni podatka'} />
           <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
-          <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
           <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
+          <DetailRow label="Čas meritve" value={formatDateTime(measurement.measurement_end_time)} />
         </dl>
       )}
     </section>
@@ -49,6 +61,19 @@ function formatQualityStatus(status) {
     return 'Napaka obdelave'
   }
   return status || 'Ni podatka'
+}
+
+function getQualityStatus(status) {
+  if (status === 'valid') {
+    return { label: 'Veljavno', className: 'quality-valid' }
+  }
+  if (status === 'no_valid_pixels') {
+    return { label: 'Ni podatkov', className: 'quality-empty' }
+  }
+  if (status === 'processing_error') {
+    return { label: 'Napaka', className: 'quality-error' }
+  }
+  return { label: status || 'Neznano', className: 'quality-empty' }
 }
 
 function formatNo2Value(value) {
@@ -95,6 +120,23 @@ function formatInteger(value) {
   return numberValue.toLocaleString('sl-SI', {
     maximumFractionDigits: 0,
   })
+}
+
+function formatDateTime(value) {
+  if (!value) {
+    return 'Ni podatka'
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat('sl-SI', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 export default RegionDetailsCard
