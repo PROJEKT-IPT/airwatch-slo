@@ -6,7 +6,6 @@ import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import MapPlaceholder from '../components/MapPlaceholder'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
-import Sidebar from '../components/Sidebar'
 
 const TEST_REGION_CODE = 'SI_BBOX'
 const TEST_REGION_TYPE = 'test_bbox'
@@ -106,9 +105,6 @@ function Dashboard() {
   }, [selectedRegionCode])
 
   return (
-    <div className="dashboard-shell">
-      <Sidebar />
-
       <main className="dashboard-main">
         <header className="dashboard-header">
           <div>
@@ -195,7 +191,6 @@ function Dashboard() {
           </section>
         </section>
       </main>
-    </div>
   )
 }
 

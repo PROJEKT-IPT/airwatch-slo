@@ -28,3 +28,17 @@ export async function getLatestMeasurement(regionCode) {
 
   return response.json()
 }
+
+export async function getProcessingStatus() {
+  const response = await fetch(`${getApiBaseUrl()}/processing/status`)
+
+  if (response.status === 404) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to load processing status: ${response.status}`)
+  }
+
+  return response.json()
+}

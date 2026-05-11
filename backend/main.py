@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from database import get_db
-from schemas import LatestMeasurementResponse, RegionResponse
+from schemas import LatestMeasurementResponse, ProcessingStatusResponse, RegionResponse
 
 app = FastAPI(title="AirWatch SLO API")
 
@@ -155,6 +155,40 @@ def get_latest_measurement(
         raise HTTPException(
             status_code=404,
             detail="No NO2 measurement found for the requested region.",
+        )
+
+    return dict(row)
+
+
+@app.get("/processing/status", response_model=ProcessingStatusResponse)
+def get_processing_status(db: Session = Depends(get_db)):
+    row = db.execute(
+        text(
+            """
+            SELECT
+                pr.id_processing_run,
+                pr.run_status,
+                pr.script_name,
+                pr.script_version,
+                pr.qa_threshold,
+                pr.started_at,
+                pr.finished_at,
+                pr.error_message,
+                sf.product_name AS source_product_name
+            FROM processing_run pr
+            JOIN source_file sf ON sf.id_source_file = pr.fk_source_file
+            ORDER BY
+                COALESCE(pr.finished_at, pr.started_at) DESC,
+                pr.id_processing_run DESC
+            LIMIT 1
+            """
+        )
+    ).mappings().first()
+
+    if row is None:
+        raise HTTPException(
+            status_code=404,
+            detail="No processing runs found.",
         )
 
     return dict(row)

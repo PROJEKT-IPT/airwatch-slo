@@ -32,3 +32,15 @@ class LatestMeasurementResponse(BaseModel):
     measurement_end_time: datetime
     source_product_name: str
     data_source_name: str
+
+
+class ProcessingStatusResponse(BaseModel):
+    id_processing_run: int
+    run_status: str
+    script_name: str
+    script_version: Optional[str] = None
+    qa_threshold: Optional[float] = None
+    started_at: datetime
+    finished_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+    source_product_name: str

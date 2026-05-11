@@ -74,3 +74,13 @@ curl "http://localhost:8000/measurements/latest?fk_region=1"
 The latest measurement endpoint returns `400` when no region selector is provided,
 `404` when the region does not exist, and `404` when no NO2 measurement exists for
 the requested region.
+
+Get latest processing status:
+
+```bash
+curl http://localhost:8000/processing/status
+```
+
+The processing status endpoint returns the newest `processing_run` record and
+reports whether the last pipeline run was successful. It returns `404` when no
+processing runs exist yet.

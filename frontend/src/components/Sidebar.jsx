@@ -1,13 +1,14 @@
 const navigationItems = [
-  { label: 'Pregled', active: true },
-  { label: 'Regije' },
+  { id: 'dashboard', label: 'Pregled' },
+  { id: 'admin', label: 'Admin/debug' },
+  { id: 'regions', label: 'Regije', disabled: true },
   { label: 'Zgodovinski trend', soon: true },
   { label: 'Primerjava regij', soon: true },
   { label: 'Podatki & izvoz', soon: true },
-  { label: 'O projektu' },
+  { label: 'O projektu', disabled: true },
 ]
 
-function Sidebar() {
+function Sidebar({ activeView = 'dashboard', onViewChange }) {
   return (
     <aside className="sidebar">
       <div className="brand-block">
@@ -23,8 +24,13 @@ function Sidebar() {
           <button
             key={item.label}
             type="button"
-            className={`nav-item ${item.active ? 'nav-item-active' : ''}`}
-            disabled={!item.active}
+            className={`nav-item ${item.id === activeView ? 'nav-item-active' : ''}`}
+            disabled={item.soon || item.disabled}
+            onClick={() => {
+              if (item.id) {
+                onViewChange?.(item.id)
+              }
+            }}
           >
             <span>{item.label}</span>
             {item.soon ? <span className="nav-soon">kmalu</span> : null}

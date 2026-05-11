@@ -329,6 +329,30 @@ select {
   align-items: start;
 }
 
+.admin-status-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 760px);
+}
+
+.processing-status-card {
+  min-height: 420px;
+}
+
+.processing-header-status.quality-valid {
+  color: var(--success-text);
+  background: var(--success-bg);
+}
+
+.processing-header-status.quality-empty {
+  color: var(--neutral-text);
+  background: var(--neutral-bg);
+}
+
+.processing-header-status.quality-error {
+  color: var(--error-text);
+  background: var(--error-bg);
+}
+
 .card {
   padding: 20px;
 }
