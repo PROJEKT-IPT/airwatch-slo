@@ -19,9 +19,17 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
       {!hasRegion ? (
         <p className="muted-text">Izberite regijo za prikaz zadnje meritve NO₂.</p>
       ) : isLoading ? (
-        <p className="muted-text">Nalagam podatke za izbrano regijo ...</p>
+        <div className="details-loading" role="status" aria-live="polite">
+          <div className="loading-line loading-line-title" />
+          <div className="loading-line" />
+          <div className="loading-line" />
+          <p className="muted-text">Nalagam podatke za izbrano regijo ...</p>
+        </div>
       ) : error ? (
-        <p className="error-text">{error}</p>
+        <div className="details-error" role="alert">
+          <h3>Podatkov ni mogoče naložiti</h3>
+          <p className="error-text">{error}</p>
+        </div>
       ) : !measurement ? (
         <p className="muted-text">Za izbrano regijo ni zadnje meritve.</p>
       ) : (

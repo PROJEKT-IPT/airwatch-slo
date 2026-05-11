@@ -27,7 +27,17 @@ function RegionSelect({
           </option>
         ))}
       </select>
-      {error ? <p className="field-message field-message-error">{error}</p> : null}
+      {isLoading ? (
+        <div className="inline-state" role="status" aria-live="polite">
+          <span className="inline-spinner" aria-hidden="true" />
+          <p className="field-message">Nalagam seznam regij ...</p>
+        </div>
+      ) : null}
+      {error ? (
+        <div className="inline-state inline-state-error" role="alert">
+          <p className="field-message field-message-error">{error}</p>
+        </div>
+      ) : null}
       {!isLoading && !error && !hasRegions ? (
         <p className="field-message">API trenutno ne vrača nobene regije.</p>
       ) : null}

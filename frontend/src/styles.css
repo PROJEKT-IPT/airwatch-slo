@@ -237,6 +237,32 @@ select {
   color: var(--error-text);
 }
 
+.inline-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inline-state .field-message {
+  margin: 0;
+}
+
+.inline-state-error {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--error-bg);
+}
+
+.inline-spinner {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border: 2px solid rgba(92, 107, 138, 0.22);
+  border-top-color: var(--berry-bloom);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 .metadata-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -426,6 +452,43 @@ select {
   text-align: center;
 }
 
+.map-state,
+.details-loading,
+.details-error {
+  display: grid;
+  gap: 10px;
+}
+
+.map-state {
+  width: min(100%, 360px);
+  justify-items: center;
+}
+
+.map-state h3,
+.details-error h3 {
+  margin: 0;
+  color: var(--blueberry-skin);
+  font-size: 1rem;
+}
+
+.map-state p,
+.details-error p,
+.details-loading p {
+  margin: 0;
+}
+
+.map-state-error h3,
+.map-state-error p,
+.details-error h3,
+.details-error p {
+  color: var(--error-text);
+}
+
+.details-loading,
+.details-error {
+  margin-top: 18px;
+}
+
 .region-blocks {
   width: min(100%, 360px);
   display: grid;
@@ -578,6 +641,12 @@ select {
 
   100% {
     background-position: 180% 0;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

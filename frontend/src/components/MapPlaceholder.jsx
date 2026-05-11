@@ -11,11 +11,21 @@ function MapPlaceholder({ regions, selectedRegionCode, isLoading, error }) {
 
       <div className="map-placeholder" aria-label="Prikaz regij">
         {isLoading ? (
-          <p>Nalagam regije ...</p>
+          <div className="map-state" role="status" aria-live="polite">
+            <div className="loading-line loading-line-title" />
+            <div className="loading-line" />
+            <p>Nalagam prostorski pregled regij ...</p>
+          </div>
         ) : error ? (
-          <p>{error}</p>
+          <div className="map-state map-state-error" role="alert">
+            <h3>Regij ni mogoče prikazati</h3>
+            <p>{error}</p>
+          </div>
         ) : regions.length === 0 ? (
-          <p>Regije niso na voljo.</p>
+          <div className="map-state">
+            <h3>Regije niso na voljo</h3>
+            <p>API trenutno ne vrača nobene regije za prikaz.</p>
+          </div>
         ) : (
           <div className="region-blocks">
             {regions.map(region => (
