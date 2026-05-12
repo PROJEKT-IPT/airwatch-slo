@@ -84,3 +84,17 @@ curl http://localhost:8000/processing/status
 The processing status endpoint returns the newest `processing_run` record and
 reports whether the last pipeline run was successful. It returns `404` when no
 processing runs exist yet.
+
+## Tests
+
+Run backend endpoint tests:
+
+```bash
+cd backend
+python -m pip install -r requirements-dev.txt
+python -m pytest tests
+```
+
+The Sprint 1 endpoint tests cover `GET /regions`, `GET /measurements/latest`,
+and the not-found response for an unknown region. More detail is documented in
+[`../docs/backend_tests.md`](../docs/backend_tests.md).
