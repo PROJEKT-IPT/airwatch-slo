@@ -1,6 +1,7 @@
 function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasRegion }) {
   const regionName = measurement?.region_name || selectedRegion?.region_name || 'Izbrana regija'
   const qualityStatus = getQualityStatus(measurement?.quality_status)
+  const missingDataState = measurement ? getMissingDataState(measurement) : null
 
   return (
     <section className="card detail-card">
@@ -31,7 +32,23 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
           <p className="error-text">{error}</p>
         </div>
       ) : !measurement ? (
-        <p className="muted-text">Za izbrano regijo ni zadnje meritve.</p>
+        <div className="details-empty" role="status" aria-live="polite">
+          <h3>Ni podatkov za izbrano regijo</h3>
+          <p className="muted-text">
+            Za izbrano regijo trenutno ni shranjene zadnje meritve NO₂.
+          </p>
+        </div>
+      ) : missingDataState ? (
+        <div className="details-empty" role="status" aria-live="polite">
+          <h3>{missingDataState.title}</h3>
+          <p className="muted-text">{missingDataState.text}</p>
+          <dl className="details-list">
+            <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
+            <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
+            <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
+            <DetailRow label="Čas meritve" value={formatDateTime(measurement.measurement_end_time)} />
+          </dl>
+        </div>
       ) : (
         <dl className="details-list">
           <DetailRow label="Zadnja NO₂ vrednost" value={formatNo2Value(measurement.value_mean)} />
@@ -82,6 +99,34 @@ function getQualityStatus(status) {
     return { label: 'Napaka', className: 'quality-error' }
   }
   return { label: status || 'Neznano', className: 'quality-empty' }
+}
+
+function getMissingDataState(measurement) {
+  if (measurement.quality_status === 'no_valid_pixels') {
+    return {
+      title: 'Ni veljavnih pikslov',
+      text:
+        'Za to regijo po QA filtriranju ni ostal noben veljaven Sentinel-5P piksel. Vrednosti zato ne interpretiramo kot regionalno meritev.',
+    }
+  }
+
+  if (measurement.quality_status === 'processing_error') {
+    return {
+      title: 'Napaka pri obdelavi',
+      text:
+        'Podatkovni tok je za to meritev vrnil napako, zato rezultat ni primeren za prikaz kot zanesljiva vrednost.',
+    }
+  }
+
+  if (measurement.pixel_count_valid === 0 || measurement.value_mean === null || measurement.value_mean === undefined) {
+    return {
+      title: 'NO₂ vrednost ni na voljo',
+      text:
+        'Za izbrano regijo ni dovolj veljavnih podatkov za izračun zadnje regionalne vrednosti.',
+    }
+  }
+
+  return null
 }
 
 function formatNo2Value(value) {

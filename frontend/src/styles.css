@@ -445,6 +445,33 @@ select {
   gap: 10px;
 }
 
+.measurement-unavailable {
+  margin-top: 26px;
+  display: grid;
+  gap: 16px;
+}
+
+.measurement-unavailable h3,
+.details-empty h3 {
+  margin: 0;
+  color: var(--blueberry-skin);
+  font-size: 1.05rem;
+}
+
+.measurement-unavailable p,
+.details-empty p {
+  margin: 0;
+  color: var(--stem-grey);
+  line-height: 1.6;
+}
+
+.measurement-unavailable {
+  padding: 16px;
+  border: 1px solid rgba(92, 107, 138, 0.16);
+  border-radius: 8px;
+  background: rgba(231, 226, 222, 0.35);
+}
+
 .info-tile {
   min-width: 0;
   padding: 13px;
@@ -509,8 +536,14 @@ select {
 }
 
 .details-loading,
-.details-error {
+.details-error,
+.details-empty {
   margin-top: 18px;
+}
+
+.details-empty {
+  display: grid;
+  gap: 10px;
 }
 
 .region-blocks {
