@@ -50,6 +50,8 @@ docker-compose.override.yml
 # IDE
 .vscode/
 .idea/
+.postman/
+postman/
 *.swp
 *.swo
 *~
