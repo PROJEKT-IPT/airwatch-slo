@@ -40,6 +40,73 @@ Migration order:
 8. `008_seed_sprint_1_initial_data.py`
 9. `009_region_geometry_postgis.py`
 
+## Sprint 2 Regional NO2 Database Load
+
+Sprint 2 keeps Alembic as the source of schema changes. No new schema migration is required for regional NO2 ingestion because the existing tables already support one `region_measurement` row per region, indicator, source file, and processing run.
+
+Load Slovenian NUTS3/statistical regions from the local GISCO GeoJSON file:
+
+```bash
+python backend/scripts/load_regions.py \
+  --regions-file data_pipeline/reference_data/regions/raw/NUTS_RG_20M_2024_4326_LEVL_3.geojson
+```
+
+Ingest Maida's validated regional NO2 output:
+
+```bash
+python backend/scripts/ingest_regional_no2_measurements.py \
+  --file data_pipeline/outputs/no2_by_region/regional_no2_results.json
+```
+
+Docker-friendly commands:
+
+```bash
+docker compose up -d db
+docker compose run --rm backend alembic upgrade head
+docker compose run --rm \
+  -v ./data_pipeline:/data_pipeline:ro \
+  backend python scripts/load_regions.py \
+  --regions-file /data_pipeline/reference_data/regions/raw/NUTS_RG_20M_2024_4326_LEVL_3.geojson
+docker compose run --rm \
+  -v ./data_pipeline:/data_pipeline:ro \
+  backend python scripts/ingest_regional_no2_measurements.py \
+  --file /data_pipeline/outputs/no2_by_region/regional_no2_results.json
+```
+
+The ingestion is idempotent. It reuses `region.region_code`, `source_file.external_product_id`, the existing `processing_run` uniqueness rule, and the `region_measurement` uniqueness rule to update existing rows instead of creating duplicates.
+
+Verify loaded regions:
+
+```sql
+SELECT region_code, region_name, region_type
+FROM region
+ORDER BY region_code;
+```
+
+Verify regional NO2 measurements:
+
+```sql
+SELECT r.region_code, r.region_name, rm.value_mean, rm.value_min, rm.value_max,
+       rm.pixel_count_valid, rm.quality_status, rm.unit
+FROM region_measurement rm
+JOIN region r ON r.id_region = rm.fk_region
+ORDER BY r.region_code;
+```
+
+Verify Sprint 2 summary:
+
+```sql
+SELECT rm.quality_status,
+       COUNT(*) AS region_count,
+       SUM(rm.pixel_count_valid) AS assigned_valid_pixels
+FROM region_measurement rm
+JOIN processing_run pr ON pr.id_processing_run = rm.fk_processing_run
+WHERE pr.script_name = 'aggregate_no2_by_region.py'
+  AND pr.script_version = 'sprint_2_regional'
+GROUP BY rm.quality_status
+ORDER BY rm.quality_status;
+```
+
 Install backend dependencies:
 
 ```bash
