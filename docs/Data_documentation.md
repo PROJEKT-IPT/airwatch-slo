@@ -252,6 +252,12 @@ Strategija za Sprint 2 regionalno agregacijo je dokumentirana v:
 docs/regional_no2_aggregation_strategy.md
 ```
 
+Omejitve Sentinel-5P NO₂ podatkov za regionalno interpretacijo so dokumentirane v:
+
+```text
+docs/sentinel5p_regional_interpretation_limitations.md
+```
+
 ---
 
 ## Zaključek
