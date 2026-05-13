@@ -25,6 +25,8 @@ def upgrade() -> None:
                 WHEN geometry IS NULL OR BTRIM(geometry) = '' THEN NULL
                 WHEN BTRIM(geometry) LIKE '{%' THEN
                     ST_SetSRID(ST_Multi(ST_GeomFromGeoJSON(geometry)), 4326)
+                WHEN BTRIM(geometry) ~ '^[0-9A-Fa-f]+$' THEN
+                    ST_SetSRID(ST_Multi(ST_GeomFromWKB(DECODE(BTRIM(geometry), 'hex'))), 4326)
                 ELSE
                     ST_SetSRID(ST_Multi(ST_GeomFromText(geometry)), 4326)
             END
