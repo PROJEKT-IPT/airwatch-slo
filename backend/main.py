@@ -1,16 +1,30 @@
+import logging
 import os
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from database import get_db
-from schemas import LatestMeasurementResponse, ProcessingStatusResponse, RegionResponse
+from schemas import (
+    LatestMeasurementResponse,
+    ProcessingStatusResponse,
+    RegionDetailsResponse,
+    RegionLatestMeasurementSummaryResponse,
+    RegionResponse,
+)
+from services.region_measurement_service import (
+    get_latest_no2_measurement_for_region,
+    get_latest_no2_measurements_for_statistical_regions,
+)
+from services.region_service import get_region_details_by_code
 
 app = FastAPI(title="AirWatch SLO API")
+logger = logging.getLogger(__name__)
 
 
 def get_cors_origins() -> list[str]:
@@ -144,7 +158,10 @@ def get_latest_measurement(
             JOIN data_source ds ON ds.id_data_source = dp.fk_data_source
             WHERE rm.fk_region = :selected_id_region
                 AND i.indicator_code = 'NO2'
-            ORDER BY rm.measurement_end_time DESC
+            ORDER BY
+                rm.measurement_end_time DESC,
+                rm.measurement_start_time DESC,
+                rm.id_region_measurement DESC
             LIMIT 1
             """
         ),
@@ -158,6 +175,62 @@ def get_latest_measurement(
         )
 
     return dict(row)
+
+
+@app.get(
+    "/api/v1/regions/latest-measurements",
+    response_model=list[RegionLatestMeasurementSummaryResponse],
+)
+def get_latest_region_measurements(db: Session = Depends(get_db)):
+    try:
+        return get_latest_no2_measurements_for_statistical_regions(db)
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to fetch latest regional NO2 measurements")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch latest regional measurements.",
+        ) from exc
+
+
+@app.get("/api/v1/regions/{region_code}", response_model=RegionDetailsResponse)
+def get_region_details(
+    region_code: str,
+    include_test_region: bool = Query(default=False),
+    db: Session = Depends(get_db),
+):
+    normalized_region_code = region_code.strip()
+
+    try:
+        region = get_region_details_by_code(
+            db,
+            normalized_region_code,
+            include_test_region=include_test_region,
+        )
+        if region is None:
+            raise HTTPException(status_code=404, detail="Region not found.")
+
+        latest_measurement = get_latest_no2_measurement_for_region(db, region["id_region"])
+        if latest_measurement is None:
+            raise HTTPException(
+                status_code=404,
+                detail="No NO2 measurement found for the requested region.",
+            )
+
+        return {
+            "region_code": region["region_code"],
+            "region_name": region["region_name"],
+            "region_type": region["region_type"],
+            "geometry": region["geometry"],
+            "latest_measurement": latest_measurement,
+        }
+    except HTTPException:
+        raise
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to fetch region details for %s", normalized_region_code)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch region details.",
+        ) from exc
 
 
 @app.get("/processing/status", response_model=ProcessingStatusResponse)

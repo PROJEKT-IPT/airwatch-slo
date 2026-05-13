@@ -47,6 +47,54 @@ SAMPLE_MEASUREMENT = {
     "data_source_name": "Copernicus Data Space",
 }
 
+SAMPLE_STATISTICAL_REGION = {
+    "id_region": 2,
+    "region_name": "Podravska",
+    "region_code": "SI032",
+    "region_type": "statistical_region",
+    "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [[[[15.0, 46.5], [15.1, 46.5], [15.1, 46.6], [15.0, 46.5]]]],
+    },
+}
+
+SAMPLE_REGION_LATEST_MEASUREMENT = {
+    "region_code": "SI032",
+    "region_name": "Podravska",
+    "region_type": "statistical_region",
+    "value_mean": 3.1e-05,
+    "value_min": 1.2e-05,
+    "value_max": 5.2e-05,
+    "pixel_count_valid": 41,
+    "quality_status": "valid",
+    "unit": "mol/m2",
+    "measurement_start_time": datetime(2025, 3, 11, 12, 19, 40, tzinfo=timezone.utc),
+    "measurement_end_time": datetime(2025, 3, 11, 13, 18, 5, tzinfo=timezone.utc),
+    "processing_run_id": 14,
+    "source_product_name": (
+        "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_"
+        "38393_03_020800_20250313T042301.nc"
+    ),
+}
+
+SAMPLE_REGION_DETAIL_MEASUREMENT = {
+    "value_mean": 3.1e-05,
+    "value_min": 1.2e-05,
+    "value_max": 5.2e-05,
+    "pixel_count_valid": 41,
+    "qa_threshold": 0.75,
+    "quality_status": "valid",
+    "unit": "mol/m2",
+    "measurement_start_time": datetime(2025, 3, 11, 12, 19, 40, tzinfo=timezone.utc),
+    "measurement_end_time": datetime(2025, 3, 11, 13, 18, 5, tzinfo=timezone.utc),
+    "processing_run_id": 14,
+    "source_product_id": "b898f30a-1d6e-4c6c-bdc2-9933a06e316e",
+    "source_product_name": (
+        "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_"
+        "38393_03_020800_20250313T042301.nc"
+    ),
+}
+
 
 class FakeMappingResult:
     def __init__(self, rows):
@@ -75,6 +123,32 @@ class FakeSprint1Session:
                 return FakeMappingResult([{"id_region": SAMPLE_REGION["id_region"]}])
             if params.get("id_region") == SAMPLE_REGION["id_region"]:
                 return FakeMappingResult([{"id_region": SAMPLE_REGION["id_region"]}])
+            return FakeMappingResult([])
+
+        if "WITH ranked_measurements AS" in query:
+            return FakeMappingResult([SAMPLE_REGION_LATEST_MEASUREMENT])
+
+        if "ST_AsGeoJSON" in query and "FROM region r" in query:
+            if params.get("region_code") == SAMPLE_STATISTICAL_REGION["region_code"]:
+                return FakeMappingResult(
+                    [
+                        {
+                            "id_region": SAMPLE_STATISTICAL_REGION["id_region"],
+                            "region_code": SAMPLE_STATISTICAL_REGION["region_code"],
+                            "region_name": SAMPLE_STATISTICAL_REGION["region_name"],
+                            "region_type": SAMPLE_STATISTICAL_REGION["region_type"],
+                            "geometry": (
+                                '{"type":"MultiPolygon","coordinates":[[[[15.0,46.5],'
+                                "[15.1,46.5],[15.1,46.6],[15.0,46.5]]]]}"
+                            ),
+                        }
+                    ]
+                )
+            return FakeMappingResult([])
+
+        if "sf.external_product_id AS source_product_id" in query:
+            if params.get("region_id") == SAMPLE_STATISTICAL_REGION["id_region"]:
+                return FakeMappingResult([SAMPLE_REGION_DETAIL_MEASUREMENT])
             return FakeMappingResult([])
 
         if "FROM region_measurement" in query:
@@ -119,6 +193,54 @@ def test_get_latest_measurement_returns_sprint1_measurement(client):
 
 def test_get_latest_measurement_returns_404_for_unknown_region(client):
     response = client.get("/measurements/latest?region_code=UNKNOWN")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Region not found."}
+
+
+def test_get_latest_region_measurements_returns_statistical_region_rows(client):
+    response = client.get("/api/v1/regions/latest-measurements")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data == [
+        {
+            "region_code": "SI032",
+            "region_name": "Podravska",
+            "region_type": "statistical_region",
+            "value_mean": SAMPLE_REGION_LATEST_MEASUREMENT["value_mean"],
+            "value_min": SAMPLE_REGION_LATEST_MEASUREMENT["value_min"],
+            "value_max": SAMPLE_REGION_LATEST_MEASUREMENT["value_max"],
+            "pixel_count_valid": 41,
+            "quality_status": "valid",
+            "unit": "mol/m2",
+            "measurement_start_time": "2025-03-11T12:19:40Z",
+            "measurement_end_time": "2025-03-11T13:18:05Z",
+            "processing_run_id": 14,
+            "source_product_name": SAMPLE_REGION_LATEST_MEASUREMENT["source_product_name"],
+        }
+    ]
+
+
+def test_get_region_details_returns_latest_measurement_and_geometry(client):
+    response = client.get("/api/v1/regions/SI032")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["region_code"] == "SI032"
+    assert data["region_name"] == "Podravska"
+    assert data["region_type"] == "statistical_region"
+    assert data["geometry"]["type"] == "MultiPolygon"
+    assert data["latest_measurement"]["value_mean"] == SAMPLE_REGION_DETAIL_MEASUREMENT["value_mean"]
+    assert data["latest_measurement"]["processing_run_id"] == 14
+    assert (
+        data["latest_measurement"]["source_product_id"]
+        == "b898f30a-1d6e-4c6c-bdc2-9933a06e316e"
+    )
+
+
+def test_get_region_details_returns_404_for_unknown_statistical_region(client):
+    response = client.get("/api/v1/regions/UNKNOWN")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Region not found."}

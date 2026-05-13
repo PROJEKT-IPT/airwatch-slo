@@ -331,3 +331,112 @@ unit = mol/m²
 ```
 
 Ti endpointi predstavljajo osnovo za dashboard funkcije: izbira regije, prikaz zadnje NO2 meritve, osnovne statistike in prikaz vira podatkov.
+
+## Endpoint: Latest Regional NO2 Measurements
+
+Vrne najnovejso razpolozljivo `NO2` meritev za vsako slovensko statisticno regijo.
+
+```http
+GET /api/v1/regions/latest-measurements
+```
+
+Primer:
+
+```bash
+curl http://localhost:8000/api/v1/regions/latest-measurements
+```
+
+Primer odgovora:
+
+```json
+[
+  {
+    "region_code": "SI032",
+    "region_name": "Podravska",
+    "region_type": "statistical_region",
+    "value_mean": 0.000031,
+    "value_min": 0.000012,
+    "value_max": 0.000052,
+    "pixel_count_valid": 41,
+    "quality_status": "valid",
+    "unit": "mol/m²",
+    "measurement_start_time": "2025-03-11T12:19:40+00:00",
+    "measurement_end_time": "2025-03-11T13:18:05+00:00",
+    "processing_run_id": 14,
+    "source_product_name": "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc"
+  }
+]
+```
+
+Pravila filtriranja:
+
+- vkljucene so samo regije z `region_type = statistical_region`,
+- `SI_BBOX` in druge testne regije so izkljucene iz javnega pregleda,
+- regije brez `NO2` meritve niso vrnjene,
+- rezultat je deterministicno urejen po `region_code`.
+
+Pravila za izbor "latest" meritve:
+
+- primarni kriterij je `measurement_end_time DESC`,
+- pri izenacenju sledi `measurement_start_time DESC`,
+- zadnji tie-breaker je `id_region_measurement DESC`.
+
+## Endpoint: Region Details
+
+Vrne metapodatke regije in njeno najnovejso `NO2` meritev.
+
+```http
+GET /api/v1/regions/{region_code}
+```
+
+Primer:
+
+```bash
+curl http://localhost:8000/api/v1/regions/SI032
+```
+
+Primer odgovora:
+
+```json
+{
+  "region_code": "SI032",
+  "region_name": "Podravska",
+  "region_type": "statistical_region",
+  "geometry": {
+    "type": "MultiPolygon",
+    "coordinates": []
+  },
+  "latest_measurement": {
+    "value_mean": 0.000031,
+    "value_min": 0.000012,
+    "value_max": 0.000052,
+    "pixel_count_valid": 41,
+    "qa_threshold": 0.75,
+    "quality_status": "valid",
+    "unit": "mol/m²",
+    "measurement_start_time": "2025-03-11T12:19:40+00:00",
+    "measurement_end_time": "2025-03-11T13:18:05+00:00",
+    "processing_run_id": 14,
+    "source_product_id": "b898f30a-1d6e-4c6c-bdc2-9933a06e316e",
+    "source_product_name": "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc"
+  }
+}
+```
+
+Opombe:
+
+- endpoint privzeto vrne samo statisticne regije,
+- za testne regije je potreben `?include_test_region=true`,
+- ce regija ne obstaja, API vrne `404 Region not found.`,
+- ce regija obstaja, a nima `NO2` meritve, API vrne
+  `404 No NO2 measurement found for the requested region.`,
+- `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo.
+
+## Omejitve in predpostavke
+
+- Endpointa trenutno vracata samo najnovejso `NO2` meritev. Zgodovinski grafi in
+  trende bodo gradili nadaljnji endpointi na istem modelu `region_measurement`.
+- Regije brez podatkov niso del `latest-measurements` seznama. Frontend mora ta
+  primer obravnavati kot "ni se podatkov".
+- Javni regionalni overview namerno ne prikazuje `SI_BBOX`, ker gre za Sprint 1
+  testno regijo in ne za statistično regijo Slovenije.

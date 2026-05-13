@@ -85,6 +85,28 @@ The processing status endpoint returns the newest `processing_run` record and
 reports whether the last pipeline run was successful. It returns `404` when no
 processing runs exist yet.
 
+Get latest NO2 measurements for all public Slovenian statistical regions:
+
+```bash
+curl http://localhost:8000/api/v1/regions/latest-measurements
+```
+
+Get region details with the latest NO2 measurement:
+
+```bash
+curl http://localhost:8000/api/v1/regions/SI032
+```
+
+The regional API endpoints:
+
+- return one latest `NO2` measurement per statistical region,
+- exclude `SI_BBOX` and other non-statistical test regions by default,
+- order the summary response by `region_code`,
+- use `measurement_end_time`, `measurement_start_time`, and the measurement id
+  as the deterministic latest-record ordering,
+- return `404` when a requested region does not exist or has no `NO2`
+  measurement yet.
+
 ## Tests
 
 Run backend endpoint tests:
@@ -95,6 +117,6 @@ python -m pip install -r requirements-dev.txt
 python -m pytest tests
 ```
 
-The Sprint 1 endpoint tests cover `GET /regions`, `GET /measurements/latest`,
-and the not-found response for an unknown region. More detail is documented in
+The backend endpoint tests cover the Sprint 1 endpoints plus the new regional
+NO2 API endpoints. More detail is documented in
 [`../docs/backend_tests.md`](../docs/backend_tests.md).
