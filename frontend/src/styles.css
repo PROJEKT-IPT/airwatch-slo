@@ -574,10 +574,39 @@ select {
   margin-top: 14px;
 }
 
+.region-block-valid {
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.region-block-empty {
+  background: var(--neutral-bg);
+  color: var(--neutral-text);
+}
+
+.region-block-error {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
 .region-block-active {
   color: var(--plate-white);
   background: var(--blueberry-skin);
   box-shadow: 0 12px 22px rgba(47, 58, 85, 0.18);
+}
+
+.metric-provenance {
+  margin: 18px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--stem-grey);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.region-code-line {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
 }
 
 .map-hint,

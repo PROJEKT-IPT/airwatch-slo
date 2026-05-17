@@ -1,53 +1,49 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { getLatestMeasurement, getRegions } from '../api/airwatchApi'
+import { getRegionDetails, getRegionalLatestMeasurements } from '../api/airwatchApi'
 import DataQualityCard from '../components/DataQualityCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import MapPlaceholder from '../components/MapPlaceholder'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
 
-const TEST_REGION_CODE = 'SI_BBOX'
-const TEST_REGION_TYPE = 'test_bbox'
-
 function Dashboard() {
-  const [regions, setRegions] = useState([])
+  const [regionSummaries, setRegionSummaries] = useState([])
   const [selectedRegionCode, setSelectedRegionCode] = useState('')
   const [isLoadingRegions, setIsLoadingRegions] = useState(true)
   const [regionsError, setRegionsError] = useState('')
-  const [latestMeasurement, setLatestMeasurement] = useState(null)
-  const [isLoadingMeasurement, setIsLoadingMeasurement] = useState(false)
-  const [measurementError, setMeasurementError] = useState('')
-
-  const selectedRegion = useMemo(
-    () => regions.find(region => region.region_code === selectedRegionCode) || null,
-    [regions, selectedRegionCode],
-  )
+  const [regionDetail, setRegionDetail] = useState(null)
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false)
+  const [detailError, setDetailError] = useState('')
 
   useEffect(() => {
     let isMounted = true
 
-    async function loadRegions() {
+    async function loadRegionSummaries() {
       setIsLoadingRegions(true)
       setRegionsError('')
 
       try {
-        const loadedRegions = await getRegions()
+        const summaries = await getRegionalLatestMeasurements()
 
         if (!isMounted) {
           return
         }
 
-        setRegions(Array.isArray(loadedRegions) ? loadedRegions : [])
-        setSelectedRegionCode(loadedRegions?.[0]?.region_code || '')
+        const safeSummaries = Array.isArray(summaries) ? summaries : []
+        setRegionSummaries(safeSummaries)
+
+        const firstValid = safeSummaries.find(item => item.quality_status === 'valid')
+        const defaultRegion = firstValid?.region_code || safeSummaries[0]?.region_code || ''
+        setSelectedRegionCode(defaultRegion)
       } catch (error) {
         if (!isMounted) {
           return
         }
 
-        setRegions([])
+        setRegionSummaries([])
         setSelectedRegionCode('')
-        setRegionsError('Regij ni bilo mogoče naložiti iz API-ja.')
+        setRegionsError('Statističnih regij ni bilo mogoče naložiti iz API-ja.')
       } finally {
         if (isMounted) {
           setIsLoadingRegions(false)
@@ -55,7 +51,7 @@ function Dashboard() {
       }
     }
 
-    loadRegions()
+    loadRegionSummaries()
 
     return () => {
       isMounted = false
@@ -65,53 +61,78 @@ function Dashboard() {
   useEffect(() => {
     let isMounted = true
 
-    async function loadLatestMeasurement() {
+    async function loadRegionDetail() {
       if (!selectedRegionCode) {
-        setLatestMeasurement(null)
-        setMeasurementError('')
+        setRegionDetail(null)
+        setDetailError('')
         return
       }
 
-      setIsLoadingMeasurement(true)
-      setMeasurementError('')
+      setIsLoadingDetail(true)
+      setDetailError('')
 
       try {
-        const measurement = await getLatestMeasurement(selectedRegionCode)
+        const detail = await getRegionDetails(selectedRegionCode)
 
         if (!isMounted) {
           return
         }
 
-        setLatestMeasurement(measurement)
+        setRegionDetail(detail)
       } catch (error) {
         if (!isMounted) {
           return
         }
 
-        setLatestMeasurement(null)
-        setMeasurementError('Zadnje meritve NO₂ ni bilo mogoče naložiti iz API-ja.')
+        setRegionDetail(null)
+        setDetailError('Podrobnosti izbrane regije ni bilo mogoče naložiti iz API-ja.')
       } finally {
         if (isMounted) {
-          setIsLoadingMeasurement(false)
+          setIsLoadingDetail(false)
         }
       }
     }
 
-    loadLatestMeasurement()
+    loadRegionDetail()
 
     return () => {
       isMounted = false
     }
   }, [selectedRegionCode])
 
+  const measurement = useMemo(() => {
+    if (!regionDetail || !regionDetail.latest_measurement) {
+      return null
+    }
+
+    return {
+      region_code: regionDetail.region_code,
+      region_name: regionDetail.region_name,
+      region_type: regionDetail.region_type,
+      ...regionDetail.latest_measurement,
+    }
+  }, [regionDetail])
+
+  const selectedSummary = useMemo(
+    () => regionSummaries.find(item => item.region_code === selectedRegionCode) || null,
+    [regionSummaries, selectedRegionCode],
+  )
+
+  const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
+  const timeRangeLabel = formatDateTimeRange(
+    measurement?.measurement_start_time,
+    measurement?.measurement_end_time,
+  )
+
   return (
       <main className="dashboard-main">
         <header className="dashboard-header">
           <div>
             <p className="eyebrow">AirWatch SLO</p>
-            <h1>Pregled NO₂ po regijah</h1>
+            <h1>Pregled NO₂ po slovenskih statističnih regijah</h1>
             <p className="dashboard-subtitle">
-              Satelitsko spremljanje kakovosti zraka nad Slovenijo.
+              Podatki temeljijo na zadnjih obdelanih Sentinel-5P produktih,
+              ne na meritvah v realnem času.
             </p>
           </div>
           <div className="header-status">
@@ -122,53 +143,52 @@ function Dashboard() {
 
         <section className="top-controls" aria-label="Izbira regije in metapodatki">
           <RegionSelect
-            regions={regions}
+            regions={regionSummaries}
             selectedRegionCode={selectedRegionCode}
             onRegionChange={setSelectedRegionCode}
             isLoading={isLoadingRegions}
             error={regionsError}
-            isTestRegion={isTestRegion}
           />
 
           <div className="metadata-strip">
             <MetadataItem
               label="Izbrana regija"
-              value={selectedRegion?.region_name || 'Ni izbrana'}
-              badge={isTestRegion(selectedRegion) ? 'testno območje' : ''}
+              value={displayRegionName || 'Ni izbrana'}
+              detail={selectedRegionCode || ''}
             />
             <MetadataItem
               label="Čas meritve"
-              value={formatDateTime(latestMeasurement?.measurement_end_time)}
+              value={formatDateTime(measurement?.measurement_end_time)}
+              detail={timeRangeLabel}
             />
             <ProductMetadataItem
-              label="Produkt"
-              sourceProductName={latestMeasurement?.source_product_name}
+              label="Vir produkta"
+              sourceProductName={measurement?.source_product_name}
             />
           </div>
         </section>
 
         <section className="dashboard-grid">
           <LatestMeasurementCard
-            measurement={latestMeasurement}
-            selectedRegion={selectedRegion}
-            isLoading={isLoadingMeasurement}
-            error={measurementError}
+            measurement={measurement}
+            selectedRegion={selectedSummary}
+            isLoading={isLoadingDetail}
+            error={detailError}
             hasRegion={Boolean(selectedRegionCode)}
-            isTestRegion={isTestRegion(selectedRegion)}
           />
 
           <MapPlaceholder
-            regions={regions}
+            regions={regionSummaries}
             selectedRegionCode={selectedRegionCode}
             isLoading={isLoadingRegions}
             error={regionsError}
           />
 
           <RegionDetailsCard
-            measurement={latestMeasurement}
-            selectedRegion={selectedRegion}
-            isLoading={isLoadingMeasurement}
-            error={measurementError}
+            measurement={measurement}
+            selectedRegion={selectedSummary}
+            isLoading={isLoadingDetail}
+            error={detailError}
             hasRegion={Boolean(selectedRegionCode)}
           />
 
@@ -194,12 +214,12 @@ function Dashboard() {
   )
 }
 
-function MetadataItem({ label, value, badge = '' }) {
+function MetadataItem({ label, value, detail = '' }) {
   return (
-    <div className="metadata-item">
+    <div className="metadata-item" title={detail || ''}>
       <span>{label}</span>
       <strong>{value || 'Ni podatka'}</strong>
-      {badge ? <em className="metadata-badge">{badge}</em> : null}
+      {detail ? <em>{detail}</em> : null}
     </div>
   )
 }
@@ -226,10 +246,6 @@ function formatProductLabel(sourceProductName) {
   return sourceProductName
 }
 
-function isTestRegion(region) {
-  return region?.region_type === TEST_REGION_TYPE || region?.region_code === TEST_REGION_CODE
-}
-
 function formatDateTime(value) {
   if (!value) {
     return 'Ni podatka'
@@ -245,6 +261,25 @@ function formatDateTime(value) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date)
+}
+
+function formatDateTimeRange(startValue, endValue) {
+  if (!startValue || !endValue) {
+    return ''
+  }
+
+  const startText = formatDateTime(startValue)
+  const endText = formatDateTime(endValue)
+
+  if (startText === 'Ni podatka' || endText === 'Ni podatka') {
+    return ''
+  }
+
+  if (startText === endText) {
+    return startText
+  }
+
+  return `${startText} – ${endText}`
 }
 
 export default Dashboard

@@ -1,5 +1,6 @@
 function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasRegion }) {
   const regionName = measurement?.region_name || selectedRegion?.region_name || 'Izbrana regija'
+  const regionCode = measurement?.region_code || selectedRegion?.region_code || ''
   const qualityStatus = getQualityStatus(measurement?.quality_status)
   const missingDataState = measurement ? getMissingDataState(measurement) : null
 
@@ -7,8 +8,9 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
     <section className="card detail-card">
       <div className="card-heading">
         <div>
-          <p className="section-kicker">Izbrana regija</p>
+          <p className="section-kicker">Podrobnosti izbrane regije</p>
           <h2>{hasRegion ? regionName : 'Regija ni izbrana'}</h2>
+          {regionCode ? <p className="muted-text region-code-line">Koda regije: {regionCode}</p> : null}
         </div>
         {measurement ? (
           <span className={`quality-badge ${qualityStatus.className}`}>
@@ -18,7 +20,7 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
       </div>
 
       {!hasRegion ? (
-        <p className="muted-text">Izberite regijo za prikaz zadnje meritve NO₂.</p>
+        <p className="muted-text">Izberite statistično regijo za prikaz zadnje meritve NO₂.</p>
       ) : isLoading ? (
         <div className="details-loading" role="status" aria-live="polite">
           <div className="loading-line loading-line-title" />
@@ -46,7 +48,13 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
             <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
             <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
             <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
-            <DetailRow label="Čas meritve" value={formatDateTime(measurement.measurement_end_time)} />
+            <DetailRow label="Začetek meritve" value={formatDateTime(measurement.measurement_start_time)} />
+            <DetailRow label="Konec meritve" value={formatDateTime(measurement.measurement_end_time)} />
+            <DetailRow label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
+            <DetailRow
+              label="Vir produkta"
+              value={measurement.source_product_name || 'Ni podatka'}
+            />
           </dl>
         </div>
       ) : (
@@ -58,8 +66,15 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
           />
           <DetailRow label="Enota" value={measurement.unit || 'Ni podatka'} />
           <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
+          <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
           <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
-          <DetailRow label="Čas meritve" value={formatDateTime(measurement.measurement_end_time)} />
+          <DetailRow label="Začetek meritve" value={formatDateTime(measurement.measurement_start_time)} />
+          <DetailRow label="Konec meritve" value={formatDateTime(measurement.measurement_end_time)} />
+          <DetailRow label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
+          <DetailRow
+            label="Vir produkta"
+            value={measurement.source_product_name || 'Ni podatka'}
+          />
         </dl>
       )}
     </section>
@@ -104,7 +119,7 @@ function getQualityStatus(status) {
 function getMissingDataState(measurement) {
   if (measurement.quality_status === 'no_valid_pixels') {
     return {
-      title: 'Ni veljavnih pikslov',
+      title: 'Ni veljavnih pikslov za izbrano regijo',
       text:
         'Za to regijo po QA filtriranju ni ostal noben veljaven Sentinel-5P piksel. Vrednosti zato ne interpretiramo kot regionalno meritev.',
     }
@@ -118,7 +133,11 @@ function getMissingDataState(measurement) {
     }
   }
 
-  if (measurement.pixel_count_valid === 0 || measurement.value_mean === null || measurement.value_mean === undefined) {
+  if (
+    measurement.pixel_count_valid === 0 ||
+    measurement.value_mean === null ||
+    measurement.value_mean === undefined
+  ) {
     return {
       title: 'NO₂ vrednost ni na voljo',
       text:

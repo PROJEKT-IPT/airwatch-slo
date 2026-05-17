@@ -4,7 +4,7 @@ function MapPlaceholder({ regions, selectedRegionCode, isLoading, error }) {
       <div className="card-heading">
         <div>
           <p className="section-kicker">Prostorski pregled</p>
-          <h2>NO₂ po regijah</h2>
+          <h2>NO₂ po statističnih regijah</h2>
         </div>
         <span className="map-tag">MVP</span>
       </div>
@@ -24,31 +24,68 @@ function MapPlaceholder({ regions, selectedRegionCode, isLoading, error }) {
         ) : regions.length === 0 ? (
           <div className="map-state">
             <h3>Regije niso na voljo</h3>
-            <p>API trenutno ne vrača nobene regije za prikaz.</p>
+            <p>API trenutno ne vrača nobene statistične regije za prikaz.</p>
           </div>
         ) : (
           <div className="region-blocks">
-            {regions.map(region => (
-              <div
-                key={region.region_code}
-                className={`region-block ${
-                  region.region_code === selectedRegionCode ? 'region-block-active' : ''
-                }`}
-                title={region.region_name}
-              >
-                {region.region_code}
-              </div>
-            ))}
+            {regions.map(region => {
+              const isActive = region.region_code === selectedRegionCode
+              const qualityClassName = qualityClass(region.quality_status)
+              return (
+                <div
+                  key={region.region_code}
+                  className={`region-block ${qualityClassName} ${
+                    isActive ? 'region-block-active' : ''
+                  }`}
+                  title={`${region.region_name} — ${qualityLabel(region.quality_status)}`}
+                >
+                  {region.region_code}
+                </div>
+              )
+            })}
           </div>
         )}
       </div>
 
       <p className="map-hint">
         Interaktivni zemljevid bo uporabljal slovenske statistične regije NUTS3.
-        Kliknite regijo za podrobnosti, ko bo zemljevid dodan.
+        Barvni odtenek polja označuje status kakovosti zadnje meritve. Klik za
+        izbiro regije bo dodan, ko bo zemljevid implementiran.
       </p>
     </section>
   )
+}
+
+function qualityClass(status) {
+  if (status === 'valid') {
+    return 'region-block-valid'
+  }
+
+  if (status === 'no_valid_pixels') {
+    return 'region-block-empty'
+  }
+
+  if (status === 'processing_error') {
+    return 'region-block-error'
+  }
+
+  return ''
+}
+
+function qualityLabel(status) {
+  if (status === 'valid') {
+    return 'veljavna meritev'
+  }
+
+  if (status === 'no_valid_pixels') {
+    return 'ni veljavnih pikslov'
+  }
+
+  if (status === 'processing_error') {
+    return 'napaka obdelave'
+  }
+
+  return 'status neznan'
 }
 
 export default MapPlaceholder

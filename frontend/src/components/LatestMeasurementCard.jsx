@@ -4,12 +4,14 @@ function LatestMeasurementCard({
   isLoading,
   error,
   hasRegion,
-  isTestRegion,
 }) {
   if (!hasRegion) {
     return (
       <article className="card metric-card">
-        <EmptyState title="Ni izbrane regije" text="Izberite regijo za prikaz zadnje meritve." />
+        <EmptyState
+          title="Ni izbrane regije"
+          text="Izberite statistično regijo za prikaz zadnje razpoložljive veljavne meritve."
+        />
       </article>
     )
   }
@@ -17,7 +19,7 @@ function LatestMeasurementCard({
   if (isLoading) {
     return (
       <article className="card metric-card">
-        <LoadingState title="Nalagam zadnjo meritev NO₂" />
+        <LoadingState title="Nalagam zadnjo razpoložljivo veljavno meritev NO₂" />
       </article>
     )
   }
@@ -35,7 +37,7 @@ function LatestMeasurementCard({
       <article className="card metric-card">
         <EmptyState
           title="Za izbrano regijo ni podatkov"
-          text="Za izbrano regijo trenutno ni shranjene zadnje meritve NO₂. Poskusite drugo regijo ali preverite status obdelave podatkov."
+          text="Za izbrano regijo trenutno ni shranjene meritve NO₂. Poskusite drugo regijo ali preverite status obdelave podatkov."
         />
       </article>
     )
@@ -43,17 +45,16 @@ function LatestMeasurementCard({
 
   const status = getQualityStatus(measurement.quality_status)
   const missingDataState = getMissingDataState(measurement)
+  const regionName =
+    measurement.region_name || selectedRegion?.region_name || 'Izbrana regija'
 
   if (missingDataState) {
     return (
       <article className="card metric-card">
         <div className="card-heading">
           <div>
-            <p className="section-kicker">Zadnja meritev</p>
-            <div className="title-with-badge">
-              <h2>{measurement.region_name || selectedRegion?.region_name || 'Izbrana regija'}</h2>
-              {isTestRegion ? <span className="test-region-badge">testno območje</span> : null}
-            </div>
+            <p className="section-kicker">Zadnja razpoložljiva veljavna meritev</p>
+            <h2>{regionName}</h2>
           </div>
           <span className={`quality-badge ${status.className}`}>{status.label}</span>
         </div>
@@ -63,6 +64,8 @@ function LatestMeasurementCard({
           text={missingDataState.text}
           measurement={measurement}
         />
+
+        <ProvenanceFootnote measurement={measurement} />
       </article>
     )
   }
@@ -71,11 +74,8 @@ function LatestMeasurementCard({
     <article className="card metric-card">
       <div className="card-heading">
         <div>
-          <p className="section-kicker">Zadnja meritev</p>
-          <div className="title-with-badge">
-            <h2>{measurement.region_name || selectedRegion?.region_name || 'Izbrana regija'}</h2>
-            {isTestRegion ? <span className="test-region-badge">testno območje</span> : null}
-          </div>
+          <p className="section-kicker">Zadnja razpoložljiva veljavna meritev</p>
+          <h2>{regionName}</h2>
         </div>
         <span className={`quality-badge ${status.className}`}>{status.label}</span>
       </div>
@@ -86,19 +86,34 @@ function LatestMeasurementCard({
       </div>
 
       <div className="metric-meta-grid">
-        <InfoTile label="Indikator" value={formatIndicatorCode(measurement.indicator_code)} />
-        <InfoTile label="Meritev" value={formatDateTime(measurement.measurement_end_time)} />
-        <InfoTile label="Vir" value={measurement.data_source_name || 'Ni podatka'} />
+        <InfoTile label="Indikator" value="NO₂" />
+        <InfoTile label="Status meritve" value={formatQualityStatus(measurement.quality_status)} />
         <InfoTile label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
         <InfoTile label="QA prag" value={formatNumber(measurement.qa_threshold)} />
+        <InfoTile label="Čas meritve" value={formatDateTime(measurement.measurement_end_time)} />
+        <InfoTile label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
         <InfoTile
-          label="Produkt"
+          label="Vir produkta"
           value={formatProductLabel(measurement.source_product_name)}
           detail={measurement.source_product_name}
           wide
         />
       </div>
+
+      <ProvenanceFootnote measurement={measurement} />
     </article>
+  )
+}
+
+function ProvenanceFootnote({ measurement }) {
+  return (
+    <p className="metric-provenance">
+      Satelitska regionalna ocena. Podatki temeljijo na obdelanih Sentinel-5P produktih,
+      ne na meritvah v realnem času.
+      {measurement?.source_product_id
+        ? ` ID produkta: ${measurement.source_product_id}.`
+        : ''}
+    </p>
   )
 }
 
@@ -148,7 +163,7 @@ function UnavailableMeasurementState({ title, text, measurement }) {
       <div className="metric-meta-grid">
         <InfoTile label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
         <InfoTile label="QA prag" value={formatNumber(measurement.qa_threshold)} />
-        <InfoTile label="Meritev" value={formatDateTime(measurement.measurement_end_time)} />
+        <InfoTile label="Čas meritve" value={formatDateTime(measurement.measurement_end_time)} />
         <InfoTile label="Status" value={formatQualityStatus(measurement.quality_status)} />
       </div>
     </div>
@@ -158,9 +173,9 @@ function UnavailableMeasurementState({ title, text, measurement }) {
 function getMissingDataState(measurement) {
   if (measurement.quality_status === 'no_valid_pixels') {
     return {
-      title: 'Ni veljavnih NO₂ pikslov',
+      title: 'Ni veljavnih NO₂ pikslov za izbrano regijo',
       text:
-        'Vsi piksli za izbrano regijo so bili izločeni s filtrom kakovosti. To se pogosto zgodi zaradi oblakov, snega ali prenizkega qa_value.',
+        'Vsi piksli so bili izločeni s filtrom kakovosti (qa_value >= 0.75). To se pogosto zgodi zaradi oblakov, snega ali prenizkega qa_value.',
     }
   }
 
@@ -172,7 +187,11 @@ function getMissingDataState(measurement) {
     }
   }
 
-  if (measurement.pixel_count_valid === 0 || measurement.value_mean === null || measurement.value_mean === undefined) {
+  if (
+    measurement.pixel_count_valid === 0 ||
+    measurement.value_mean === null ||
+    measurement.value_mean === undefined
+  ) {
     return {
       title: 'Vrednost NO₂ ni na voljo',
       text:
@@ -213,14 +232,6 @@ function formatQualityStatus(status) {
   }
 
   return status || 'Ni podatka'
-}
-
-function formatIndicatorCode(value) {
-  if (!value) {
-    return 'NO₂'
-  }
-
-  return String(value).replace(/NO2/g, 'NO₂')
 }
 
 function formatProductLabel(sourceProductName) {

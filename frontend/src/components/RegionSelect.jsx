@@ -4,13 +4,12 @@ function RegionSelect({
   onRegionChange,
   isLoading,
   error,
-  isTestRegion,
 }) {
   const hasRegions = regions.length > 0
 
   return (
     <div className="region-select">
-      <label htmlFor="region-select">Regija</label>
+      <label htmlFor="region-select">Statistična regija</label>
       <select
         id="region-select"
         value={selectedRegionCode}
@@ -23,7 +22,7 @@ function RegionSelect({
         {regions.map(region => (
           <option key={region.region_code} value={region.region_code}>
             {region.region_name}
-            {isTestRegion?.(region) ? ' (testno območje)' : ''}
+            {region.quality_status === 'no_valid_pixels' ? ' (ni veljavnih pikslov)' : ''}
           </option>
         ))}
       </select>
@@ -39,7 +38,7 @@ function RegionSelect({
         </div>
       ) : null}
       {!isLoading && !error && !hasRegions ? (
-        <p className="field-message">API trenutno ne vrača nobene regije.</p>
+        <p className="field-message">API trenutno ne vrača nobene statistične regije.</p>
       ) : null}
     </div>
   )

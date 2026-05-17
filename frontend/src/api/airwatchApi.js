@@ -4,41 +4,38 @@ function getApiBaseUrl() {
   return (import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace(/\/$/, '')
 }
 
-export async function getRegions() {
-  const response = await fetch(`${getApiBaseUrl()}/regions`)
-
-  if (!response.ok) {
-    throw new Error(`Failed to load regions: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-export async function getLatestMeasurement(regionCode) {
-  const params = new URLSearchParams({ region_code: regionCode })
-  const response = await fetch(`${getApiBaseUrl()}/measurements/latest?${params}`)
+async function fetchJsonOrNull(url, label) {
+  const response = await fetch(url)
 
   if (response.status === 404) {
     return null
   }
 
   if (!response.ok) {
-    throw new Error(`Failed to load latest measurement: ${response.status}`)
+    throw new Error(`Failed to load ${label}: ${response.status}`)
   }
 
   return response.json()
+}
+
+export async function getRegionalLatestMeasurements() {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/regions/latest-measurements`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load regional latest measurements: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+export async function getRegionDetails(regionCode) {
+  const safeCode = encodeURIComponent(regionCode)
+  return fetchJsonOrNull(
+    `${getApiBaseUrl()}/api/v1/regions/${safeCode}`,
+    `region details for ${regionCode}`,
+  )
 }
 
 export async function getProcessingStatus() {
-  const response = await fetch(`${getApiBaseUrl()}/processing/status`)
-
-  if (response.status === 404) {
-    return null
-  }
-
-  if (!response.ok) {
-    throw new Error(`Failed to load processing status: ${response.status}`)
-  }
-
-  return response.json()
+  return fetchJsonOrNull(`${getApiBaseUrl()}/processing/status`, 'processing status')
 }
