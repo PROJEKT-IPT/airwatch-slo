@@ -114,6 +114,16 @@ Podrobnosti in ukazi za preverjanje/prenos so dokumentirani v:
 docs/sprint2_selected_no2_input_product.md
 ```
 
+### Sprint 3 novejši vhodni produkt
+
+Za AIRSLO-80 je bil izbran novejši OFFL Sentinel-5P NO₂ produkt (`1cee3f1c-b237-4532-9505-d20f9baf7daf`, senzing 2026-05-08T12:03Z–13:01Z), ki je bil obdelan in vnesen v bazo. Sprint 2 produkt ostaja v bazi kot zgodovinski zapis. Dashboard zato prikazuje novejše obdelane regionalne meritve.
+
+Podrobnosti so dokumentirane v:
+
+```text
+docs/sprint3_selected_no2_input_product.md
+```
+
 ---
 
 ## Struktura NetCDF datoteke

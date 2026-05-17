@@ -476,6 +476,7 @@ The run is complete when all of the following hold:
 
 - `docs/Data_documentation.md` — Sentinel-5P NO₂ data discovery and selected product.
 - `docs/sprint2_selected_no2_input_product.md` — frozen Sprint 2 input product.
+- `docs/sprint3_selected_no2_input_product.md` — newer (2026-05-08) OFFL product ingested under AIRSLO-80; the dashboard's current "latest available processed Sentinel-5P measurement".
 - `docs/slovenian_region_boundaries.md` — GISCO NUTS3 boundary decision.
 - `docs/slovenia_no2_crop_filter.md` — crop/filter step details.
 - `docs/regional_no2_aggregation_strategy.md` — pixel-to-region strategy.
