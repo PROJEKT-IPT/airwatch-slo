@@ -161,6 +161,7 @@ Prenesene `.nc` in `.zip` datoteke ostanejo v `data_pipeline/sample_data/` in ne
 - Data pipeline navodila: `data_pipeline/README.md`
 - CI navodila: `docs/ci.md`
 - Sentinel-5P NO2 discovery template: `docs/data_discovery_sentinel5p_no2.md`
+- Regional NO₂ pipeline runbook: `docs/regional_pipeline_runbook.md`
 - Predlagana struktura projekta: `structure.md`
 
 ## Lokalni razvoj

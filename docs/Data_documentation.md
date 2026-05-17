@@ -258,6 +258,13 @@ Omejitve Sentinel-5P NO₂ podatkov za regionalno interpretacijo so dokumentiran
 docs/sentinel5p_regional_interpretation_limitations.md
 ```
 
+End-to-end navodila za ponovljiv regionalni NO₂ tok (od `.nc` produkta prek
+agregacije in validacije do baze, API-ja in frontend preverjanja) so v:
+
+```text
+docs/regional_pipeline_runbook.md
+```
+
 ---
 
 ## Zaključek
