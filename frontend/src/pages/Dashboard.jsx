@@ -43,7 +43,9 @@ function Dashboard() {
 
         setRegionSummaries([])
         setSelectedRegionCode('')
-        setRegionsError('Statističnih regij ni bilo mogoče naložiti iz API-ja.')
+        setRegionsError(
+          'Statističnih regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
+        )
       } finally {
         if (isMounted) {
           setIsLoadingRegions(false)
@@ -69,6 +71,7 @@ function Dashboard() {
       }
 
       setIsLoadingDetail(true)
+      setRegionDetail(null)
       setDetailError('')
 
       try {
@@ -85,7 +88,9 @@ function Dashboard() {
         }
 
         setRegionDetail(null)
-        setDetailError('Podrobnosti izbrane regije ni bilo mogoče naložiti iz API-ja.')
+        setDetailError(
+          'Podrobnosti izbrane regije ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
+        )
       } finally {
         if (isMounted) {
           setIsLoadingDetail(false)

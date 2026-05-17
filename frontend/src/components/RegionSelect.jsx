@@ -17,7 +17,7 @@ function RegionSelect({
         disabled={isLoading || !hasRegions}
       >
         <option value="">
-          {isLoading ? 'Nalagam regije ...' : 'Izberite regijo'}
+          {isLoading ? 'Nalaganje regij ...' : 'Izberite regijo'}
         </option>
         {regions.map(region => (
           <option key={region.region_code} value={region.region_code}>
@@ -29,7 +29,7 @@ function RegionSelect({
       {isLoading ? (
         <div className="inline-state" role="status" aria-live="polite">
           <span className="inline-spinner" aria-hidden="true" />
-          <p className="field-message">Nalagam seznam regij ...</p>
+          <p className="field-message">Nalaganje regij ...</p>
         </div>
       ) : null}
       {error ? (
@@ -38,7 +38,10 @@ function RegionSelect({
         </div>
       ) : null}
       {!isLoading && !error && !hasRegions ? (
-        <p className="field-message">API trenutno ne vrača nobene statistične regije.</p>
+        <p className="field-message">
+          Regijski podatki trenutno niso na voljo. Možno je, da regionalne
+          meritve še niso bile naložene v bazo.
+        </p>
       ) : null}
     </div>
   )

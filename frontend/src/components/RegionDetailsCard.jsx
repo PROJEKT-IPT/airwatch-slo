@@ -26,7 +26,7 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
           <div className="loading-line loading-line-title" />
           <div className="loading-line" />
           <div className="loading-line" />
-          <p className="muted-text">Nalagam podatke za izbrano regijo ...</p>
+          <p className="muted-text">Nalaganje podatkov za izbrano regijo ...</p>
         </div>
       ) : error ? (
         <div className="details-error" role="alert">
@@ -100,7 +100,7 @@ function formatQualityStatus(status) {
   if (status === 'processing_error') {
     return 'Napaka obdelave'
   }
-  return status || 'Ni podatka'
+  return 'Neznano'
 }
 
 function getQualityStatus(status) {
@@ -111,25 +111,25 @@ function getQualityStatus(status) {
     return { label: 'Ni podatkov', className: 'quality-empty' }
   }
   if (status === 'processing_error') {
-    return { label: 'Napaka', className: 'quality-error' }
+    return { label: 'Napaka obdelave', className: 'quality-error' }
   }
-  return { label: status || 'Neznano', className: 'quality-empty' }
+  return { label: 'Neznano', className: 'quality-empty' }
 }
 
 function getMissingDataState(measurement) {
   if (measurement.quality_status === 'no_valid_pixels') {
     return {
-      title: 'Ni veljavnih pikslov za izbrano regijo',
+      title: 'Ni veljavnih podatkov za izbrano regijo',
       text:
-        'Za to regijo po QA filtriranju ni ostal noben veljaven Sentinel-5P piksel. Vrednosti zato ne interpretiramo kot regionalno meritev.',
+        'Za izbrani Sentinel-5P produkt v tej regiji ni bilo dovolj veljavnih NO₂ pikslov po kakovostnem filtru. Vrednosti zato ne prikazujemo kot regionalno meritev.',
     }
   }
 
   if (measurement.quality_status === 'processing_error') {
     return {
-      title: 'Napaka pri obdelavi',
+      title: 'Napaka pri obdelavi meritve',
       text:
-        'Podatkovni tok je za to meritev vrnil napako, zato rezultat ni primeren za prikaz kot zanesljiva vrednost.',
+        'Podatkovni tok je za to meritev vrnil napako, zato rezultat ni primeren za prikaz kot zanesljiva vrednost. Vrednosti zato niso prikazane.',
     }
   }
 

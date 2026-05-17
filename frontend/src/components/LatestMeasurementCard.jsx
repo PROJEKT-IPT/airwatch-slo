@@ -19,7 +19,7 @@ function LatestMeasurementCard({
   if (isLoading) {
     return (
       <article className="card metric-card">
-        <LoadingState title="Nalagam zadnjo razpoložljivo veljavno meritev NO₂" />
+        <LoadingState title="Nalaganje zadnje razpoložljive veljavne meritve NO₂ ..." />
       </article>
     )
   }
@@ -36,8 +36,8 @@ function LatestMeasurementCard({
     return (
       <article className="card metric-card">
         <EmptyState
-          title="Za izbrano regijo ni podatkov"
-          text="Za izbrano regijo trenutno ni shranjene meritve NO₂. Poskusite drugo regijo ali preverite status obdelave podatkov."
+          title="Za izbrano regijo ni shranjene meritve"
+          text="Za izbrano regijo trenutno ni shranjene zadnje razpoložljive veljavne meritve NO₂. Poskusite drugo regijo ali preverite status obdelave podatkov."
         />
       </article>
     )
@@ -173,17 +173,17 @@ function UnavailableMeasurementState({ title, text, measurement }) {
 function getMissingDataState(measurement) {
   if (measurement.quality_status === 'no_valid_pixels') {
     return {
-      title: 'Ni veljavnih NO₂ pikslov za izbrano regijo',
+      title: 'Ni veljavnih podatkov za izbrano regijo',
       text:
-        'Vsi piksli so bili izločeni s filtrom kakovosti (qa_value >= 0.75). To se pogosto zgodi zaradi oblakov, snega ali prenizkega qa_value.',
+        'Za izbrani Sentinel-5P produkt v tej regiji ni bilo dovolj veljavnih NO₂ pikslov po kakovostnem filtru (qa_value >= 0.75). Pogost vzrok so oblaki, sneg ali nizka kakovost retrieval-a.',
     }
   }
 
   if (measurement.quality_status === 'processing_error') {
     return {
-      title: 'Meritev ni zanesljiva',
+      title: 'Napaka pri obdelavi meritve',
       text:
-        'Obdelava podatkov za to regijo se ni uspešno zaključila, zato vrednosti ne prikazujemo kot uporabno meritev.',
+        'Izbrane meritve trenutno ni mogoče prikazati kot zanesljive vrednosti, ker se obdelava ni uspešno zaključila. Vrednosti zato niso prikazane.',
     }
   }
 
@@ -212,10 +212,10 @@ function getQualityStatus(status) {
   }
 
   if (status === 'processing_error') {
-    return { label: 'Napaka', className: 'quality-error' }
+    return { label: 'Napaka obdelave', className: 'quality-error' }
   }
 
-  return { label: status || 'Neznano', className: 'quality-empty' }
+  return { label: 'Neznano', className: 'quality-empty' }
 }
 
 function formatQualityStatus(status) {
@@ -231,7 +231,7 @@ function formatQualityStatus(status) {
     return 'Napaka obdelave'
   }
 
-  return status || 'Ni podatka'
+  return 'Neznano'
 }
 
 function formatProductLabel(sourceProductName) {

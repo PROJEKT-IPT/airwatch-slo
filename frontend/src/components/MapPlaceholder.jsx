@@ -14,7 +14,7 @@ function MapPlaceholder({ regions, selectedRegionCode, isLoading, error }) {
           <div className="map-state" role="status" aria-live="polite">
             <div className="loading-line loading-line-title" />
             <div className="loading-line" />
-            <p>Nalagam prostorski pregled regij ...</p>
+            <p>Nalaganje prostorskega pregleda regij ...</p>
           </div>
         ) : error ? (
           <div className="map-state map-state-error" role="alert">
@@ -23,8 +23,8 @@ function MapPlaceholder({ regions, selectedRegionCode, isLoading, error }) {
           </div>
         ) : regions.length === 0 ? (
           <div className="map-state">
-            <h3>Regije niso na voljo</h3>
-            <p>API trenutno ne vrača nobene statistične regije za prikaz.</p>
+            <h3>Regijski podatki trenutno niso na voljo</h3>
+            <p>Regionalne meritve morda še niso bile naložene v bazo.</p>
           </div>
         ) : (
           <div className="region-blocks">
