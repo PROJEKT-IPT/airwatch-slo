@@ -131,8 +131,9 @@ function Dashboard() {
             <p className="eyebrow">AirWatch SLO</p>
             <h1>Pregled NO₂ po slovenskih statističnih regijah</h1>
             <p className="dashboard-subtitle">
-              Podatki temeljijo na zadnjih obdelanih Sentinel-5P produktih,
-              ne na meritvah v realnem času.
+              Prikaz zadnje razpoložljive veljavne NO₂ meritve iz obdelanih
+              Sentinel-5P produktov. Prikaz ne predstavlja meritev v realnem
+              času.
             </p>
           </div>
           <div className="header-status">

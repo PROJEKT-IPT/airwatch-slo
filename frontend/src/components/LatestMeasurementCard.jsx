@@ -108,8 +108,8 @@ function LatestMeasurementCard({
 function ProvenanceFootnote({ measurement }) {
   return (
     <p className="metric-provenance">
-      Satelitska regionalna ocena. Podatki temeljijo na obdelanih Sentinel-5P produktih,
-      ne na meritvah v realnem času.
+      Satelitska regionalna ocena na podlagi obdelanega Sentinel-5P produkta.
+      Prikaz ne predstavlja meritev v realnem času.
       {measurement?.source_product_id
         ? ` ID produkta: ${measurement.source_product_id}.`
         : ''}
