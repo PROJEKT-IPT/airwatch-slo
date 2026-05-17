@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { getRegionDetails, getRegionalLatestMeasurements } from '../api/airwatchApi'
+import DataProvenanceCard from '../components/DataProvenanceCard'
 import DataQualityCard from '../components/DataQualityCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import MapPlaceholder from '../components/MapPlaceholder'
@@ -199,6 +200,14 @@ function Dashboard() {
           />
 
           <DataQualityCard />
+
+          <DataProvenanceCard
+            measurement={measurement}
+            selectedRegion={selectedSummary}
+            isLoading={isLoadingDetail}
+            error={detailError}
+            hasRegion={Boolean(selectedRegionCode)}
+          />
 
           <section className="card coming-soon-card">
             <div>

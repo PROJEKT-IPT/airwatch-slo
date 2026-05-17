@@ -609,6 +609,65 @@ select {
   font-size: 0.85rem;
 }
 
+.provenance-card {
+  grid-column: 1 / -1;
+}
+
+.provenance-grid {
+  margin: 18px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.provenance-row {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(245, 246, 243, 0.92);
+  border: 1px solid rgba(47, 58, 85, 0.08);
+}
+
+.provenance-row dt {
+  display: block;
+  color: var(--stem-grey);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.provenance-row dd {
+  margin: 5px 0 0;
+  color: var(--blueberry-skin);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.provenance-row .row-detail {
+  display: block;
+  margin-top: 4px;
+  color: var(--stem-grey);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.provenance-state {
+  margin: 18px 0 0;
+  display: grid;
+  gap: 10px;
+}
+
+.provenance-note {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  color: var(--stem-grey);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
 .map-hint,
 .muted-text,
 .quality-info-card p,
@@ -754,6 +813,10 @@ select {
   .top-controls {
     grid-template-columns: 1fr;
   }
+
+  .provenance-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 720px) {
@@ -768,7 +831,8 @@ select {
   }
 
   .metadata-strip,
-  .metric-meta-grid {
+  .metric-meta-grid,
+  .provenance-grid {
     grid-template-columns: 1fr;
   }
 
