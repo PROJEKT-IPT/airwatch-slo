@@ -108,6 +108,24 @@ python -m pytest data_pipeline/tests
 
 The tests use synthetic arrays, polygons and temporary JSON files. They do not require Copernicus credentials, network access, a real `.nc` product or a database connection. More detail is in [`docs/pipeline_tests.md`](../docs/pipeline_tests.md).
 
+## Run end-to-end against the newest available OFFL product
+
+Once Docker is up and migrations have been applied, the orchestrator script
+runs the full chain (search → download → aggregate → validate → ingest →
+API verification) for the newest available Sentinel-5P OFFL NO₂ product over
+Slovenia:
+
+```bash
+python data_pipeline/scripts/run_latest_no2_pipeline.py
+```
+
+It is idempotent — if the newest product is already ingested it exits cleanly
+without touching the database. Use `--dry-run` to preview the candidate
+without downloading, `--start-date` / `--end-date` to widen the search
+window, `--product-id` to force a specific UUID, and `--force` to re-ingest a
+product that is already present. The script does not poll or schedule; to run
+it periodically, wrap it in cron / launchd / GitHub Actions.
+
 ## Data Safety
 
 Do not commit `.env`, `.nc`, `.zip`, or downloaded Copernicus products. The `sample_data/` directory is ignored except for `.gitkeep`.

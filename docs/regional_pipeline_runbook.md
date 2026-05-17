@@ -236,6 +236,27 @@ The expected-count flags are optional. Running the script without them still
 validates structure, required fields, allowed quality statuses, and the
 `value_min ≤ value_mean ≤ value_max` relationship.
 
+## 10b. (Shortcut) Run the whole chain against the newest available product
+
+`data_pipeline/scripts/run_latest_no2_pipeline.py` orchestrates §9 → §10 → §11
+in one command for the newest OFFL S5P NO₂ product over Slovenia. It is
+idempotent (skips if the newest is already ingested) and uses a read-only bind
+mount of `data_pipeline/` into a one-off `backend` container for ingestion,
+so it does not require the copy/rebuild workaround in §11.
+
+```bash
+python data_pipeline/scripts/run_latest_no2_pipeline.py
+# useful flags
+python data_pipeline/scripts/run_latest_no2_pipeline.py --dry-run
+python data_pipeline/scripts/run_latest_no2_pipeline.py --start-date 2026-05-01 --end-date 2026-05-31
+python data_pipeline/scripts/run_latest_no2_pipeline.py --product-id <UUID>
+python data_pipeline/scripts/run_latest_no2_pipeline.py --force
+```
+
+Use this shortcut for routine ingestion. The manual steps in §9 – §13 below
+remain authoritative and are useful when you want to inspect intermediate
+output, ingest a non-newest product, or troubleshoot.
+
 ## 11. Ingest the regional JSON into the database
 
 `backend/scripts/ingest_regional_no2_measurements.py` upserts one
