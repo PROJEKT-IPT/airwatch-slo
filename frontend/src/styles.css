@@ -368,6 +368,14 @@ select {
   align-items: flex-start;
 }
 
+.detail-card-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .card h2 {
   margin: 0;
   color: var(--blueberry-skin);
@@ -416,6 +424,35 @@ select {
 .map-tag {
   color: var(--berry-bloom);
   background: rgba(92, 107, 138, 0.12);
+}
+
+.export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid rgba(47, 58, 85, 0.18);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--blueberry-skin);
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.export-button:hover {
+  background: rgba(92, 107, 138, 0.08);
+  border-color: rgba(47, 58, 85, 0.28);
+}
+
+.export-button-disabled {
+  color: var(--stem-grey);
+  background: #f0efec;
+  cursor: not-allowed;
 }
 
 .metric-value-block {

@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { getRegionDetails, getRegionalLatestMeasurements } from '../api/airwatchApi'
+import {
+  getRegionCsvExportUrl,
+  getRegionDetails,
+  getRegionalLatestMeasurements,
+} from '../api/airwatchApi'
 import DataProvenanceCard from '../components/DataProvenanceCard'
 import DataQualityCard from '../components/DataQualityCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
@@ -123,6 +127,7 @@ function Dashboard() {
     () => regionSummaries.find(item => item.region_code === selectedRegionCode) || null,
     [regionSummaries, selectedRegionCode],
   )
+  const csvExportUrl = selectedRegionCode ? getRegionCsvExportUrl(selectedRegionCode) : ''
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
   const timeRangeLabel = formatDateTimeRange(
@@ -197,6 +202,7 @@ function Dashboard() {
             isLoading={isLoadingDetail}
             error={detailError}
             hasRegion={Boolean(selectedRegionCode)}
+            csvExportUrl={csvExportUrl}
           />
 
           <DataQualityCard />
@@ -212,16 +218,14 @@ function Dashboard() {
           <section className="card coming-soon-card">
             <div>
               <p className="section-kicker">Prihaja kmalu</p>
-              <h2>Zgodovina, primerjava in izvoz</h2>
+              <h2>Zgodovina in primerjava</h2>
               <p>
-                Naslednji koraki vključujejo zgodovinske trende, primerjavo regij
-                in izvoz podatkov v CSV.
+                Naslednji koraki vključujejo zgodovinske trende in primerjavo regij.
               </p>
             </div>
             <div className="coming-soon-list" aria-label="Prihodnje funkcionalnosti">
               <span>Zgodovinski trend</span>
               <span>Primerjava regij</span>
-              <span>CSV izvoz</span>
             </div>
           </section>
         </section>

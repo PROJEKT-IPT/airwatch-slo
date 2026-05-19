@@ -1,10 +1,12 @@
 import logging
 import os
+import csv
+from io import StringIO
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -13,11 +15,13 @@ from database import get_db
 from schemas import (
     LatestMeasurementResponse,
     ProcessingStatusResponse,
+    RegionCsvExportRow,
     RegionDetailsResponse,
     RegionLatestMeasurementSummaryResponse,
     RegionResponse,
 )
 from services.region_measurement_service import (
+    get_latest_no2_csv_export_row_for_region,
     get_latest_no2_measurement_for_region,
     get_latest_no2_measurements_for_statistical_regions,
 )
@@ -230,6 +234,54 @@ def get_region_details(
         raise HTTPException(
             status_code=500,
             detail="Failed to fetch region details.",
+        ) from exc
+
+
+@app.get("/api/v1/regions/{region_code}/export.csv")
+def export_region_csv(
+    region_code: str,
+    include_test_region: bool = Query(default=False),
+    db: Session = Depends(get_db),
+):
+    normalized_region_code = region_code.strip()
+
+    try:
+        region = get_region_details_by_code(
+            db,
+            normalized_region_code,
+            include_test_region=include_test_region,
+        )
+        if region is None:
+            raise HTTPException(status_code=404, detail="Region not found.")
+
+        export_row = get_latest_no2_csv_export_row_for_region(db, region["id_region"])
+        if export_row is None:
+            raise HTTPException(
+                status_code=404,
+                detail="No NO2 measurement found for the requested region.",
+            )
+
+        validated_row = RegionCsvExportRow.model_validate(export_row)
+        csv_row = validated_row.model_dump(mode="json")
+        csv_buffer = StringIO()
+        writer = csv.DictWriter(csv_buffer, fieldnames=list(csv_row.keys()))
+        writer.writeheader()
+        writer.writerow(csv_row)
+        csv_buffer.seek(0)
+
+        filename = f"airwatch-region-{validated_row.region_code.lower()}-latest.csv"
+        return StreamingResponse(
+            iter([csv_buffer.getvalue()]),
+            media_type="text/csv; charset=utf-8",
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        )
+    except HTTPException:
+        raise
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to export regional CSV for %s", normalized_region_code)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to export regional CSV.",
         ) from exc
 
 

@@ -432,6 +432,36 @@ Opombe:
   `404 No NO2 measurement found for the requested region.`,
 - `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo.
 
+## Endpoint: Region CSV Export
+
+Vrne najnovejso `NO2` meritev za izbrano regijo kot CSV datoteko za prenos.
+
+```http
+GET /api/v1/regions/{region_code}/export.csv
+```
+
+Primer:
+
+```bash
+curl -OJ http://localhost:8000/api/v1/regions/SI032/export.csv
+```
+
+Primer vsebine CSV:
+
+```csv
+region_code,region_name,region_type,indicator_code,indicator_name,value_mean,value_min,value_max,pixel_count_valid,qa_threshold,quality_status,unit,measurement_start_time,measurement_end_time,processing_run_id,source_product_id,source_product_name
+SI032,Podravska,statistical_region,NO2,Nitrogen dioxide,0.000031,0.000012,0.000052,41,0.75,valid,mol/m²,2025-03-11T12:19:40+00:00,2025-03-11T13:18:05+00:00,14,b898f30a-1d6e-4c6c-bdc2-9933a06e316e,S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc
+```
+
+Opombe:
+
+- endpoint vrne eno CSV vrstico za trenutno najnovejso `NO2` meritev izbrane regije,
+- ime datoteke je v obliki `airwatch-region-{region_code}-latest.csv`,
+- za testne regije je potreben `?include_test_region=true`,
+- ce regija ne obstaja, API vrne `404 Region not found.`,
+- ce regija obstaja, a nima `NO2` meritve, API vrne
+  `404 No NO2 measurement found for the requested region.`.
+
 ## Omejitve in predpostavke
 
 - Endpointa trenutno vracata samo najnovejso `NO2` meritev. Zgodovinski grafi in

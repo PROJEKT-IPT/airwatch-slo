@@ -8,6 +8,9 @@ PostgreSQL/PostGIS database.
 - `GET /regions`
 - `GET /measurements/latest?region_code=SI_BBOX`
 - `GET /measurements/latest?region_code=UNKNOWN`
+- `GET /api/v1/regions/latest-measurements`
+- `GET /api/v1/regions/SI032`
+- `GET /api/v1/regions/SI032/export.csv`
 
 The tests use FastAPI dependency overrides to replace `get_db` with a small fake
 session. This keeps the tests focused on API behavior, response schemas, and
@@ -32,7 +35,7 @@ py -3.11 -m pytest tests
 ## Expected Result
 
 ```text
-3 passed
+7 passed
 ```
 
 ## Notes

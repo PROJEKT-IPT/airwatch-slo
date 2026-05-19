@@ -95,6 +95,29 @@ SAMPLE_REGION_DETAIL_MEASUREMENT = {
     ),
 }
 
+SAMPLE_REGION_CSV_EXPORT_ROW = {
+    "region_code": "SI032",
+    "region_name": "Podravska",
+    "region_type": "statistical_region",
+    "indicator_code": "NO2",
+    "indicator_name": "Nitrogen dioxide",
+    "value_mean": 3.1e-05,
+    "value_min": 1.2e-05,
+    "value_max": 5.2e-05,
+    "pixel_count_valid": 41,
+    "qa_threshold": 0.75,
+    "quality_status": "valid",
+    "unit": "mol/m2",
+    "measurement_start_time": datetime(2025, 3, 11, 12, 19, 40, tzinfo=timezone.utc),
+    "measurement_end_time": datetime(2025, 3, 11, 13, 18, 5, tzinfo=timezone.utc),
+    "processing_run_id": 14,
+    "source_product_id": "b898f30a-1d6e-4c6c-bdc2-9933a06e316e",
+    "source_product_name": (
+        "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_"
+        "38393_03_020800_20250313T042301.nc"
+    ),
+}
+
 
 class FakeMappingResult:
     def __init__(self, rows):
@@ -148,6 +171,8 @@ class FakeSprint1Session:
 
         if "sf.external_product_id AS source_product_id" in query:
             if params.get("region_id") == SAMPLE_STATISTICAL_REGION["id_region"]:
+                if "r.region_code" in query and "i.indicator_name" in query:
+                    return FakeMappingResult([SAMPLE_REGION_CSV_EXPORT_ROW])
                 return FakeMappingResult([SAMPLE_REGION_DETAIL_MEASUREMENT])
             return FakeMappingResult([])
 
@@ -244,3 +269,19 @@ def test_get_region_details_returns_404_for_unknown_statistical_region(client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Region not found."}
+
+
+def test_export_region_csv_returns_latest_measurement_csv(client):
+    response = client.get("/api/v1/regions/SI032/export.csv")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert (
+        response.headers["content-disposition"]
+        == 'attachment; filename="airwatch-region-si032-latest.csv"'
+    )
+
+    csv_lines = response.text.strip().splitlines()
+    assert csv_lines[0].startswith("region_code,region_name,region_type,indicator_code")
+    assert "SI032,Podravska,statistical_region,NO2,Nitrogen dioxide" in csv_lines[1]
+    assert "2025-03-11T13:18:05Z" in csv_lines[1]

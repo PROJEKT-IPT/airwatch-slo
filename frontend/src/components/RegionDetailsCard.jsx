@@ -1,8 +1,16 @@
-function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasRegion }) {
+function RegionDetailsCard({
+  measurement,
+  selectedRegion,
+  isLoading,
+  error,
+  hasRegion,
+  csvExportUrl,
+}) {
   const regionName = measurement?.region_name || selectedRegion?.region_name || 'Izbrana regija'
   const regionCode = measurement?.region_code || selectedRegion?.region_code || ''
   const qualityStatus = getQualityStatus(measurement?.quality_status)
   const missingDataState = measurement ? getMissingDataState(measurement) : null
+  const isExportDisabled = !measurement || isLoading || Boolean(error) || !csvExportUrl
 
   return (
     <section className="card detail-card">
@@ -12,11 +20,26 @@ function RegionDetailsCard({ measurement, selectedRegion, isLoading, error, hasR
           <h2>{hasRegion ? regionName : 'Regija ni izbrana'}</h2>
           {regionCode ? <p className="muted-text region-code-line">Koda regije: {regionCode}</p> : null}
         </div>
-        {measurement ? (
-          <span className={`quality-badge ${qualityStatus.className}`}>
-            {qualityStatus.label}
-          </span>
-        ) : null}
+        <div className="detail-card-actions">
+          {measurement ? (
+            <span className={`quality-badge ${qualityStatus.className}`}>
+              {qualityStatus.label}
+            </span>
+          ) : null}
+          <a
+            className={`export-button${isExportDisabled ? ' export-button-disabled' : ''}`}
+            href={isExportDisabled ? undefined : csvExportUrl}
+            download
+            aria-disabled={isExportDisabled}
+            onClick={event => {
+              if (isExportDisabled) {
+                event.preventDefault()
+              }
+            }}
+          >
+            Izvozi CSV
+          </a>
+        </div>
       </div>
 
       {!hasRegion ? (

@@ -39,3 +39,8 @@ export async function getRegionDetails(regionCode) {
 export async function getProcessingStatus() {
   return fetchJsonOrNull(`${getApiBaseUrl()}/processing/status`, 'processing status')
 }
+
+export function getRegionCsvExportUrl(regionCode) {
+  const safeCode = encodeURIComponent(regionCode)
+  return `${getApiBaseUrl()}/api/v1/regions/${safeCode}/export.csv`
+}
