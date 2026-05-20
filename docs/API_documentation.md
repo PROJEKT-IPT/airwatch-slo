@@ -473,6 +473,61 @@ Opombe:
 - `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo,
 - prostorski dostop do `geometry` je pripravljen za PostGIS `GIST` indeks.
 
+## Endpoint: Region NO2 History
+
+Vrne zgodovinske `NO2` meritve za izbrano statisticno regijo. Endpoint je
+namenjen trend grafu za eno regijo in vrne vse obdelane regionalne rezultate,
+vkljucno z vrsticami `quality_status = no_valid_pixels`, kjer so vrednosti
+meritve `null`.
+
+```http
+GET /api/v1/regions/{region_code}/history
+```
+
+Primer:
+
+```bash
+curl http://localhost:8000/api/v1/regions/SI032/history
+```
+
+Primer odgovora:
+
+```json
+{
+  "region_code": "SI032",
+  "region_name": "Podravska",
+  "region_type": "statistical_region",
+  "measurements": [
+    {
+      "value_mean": 0.000028,
+      "value_min": 0.000010,
+      "value_max": 0.000048,
+      "pixel_count_valid": 32,
+      "qa_threshold": 0.75,
+      "quality_status": "valid",
+      "unit": "mol/m²",
+      "measurement_start_time": "2025-03-11T12:19:40+00:00",
+      "measurement_end_time": "2025-03-11T13:18:05+00:00",
+      "processing_run_id": 13,
+      "source_product_id": "b898f30a-1d6e-4c6c-bdc2-9933a06e316e",
+      "source_product_name": "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc"
+    }
+  ]
+}
+```
+
+Pravila:
+
+- endpoint privzeto vrne samo regije z `region_type = statistical_region`,
+- testne regije, kot je `SI_BBOX`, niso izpostavljene brez
+  `?include_test_region=true`,
+- meritve so urejene od najstarejse do najnovejse po `measurement_end_time`,
+  nato `measurement_start_time`, nato `id_region_measurement`,
+- vrstice z `no_valid_pixels` ostanejo v zgodovini kot obdelani rezultati,
+- ce regija ne obstaja, API vrne `404 Region not found.`,
+- ce regija obstaja, a nima zgodovinskih `NO2` meritev, API vrne
+  `404 No NO2 measurement history found for the requested region.`.
+
 ## Endpoint: Region Comparison
 
 Vrne najnovejse `NO2` meritve za dve do dvanajst izbranih statisticnih regij,

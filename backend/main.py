@@ -19,6 +19,7 @@ from schemas import (
     RegionCsvExportRow,
     RegionDetailsResponse,
     RegionGeometryResponse,
+    RegionHistoryResponse,
     RegionLatestMeasurementSummaryResponse,
     RegionResponse,
 )
@@ -27,6 +28,7 @@ from services.region_measurement_service import (
     get_latest_no2_csv_export_row_for_region,
     get_latest_no2_measurement_for_region,
     get_latest_no2_measurements_for_statistical_regions,
+    get_no2_measurement_history_for_region,
 )
 from services.region_service import (
     get_region_details_by_code,
@@ -356,6 +358,46 @@ def get_region_details(
         raise HTTPException(
             status_code=500,
             detail="Failed to fetch region details.",
+        ) from exc
+
+
+@app.get("/api/v1/regions/{region_code}/history", response_model=RegionHistoryResponse)
+def get_region_history(
+    region_code: str,
+    include_test_region: bool = Query(default=False),
+    db: Session = Depends(get_db),
+):
+    normalized_region_code = region_code.strip()
+
+    try:
+        region = get_region_details_by_code(
+            db,
+            normalized_region_code,
+            include_test_region=include_test_region,
+        )
+        if region is None:
+            raise HTTPException(status_code=404, detail="Region not found.")
+
+        measurements = get_no2_measurement_history_for_region(db, region["id_region"])
+        if not measurements:
+            raise HTTPException(
+                status_code=404,
+                detail="No NO2 measurement history found for the requested region.",
+            )
+
+        return {
+            "region_code": region["region_code"],
+            "region_name": region["region_name"],
+            "region_type": region["region_type"],
+            "measurements": measurements,
+        }
+    except HTTPException:
+        raise
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to fetch region history for %s", normalized_region_code)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch region history.",
         ) from exc
 
 

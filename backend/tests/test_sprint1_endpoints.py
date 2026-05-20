@@ -120,6 +120,43 @@ SAMPLE_REGION_DETAIL_MEASUREMENT = {
     ),
 }
 
+SAMPLE_REGION_HISTORY_MEASUREMENTS = [
+    {
+        "value_mean": 2.8e-05,
+        "value_min": 1.0e-05,
+        "value_max": 4.8e-05,
+        "pixel_count_valid": 32,
+        "qa_threshold": 0.75,
+        "quality_status": "valid",
+        "unit": "mol/m2",
+        "measurement_start_time": datetime(2025, 3, 11, 12, 19, 40, tzinfo=timezone.utc),
+        "measurement_end_time": datetime(2025, 3, 11, 13, 18, 5, tzinfo=timezone.utc),
+        "processing_run_id": 13,
+        "source_product_id": "b898f30a-1d6e-4c6c-bdc2-9933a06e316e",
+        "source_product_name": (
+            "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_"
+            "38393_03_020800_20250313T042301.nc"
+        ),
+    },
+    {
+        "value_mean": 3.1e-05,
+        "value_min": 1.2e-05,
+        "value_max": 5.2e-05,
+        "pixel_count_valid": 41,
+        "qa_threshold": 0.75,
+        "quality_status": "valid",
+        "unit": "mol/m2",
+        "measurement_start_time": datetime(2026, 5, 8, 12, 3, 11, tzinfo=timezone.utc),
+        "measurement_end_time": datetime(2026, 5, 8, 13, 1, 35, tzinfo=timezone.utc),
+        "processing_run_id": 14,
+        "source_product_id": "1cee3f1c-b237-4532-9505-d20f9baf7daf",
+        "source_product_name": (
+            "S5P_OFFL_L2__NO2____20260508T114137_20260508T132308_"
+            "44394_03_020901_20260510T052830.nc"
+        ),
+    },
+]
+
 SAMPLE_REGION_CSV_EXPORT_ROW = {
     "region_code": "SI032",
     "region_name": "Podravska",
@@ -233,6 +270,8 @@ class FakeSprint1Session:
 
         if "sf.external_product_id AS source_product_id" in query:
             if params.get("region_id") == SAMPLE_STATISTICAL_REGION["id_region"]:
+                if "rm.measurement_end_time ASC" in query:
+                    return FakeMappingResult(SAMPLE_REGION_HISTORY_MEASUREMENTS)
                 if "r.region_code" in query and "i.indicator_name" in query:
                     return FakeMappingResult([SAMPLE_REGION_CSV_EXPORT_ROW])
                 return FakeMappingResult([SAMPLE_REGION_DETAIL_MEASUREMENT])
@@ -387,6 +426,35 @@ def test_get_region_details_returns_latest_measurement_and_geometry(client):
 
 def test_get_region_details_returns_404_for_unknown_statistical_region(client):
     response = client.get("/api/v1/regions/UNKNOWN")
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Region not found."}
+
+
+def test_get_region_history_returns_measurements_ordered_oldest_first(client):
+    response = client.get("/api/v1/regions/SI032/history")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["region_code"] == "SI032"
+    assert data["region_name"] == "Podravska"
+    assert data["region_type"] == "statistical_region"
+    assert len(data["measurements"]) == 2
+    assert [
+        measurement["measurement_end_time"]
+        for measurement in data["measurements"]
+    ] == [
+        "2025-03-11T13:18:05Z",
+        "2026-05-08T13:01:35Z",
+    ]
+    assert data["measurements"][0]["source_product_id"] == (
+        "b898f30a-1d6e-4c6c-bdc2-9933a06e316e"
+    )
+    assert data["measurements"][1]["processing_run_id"] == 14
+
+
+def test_get_region_history_returns_404_for_unknown_statistical_region(client):
+    response = client.get("/api/v1/regions/UNKNOWN/history")
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Region not found."}
