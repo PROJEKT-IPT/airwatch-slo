@@ -141,14 +141,7 @@ class FakeSprint1Session:
         if "FROM region" in query and "ORDER BY region_name" in query:
             return FakeMappingResult([SAMPLE_REGION])
 
-        if "SELECT id_region" in query and "FROM region" in query:
-            if params.get("region_code") == SAMPLE_REGION["region_code"]:
-                return FakeMappingResult([{"id_region": SAMPLE_REGION["id_region"]}])
-            if params.get("id_region") == SAMPLE_REGION["id_region"]:
-                return FakeMappingResult([{"id_region": SAMPLE_REGION["id_region"]}])
-            return FakeMappingResult([])
-
-        if "WITH ranked_measurements AS" in query:
+        if "WITH latest_region_measurements AS" in query:
             return FakeMappingResult([SAMPLE_REGION_LATEST_MEASUREMENT])
 
         if "ST_AsGeoJSON" in query and "FROM region r" in query:
@@ -167,6 +160,13 @@ class FakeSprint1Session:
                         }
                     ]
                 )
+            return FakeMappingResult([])
+
+        if "LEFT JOIN LATERAL" in query and "latest.indicator_code" in query:
+            if params.get("region_code") == SAMPLE_REGION["region_code"]:
+                return FakeMappingResult([SAMPLE_MEASUREMENT])
+            if params.get("id_region") == SAMPLE_REGION["id_region"]:
+                return FakeMappingResult([SAMPLE_MEASUREMENT])
             return FakeMappingResult([])
 
         if "sf.external_product_id AS source_product_id" in query:

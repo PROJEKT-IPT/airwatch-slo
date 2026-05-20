@@ -13,9 +13,8 @@ def get_latest_no2_measurements_for_statistical_regions(db: Session) -> list[dic
     rows = db.execute(
         text(
             """
-            WITH ranked_measurements AS (
-                SELECT
-                    rm.id_region_measurement,
+            WITH latest_region_measurements AS (
+                SELECT DISTINCT ON (rm.fk_region)
                     rm.fk_region,
                     rm.fk_source_file,
                     rm.fk_processing_run,
@@ -26,38 +25,36 @@ def get_latest_no2_measurements_for_statistical_regions(db: Session) -> list[dic
                     rm.quality_status,
                     rm.unit,
                     rm.measurement_start_time,
-                    rm.measurement_end_time,
-                    ROW_NUMBER() OVER (
-                        PARTITION BY rm.fk_region
-                        ORDER BY
-                            rm.measurement_end_time DESC,
-                            rm.measurement_start_time DESC,
-                            rm.id_region_measurement DESC
-                    ) AS row_num
+                    rm.measurement_end_time
                 FROM region_measurement rm
                 JOIN indicator i ON i.id_indicator = rm.fk_indicator
+                JOIN region r ON r.id_region = rm.fk_region
                 WHERE i.indicator_code = :indicator_code
+                    AND r.region_type = :region_type
+                    AND r.region_code <> :excluded_region_code
+                ORDER BY
+                    rm.fk_region,
+                    rm.measurement_end_time DESC,
+                    rm.measurement_start_time DESC,
+                    rm.id_region_measurement DESC
             )
             SELECT
                 r.region_code,
                 r.region_name,
                 r.region_type,
-                ranked.value_mean,
-                ranked.value_min,
-                ranked.value_max,
-                ranked.pixel_count_valid,
-                ranked.quality_status,
-                ranked.unit,
-                ranked.measurement_start_time,
-                ranked.measurement_end_time,
-                ranked.fk_processing_run AS processing_run_id,
+                latest.value_mean,
+                latest.value_min,
+                latest.value_max,
+                latest.pixel_count_valid,
+                latest.quality_status,
+                latest.unit,
+                latest.measurement_start_time,
+                latest.measurement_end_time,
+                latest.fk_processing_run AS processing_run_id,
                 sf.product_name AS source_product_name
-            FROM ranked_measurements ranked
-            JOIN region r ON r.id_region = ranked.fk_region
-            JOIN source_file sf ON sf.id_source_file = ranked.fk_source_file
-            WHERE ranked.row_num = 1
-                AND r.region_type = :region_type
-                AND r.region_code <> :excluded_region_code
+            FROM latest_region_measurements latest
+            JOIN region r ON r.id_region = latest.fk_region
+            JOIN source_file sf ON sf.id_source_file = latest.fk_source_file
             ORDER BY r.region_code
             """
         ),

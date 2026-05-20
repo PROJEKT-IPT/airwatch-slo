@@ -117,62 +117,68 @@ def get_latest_measurement(
     )
     params = {"region_code": region_code, "id_region": selected_id_region}
 
-    region = db.execute(
+    row = db.execute(
         text(
             f"""
-            SELECT id_region
-            FROM region
+            SELECT
+                r.id_region,
+                r.region_code,
+                r.region_name,
+                latest.indicator_code,
+                latest.indicator_name,
+                latest.value_mean,
+                latest.value_min,
+                latest.value_max,
+                latest.pixel_count_valid,
+                latest.qa_threshold,
+                latest.quality_status,
+                latest.unit,
+                latest.measurement_start_time,
+                latest.measurement_end_time,
+                latest.source_product_name,
+                latest.data_source_name
+            FROM region r
+            LEFT JOIN LATERAL (
+                SELECT
+                    i.indicator_code,
+                    i.indicator_name,
+                    rm.value_mean,
+                    rm.value_min,
+                    rm.value_max,
+                    rm.pixel_count_valid,
+                    rm.qa_threshold,
+                    rm.quality_status,
+                    rm.unit,
+                    rm.measurement_start_time,
+                    rm.measurement_end_time,
+                    sf.product_name AS source_product_name,
+                    ds.source_name AS data_source_name
+                FROM region_measurement rm
+                JOIN indicator i ON i.id_indicator = rm.fk_indicator
+                JOIN source_file sf ON sf.id_source_file = rm.fk_source_file
+                JOIN data_product dp ON dp.id_data_product = sf.fk_data_product
+                JOIN data_source ds ON ds.id_data_source = dp.fk_data_source
+                WHERE rm.fk_region = r.id_region
+                    AND i.indicator_code = 'NO2'
+                ORDER BY
+                    rm.measurement_end_time DESC,
+                    rm.measurement_start_time DESC,
+                    rm.id_region_measurement DESC
+                LIMIT 1
+            ) latest ON TRUE
             WHERE {region_filter}
             """
         ),
         params,
     ).mappings().first()
 
-    if region is None:
+    if row is None:
         raise HTTPException(
             status_code=404,
             detail="Region not found.",
         )
 
-    row = db.execute(
-        text(
-            """
-            SELECT
-                r.id_region,
-                r.region_code,
-                r.region_name,
-                i.indicator_code,
-                i.indicator_name,
-                rm.value_mean,
-                rm.value_min,
-                rm.value_max,
-                rm.pixel_count_valid,
-                rm.qa_threshold,
-                rm.quality_status,
-                rm.unit,
-                rm.measurement_start_time,
-                rm.measurement_end_time,
-                sf.product_name AS source_product_name,
-                ds.source_name AS data_source_name
-            FROM region_measurement rm
-            JOIN region r ON r.id_region = rm.fk_region
-            JOIN indicator i ON i.id_indicator = rm.fk_indicator
-            JOIN source_file sf ON sf.id_source_file = rm.fk_source_file
-            JOIN data_product dp ON dp.id_data_product = sf.fk_data_product
-            JOIN data_source ds ON ds.id_data_source = dp.fk_data_source
-            WHERE rm.fk_region = :selected_id_region
-                AND i.indicator_code = 'NO2'
-            ORDER BY
-                rm.measurement_end_time DESC,
-                rm.measurement_start_time DESC,
-                rm.id_region_measurement DESC
-            LIMIT 1
-            """
-        ),
-        {"selected_id_region": region["id_region"]},
-    ).mappings().first()
-
-    if row is None:
+    if row["indicator_code"] is None:
         raise HTTPException(
             status_code=404,
             detail="No NO2 measurement found for the requested region.",

@@ -39,6 +39,15 @@ Migration order:
 7. `007_create_region_measurement.py`
 8. `008_seed_sprint_1_initial_data.py`
 9. `009_region_geometry_postgis.py`
+10. `010_seed_statistical_regions.py`
+11. `011_optimize_regional_queries.py`
+
+`011_optimize_regional_queries.py` adds:
+
+- a composite `region(region_type, region_code)` index for public regional filters,
+- a partial PostGIS `GIST` index on `region.geometry` for spatial lookups,
+- two composite `region_measurement` indexes aligned with "latest NO2 per region"
+  access patterns used by the backend.
 
 ## Sprint 2 Regional NO2 Database Load
 

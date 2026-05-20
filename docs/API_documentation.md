@@ -380,6 +380,8 @@ Pravila za izbor "latest" meritve:
 - primarni kriterij je `measurement_end_time DESC`,
 - pri izenacenju sledi `measurement_start_time DESC`,
 - zadnji tie-breaker je `id_region_measurement DESC`.
+- backend uporablja temu vrstnemu redu usklajene sestavljene indekse, da so
+  pogoste regionalne poizvedbe deterministicne in hitrejse.
 
 ## Endpoint: Region Details
 
@@ -430,7 +432,8 @@ Opombe:
 - ce regija ne obstaja, API vrne `404 Region not found.`,
 - ce regija obstaja, a nima `NO2` meritve, API vrne
   `404 No NO2 measurement found for the requested region.`,
-- `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo.
+- `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo,
+- prostorski dostop do `geometry` je pripravljen za PostGIS `GIST` indeks.
 
 ## Endpoint: Region CSV Export
 

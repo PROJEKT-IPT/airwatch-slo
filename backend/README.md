@@ -111,6 +111,8 @@ The regional API endpoints:
 - order the summary response by `region_code`,
 - use `measurement_end_time`, `measurement_start_time`, and the measurement id
   as the deterministic latest-record ordering,
+- use composite regional indexes plus a PostGIS geometry index for the most
+  common regional and spatial access patterns,
 - return `404` when a requested region does not exist or has no `NO2`
   measurement yet.
 

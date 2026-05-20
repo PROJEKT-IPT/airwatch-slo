@@ -124,3 +124,29 @@ CREATE INDEX IF NOT EXISTS idx_source_file_external_product_id
 
 CREATE INDEX IF NOT EXISTS idx_region_region_code
     ON region(region_code);
+
+CREATE INDEX IF NOT EXISTS idx_region_region_type_code
+    ON region(region_type, region_code);
+
+CREATE INDEX IF NOT EXISTS idx_region_geometry_gist
+    ON region
+    USING GIST(geometry)
+    WHERE geometry IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_region_measurement_region_indicator_latest
+    ON region_measurement(
+        fk_region,
+        fk_indicator,
+        measurement_end_time DESC,
+        measurement_start_time DESC,
+        id_region_measurement DESC
+    );
+
+CREATE INDEX IF NOT EXISTS idx_region_measurement_indicator_region_latest
+    ON region_measurement(
+        fk_indicator,
+        fk_region,
+        measurement_end_time DESC,
+        measurement_start_time DESC,
+        id_region_measurement DESC
+    );
