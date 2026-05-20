@@ -9,6 +9,7 @@ import DataProvenanceCard from '../components/DataProvenanceCard'
 import DataQualityCard from '../components/DataQualityCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import MapPlaceholder from '../components/MapPlaceholder'
+import No2ExplanationCard from '../components/No2ExplanationCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
 
@@ -206,6 +207,8 @@ function Dashboard() {
           />
 
           <DataQualityCard />
+
+          <No2ExplanationCard />
 
           <DataProvenanceCard
             measurement={measurement}

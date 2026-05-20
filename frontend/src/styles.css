@@ -650,6 +650,10 @@ select {
   grid-column: 1 / -1;
 }
 
+.no2-explainer-card {
+  grid-column: 1 / -1;
+}
+
 .provenance-grid {
   margin: 18px 0 0;
   padding: 0;
@@ -708,6 +712,7 @@ select {
 .map-hint,
 .muted-text,
 .quality-info-card p,
+.no2-explainer-card p,
 .coming-soon-card p {
   color: var(--stem-grey);
   line-height: 1.6;
@@ -742,6 +747,7 @@ select {
 }
 
 .quality-notes,
+.no2-explainer-list,
 .coming-soon-list {
   margin: 16px 0 0;
   padding: 0;
@@ -753,7 +759,17 @@ select {
   line-height: 1.55;
 }
 
+.no2-explainer-list {
+  padding-left: 18px;
+  color: var(--stem-grey);
+  line-height: 1.55;
+}
+
 .quality-notes li + li {
+  margin-top: 8px;
+}
+
+.no2-explainer-list li + li {
   margin-top: 8px;
 }
 
