@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import {
   getRegionCsvExportUrl,
+  getRegionComparison,
   getRegionDetails,
   getRegionalLatestMeasurements,
 } from '../api/airwatchApi'
@@ -16,9 +17,12 @@ import RegionSelect from '../components/RegionSelect'
 
 function Dashboard() {
   const [regionSummaries, setRegionSummaries] = useState([])
+  const [regionComparison, setRegionComparison] = useState([])
   const [selectedRegionCode, setSelectedRegionCode] = useState('')
   const [isLoadingRegions, setIsLoadingRegions] = useState(true)
   const [regionsError, setRegionsError] = useState('')
+  const [isLoadingComparison, setIsLoadingComparison] = useState(false)
+  const [comparisonError, setComparisonError] = useState('')
   const [regionDetail, setRegionDetail] = useState(null)
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
   const [detailError, setDetailError] = useState('')
@@ -66,6 +70,52 @@ function Dashboard() {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    const regionCodes = regionSummaries.map(region => region.region_code).filter(Boolean)
+
+    async function loadRegionComparison() {
+      if (regionCodes.length < 2) {
+        setRegionComparison([])
+        setComparisonError('')
+        setIsLoadingComparison(false)
+        return
+      }
+
+      setIsLoadingComparison(true)
+      setComparisonError('')
+
+      try {
+        const comparison = await getRegionComparison(regionCodes)
+
+        if (!isMounted) {
+          return
+        }
+
+        setRegionComparison(Array.isArray(comparison) ? comparison : [])
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        setRegionComparison([])
+        setComparisonError(
+          'Primerjave regij ni bilo mogoÄe naloÅ¾iti iz API-ja. Preverite, ali backend deluje in ali so podatki naloÅ¾eni v bazo.',
+        )
+      } finally {
+        if (isMounted) {
+          setIsLoadingComparison(false)
+        }
+      }
+    }
+
+    loadRegionComparison()
+
+    return () => {
+      isMounted = false
+    }
+  }, [regionSummaries])
 
   useEffect(() => {
     let isMounted = true
@@ -227,11 +277,11 @@ function Dashboard() {
           <No2ExplanationCard />
 
           <RegionComparisonCard
-            regions={regionSummaries}
+            regions={regionComparison}
             selectedRegionCode={selectedRegionCode}
             onRegionSelect={setSelectedRegionCode}
-            isLoading={isLoadingRegions}
-            error={regionsError}
+            isLoading={isLoadingComparison}
+            error={comparisonError}
           />
 
           <DataProvenanceCard

@@ -5,6 +5,7 @@ import App from '../../src/App'
 import {
   getProcessingStatus,
   getRegionCsvExportUrl,
+  getRegionComparison,
   getRegionDetails,
   getRegionalLatestMeasurements,
 } from '../../src/api/airwatchApi'
@@ -12,6 +13,7 @@ import {
 vi.mock('../../src/api/airwatchApi', () => ({
   getProcessingStatus: vi.fn(),
   getRegionCsvExportUrl: vi.fn(),
+  getRegionComparison: vi.fn(),
   getRegionDetails: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
 }))
@@ -28,6 +30,7 @@ describe('App navigation', () => {
         quality_status: 'valid',
       },
     ])
+    getRegionComparison.mockResolvedValue([])
     getRegionDetails.mockResolvedValue({
       region_code: 'SI032',
       region_name: 'Podravska',

@@ -435,6 +435,62 @@ Opombe:
 - `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo,
 - prostorski dostop do `geometry` je pripravljen za PostGIS `GIST` indeks.
 
+## Endpoint: Region Comparison
+
+Vrne najnovejse `NO2` meritve za dve do dvanajst izbranih statisticnih regij,
+urejene od najvisje do najnizje vrednosti. Regije brez veljavnih pikslov so
+vkljucene kot obdelani rezultati z `quality_status = no_valid_pixels` in
+`value_mean = null`.
+
+```http
+GET /api/v1/regions/compare?region_codes=SI032&region_codes=SI036
+```
+
+Primer:
+
+```bash
+curl "http://localhost:8000/api/v1/regions/compare?region_codes=SI032&region_codes=SI036"
+```
+
+Endpoint sprejme tudi vejicno locen seznam:
+
+```bash
+curl "http://localhost:8000/api/v1/regions/compare?region_codes=SI032,SI036"
+```
+
+Primer odgovora:
+
+```json
+[
+  {
+    "region_code": "SI036",
+    "region_name": "Osrednjeslovenska",
+    "region_type": "statistical_region",
+    "value_mean": 0.000042,
+    "value_min": 0.000014,
+    "value_max": 0.000064,
+    "pixel_count_valid": 59,
+    "qa_threshold": 0.75,
+    "quality_status": "valid",
+    "unit": "mol/mÂ²",
+    "measurement_start_time": "2025-03-11T12:19:40+00:00",
+    "measurement_end_time": "2025-03-11T13:18:05+00:00",
+    "processing_run_id": 14,
+    "source_product_name": "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc"
+  }
+]
+```
+
+Pravila:
+
+- `region_codes` je obvezen in mora vsebovati vsaj dve razlicni regiji,
+- v enem klicu je dovoljenih najvec dvanajst regij,
+- privzeto so dovoljene samo regije z `region_type = statistical_region`,
+- testne regije, kot je `SI_BBOX`, niso javno izpostavljene brez
+  `?include_test_region=true`,
+- ce katera izmed zahtevanih regij ne obstaja ali ni javna, API vrne `404`,
+- ce katera izmed zahtevanih regij se nima `NO2` meritve, API vrne `404`.
+
 ## Endpoint: Region CSV Export
 
 Vrne najnovejso `NO2` meritev za izbrano regijo kot CSV datoteko za prenos.

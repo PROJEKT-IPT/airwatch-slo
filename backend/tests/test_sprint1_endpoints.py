@@ -77,6 +77,26 @@ SAMPLE_REGION_LATEST_MEASUREMENT = {
     ),
 }
 
+SAMPLE_REGION_COMPARISON_MEASUREMENT = {
+    "region_code": "SI036",
+    "region_name": "Osrednjeslovenska",
+    "region_type": "statistical_region",
+    "value_mean": 4.2e-05,
+    "value_min": 1.4e-05,
+    "value_max": 6.4e-05,
+    "pixel_count_valid": 59,
+    "qa_threshold": 0.75,
+    "quality_status": "valid",
+    "unit": "mol/m2",
+    "measurement_start_time": datetime(2025, 3, 11, 12, 19, 40, tzinfo=timezone.utc),
+    "measurement_end_time": datetime(2025, 3, 11, 13, 18, 5, tzinfo=timezone.utc),
+    "processing_run_id": 14,
+    "source_product_name": (
+        "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_"
+        "38393_03_020800_20250313T042301.nc"
+    ),
+}
+
 SAMPLE_REGION_DETAIL_MEASUREMENT = {
     "value_mean": 3.1e-05,
     "value_min": 1.2e-05,
@@ -143,6 +163,30 @@ class FakeSprint1Session:
 
         if "WITH latest_region_measurements AS" in query:
             return FakeMappingResult([SAMPLE_REGION_LATEST_MEASUREMENT])
+
+        if "r.region_code = ANY(:region_codes)" in query:
+            rows_by_code = {
+                SAMPLE_REGION_LATEST_MEASUREMENT["region_code"]: {
+                    **SAMPLE_REGION_LATEST_MEASUREMENT,
+                    "qa_threshold": 0.75,
+                },
+                SAMPLE_REGION_COMPARISON_MEASUREMENT["region_code"]: (
+                    SAMPLE_REGION_COMPARISON_MEASUREMENT
+                ),
+            }
+            rows = [
+                rows_by_code[region_code]
+                for region_code in params.get("region_codes", [])
+                if region_code in rows_by_code
+            ]
+            rows.sort(
+                key=lambda row: (
+                    row["value_mean"] is None,
+                    -(row["value_mean"] or 0),
+                    row["region_name"],
+                )
+            )
+            return FakeMappingResult(rows)
 
         if "ST_AsGeoJSON" in query and "FROM region r" in query:
             if params.get("region_code") == SAMPLE_STATISTICAL_REGION["region_code"]:
@@ -245,6 +289,50 @@ def test_get_latest_region_measurements_returns_statistical_region_rows(client):
             "source_product_name": SAMPLE_REGION_LATEST_MEASUREMENT["source_product_name"],
         }
     ]
+
+
+def test_compare_regions_returns_requested_statistical_regions_sorted_by_value(client):
+    response = client.get(
+        "/api/v1/regions/compare?region_codes=SI032&region_codes=SI036"
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert [row["region_code"] for row in data] == ["SI036", "SI032"]
+    assert data[0]["region_name"] == "Osrednjeslovenska"
+    assert data[0]["value_mean"] == SAMPLE_REGION_COMPARISON_MEASUREMENT["value_mean"]
+    assert data[0]["qa_threshold"] == 0.75
+    assert data[0]["processing_run_id"] == 14
+
+
+def test_compare_regions_accepts_comma_separated_region_codes(client):
+    response = client.get("/api/v1/regions/compare?region_codes=SI032,SI036")
+
+    assert response.status_code == 200
+    assert [row["region_code"] for row in response.json()] == ["SI036", "SI032"]
+
+
+def test_compare_regions_returns_400_for_too_few_regions(client):
+    response = client.get("/api/v1/regions/compare?region_codes=SI032")
+
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Provide at least two region_codes to compare."
+    }
+
+
+def test_compare_regions_returns_404_for_unknown_region(client):
+    response = client.get(
+        "/api/v1/regions/compare?region_codes=SI032&region_codes=UNKNOWN"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {
+        "detail": {
+            "message": "One or more regions were not found.",
+            "region_codes": ["UNKNOWN"],
+        }
+    }
 
 
 def test_get_region_details_returns_latest_measurement_and_geometry(client):

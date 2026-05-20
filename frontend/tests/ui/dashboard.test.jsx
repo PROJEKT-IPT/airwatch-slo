@@ -4,12 +4,14 @@ import userEvent from '@testing-library/user-event'
 import Dashboard from '../../src/pages/Dashboard'
 import {
   getRegionCsvExportUrl,
+  getRegionComparison,
   getRegionDetails,
   getRegionalLatestMeasurements,
 } from '../../src/api/airwatchApi'
 
 vi.mock('../../src/api/airwatchApi', () => ({
   getRegionCsvExportUrl: vi.fn(),
+  getRegionComparison: vi.fn(),
   getRegionDetails: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
 }))
@@ -34,6 +36,41 @@ const regionSummaries = [
     quality_status: 'valid',
     unit: 'mol/m²',
     measurement_end_time: '2025-03-11T13:18:05+00:00',
+  },
+]
+
+const regionComparison = [
+  {
+    region_code: 'SI032',
+    region_name: 'Podravska',
+    region_type: 'statistical_region',
+    value_mean: 0.000031,
+    value_min: 0.000012,
+    value_max: 0.000052,
+    pixel_count_valid: 41,
+    qa_threshold: 0.75,
+    quality_status: 'valid',
+    unit: 'mol/mÂ²',
+    measurement_start_time: '2025-03-11T12:19:40+00:00',
+    measurement_end_time: '2025-03-11T13:18:05+00:00',
+    processing_run_id: 14,
+    source_product_name: 'S5P_OFFL_L2__NO2____20250311T115807_20250311T133937.nc',
+  },
+  {
+    region_code: 'SI031',
+    region_name: 'Pomurska',
+    region_type: 'statistical_region',
+    value_mean: null,
+    value_min: null,
+    value_max: null,
+    pixel_count_valid: 0,
+    qa_threshold: 0.75,
+    quality_status: 'no_valid_pixels',
+    unit: 'mol/mÂ²',
+    measurement_start_time: '2025-03-11T12:19:40+00:00',
+    measurement_end_time: '2025-03-11T13:18:05+00:00',
+    processing_run_id: 13,
+    source_product_name: 'S5P_OFFL_L2__NO2____20250311T115807_20250311T133937.nc',
   },
 ]
 
@@ -83,6 +120,7 @@ describe('Dashboard', () => {
     vi.clearAllMocks()
 
     getRegionalLatestMeasurements.mockResolvedValue(regionSummaries)
+    getRegionComparison.mockResolvedValue(regionComparison)
     getRegionDetails.mockImplementation(regionCode => Promise.resolve(regionDetails[regionCode]))
     getRegionCsvExportUrl.mockImplementation(
       regionCode => `/api/api/v1/regions/${regionCode}/export.csv`,
@@ -138,6 +176,7 @@ describe('Dashboard', () => {
     })
 
     expect(screen.getByRole('heading', { name: 'NO2 po statističnih regijah' })).toBeInTheDocument()
+    expect(getRegionComparison).toHaveBeenCalledWith(['SI031', 'SI032'])
     expect(screen.getByText('1/2 z vrednostjo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Izberi regijo Pomurska' })).toBeInTheDocument()
 

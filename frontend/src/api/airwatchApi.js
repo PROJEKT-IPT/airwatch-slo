@@ -28,6 +28,27 @@ export async function getRegionalLatestMeasurements() {
   return response.json()
 }
 
+export async function getRegionComparison(regionCodes) {
+  const safeCodes = [...new Set(regionCodes.filter(Boolean))]
+
+  if (safeCodes.length < 2) {
+    return []
+  }
+
+  const params = new URLSearchParams()
+  safeCodes.forEach(regionCode => {
+    params.append('region_codes', regionCode)
+  })
+
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/regions/compare?${params}`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load region comparison: ${response.status}`)
+  }
+
+  return response.json()
+}
+
 export async function getRegionDetails(regionCode) {
   const safeCode = encodeURIComponent(regionCode)
   return fetchJsonOrNull(

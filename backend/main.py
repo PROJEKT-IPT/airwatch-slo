@@ -15,12 +15,14 @@ from database import get_db
 from schemas import (
     LatestMeasurementResponse,
     ProcessingStatusResponse,
+    RegionComparisonResponse,
     RegionCsvExportRow,
     RegionDetailsResponse,
     RegionLatestMeasurementSummaryResponse,
     RegionResponse,
 )
 from services.region_measurement_service import (
+    get_latest_no2_comparison_for_regions,
     get_latest_no2_csv_export_row_for_region,
     get_latest_no2_measurement_for_region,
     get_latest_no2_measurements_for_statistical_regions,
@@ -206,6 +208,95 @@ def get_latest_region_measurements(db: Session = Depends(get_db)):
             status_code=500,
             detail="Failed to fetch latest regional measurements.",
         ) from exc
+
+
+@app.get(
+    "/api/v1/regions/compare",
+    response_model=list[RegionComparisonResponse],
+)
+def compare_regions(
+    region_codes: Optional[list[str]] = Query(default=None),
+    include_test_region: bool = Query(default=False),
+    db: Session = Depends(get_db),
+):
+    normalized_region_codes = _normalize_region_codes(region_codes)
+
+    if len(normalized_region_codes) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide at least two region_codes to compare.",
+        )
+
+    if len(normalized_region_codes) > 12:
+        raise HTTPException(
+            status_code=400,
+            detail="Compare at most 12 regions in one request.",
+        )
+
+    try:
+        rows = get_latest_no2_comparison_for_regions(
+            db,
+            normalized_region_codes,
+            include_test_region=include_test_region,
+        )
+        found_region_codes = {row["region_code"] for row in rows}
+        missing_region_codes = [
+            region_code
+            for region_code in normalized_region_codes
+            if region_code not in found_region_codes
+        ]
+
+        if missing_region_codes:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "message": "One or more regions were not found.",
+                    "region_codes": missing_region_codes,
+                },
+            )
+
+        missing_measurement_codes = [
+            row["region_code"]
+            for row in rows
+            if row["processing_run_id"] is None
+        ]
+        if missing_measurement_codes:
+            raise HTTPException(
+                status_code=404,
+                detail={
+                    "message": "No NO2 measurement found for one or more requested regions.",
+                    "region_codes": missing_measurement_codes,
+                },
+            )
+
+        return rows
+    except HTTPException:
+        raise
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to compare regions %s", normalized_region_codes)
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to compare regions.",
+        ) from exc
+
+
+def _normalize_region_codes(region_codes: Optional[list[str]]) -> list[str]:
+    if not region_codes:
+        return []
+
+    normalized_region_codes = []
+    seen_region_codes = set()
+    for raw_region_code in region_codes:
+        for region_code in raw_region_code.split(","):
+            normalized_region_code = region_code.strip().upper()
+            if (
+                normalized_region_code
+                and normalized_region_code not in seen_region_codes
+            ):
+                normalized_region_codes.append(normalized_region_code)
+                seen_region_codes.add(normalized_region_code)
+
+    return normalized_region_codes
 
 
 @app.get("/api/v1/regions/{region_code}", response_model=RegionDetailsResponse)

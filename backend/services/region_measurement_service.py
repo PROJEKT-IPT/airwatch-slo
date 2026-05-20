@@ -67,6 +67,76 @@ def get_latest_no2_measurements_for_statistical_regions(db: Session) -> list[dic
     return [dict(row) for row in rows]
 
 
+def get_latest_no2_comparison_for_regions(
+    db: Session,
+    region_codes: list[str],
+    *,
+    include_test_region: bool = False,
+) -> list[dict]:
+    rows = db.execute(
+        text(
+            """
+            SELECT
+                r.region_code,
+                r.region_name,
+                r.region_type,
+                latest.value_mean,
+                latest.value_min,
+                latest.value_max,
+                latest.pixel_count_valid,
+                latest.qa_threshold,
+                latest.quality_status,
+                latest.unit,
+                latest.measurement_start_time,
+                latest.measurement_end_time,
+                latest.fk_processing_run AS processing_run_id,
+                sf.product_name AS source_product_name
+            FROM region r
+            LEFT JOIN LATERAL (
+                SELECT
+                    rm.fk_source_file,
+                    rm.fk_processing_run,
+                    rm.value_mean,
+                    rm.value_min,
+                    rm.value_max,
+                    rm.pixel_count_valid,
+                    rm.qa_threshold,
+                    rm.quality_status,
+                    rm.unit,
+                    rm.measurement_start_time,
+                    rm.measurement_end_time,
+                    rm.id_region_measurement
+                FROM region_measurement rm
+                JOIN indicator i ON i.id_indicator = rm.fk_indicator
+                WHERE rm.fk_region = r.id_region
+                    AND i.indicator_code = :indicator_code
+                ORDER BY
+                    rm.measurement_end_time DESC,
+                    rm.measurement_start_time DESC,
+                    rm.id_region_measurement DESC
+                LIMIT 1
+            ) latest ON TRUE
+            LEFT JOIN source_file sf ON sf.id_source_file = latest.fk_source_file
+            WHERE r.region_code = ANY(:region_codes)
+                AND (
+                    :include_test_region = TRUE
+                    OR r.region_type = :region_type
+                )
+            ORDER BY
+                latest.value_mean DESC NULLS LAST,
+                r.region_name
+            """
+        ),
+        {
+            "indicator_code": NO2_INDICATOR_CODE,
+            "region_codes": region_codes,
+            "include_test_region": include_test_region,
+            "region_type": STATISTICAL_REGION_TYPE,
+        },
+    ).mappings().all()
+    return [dict(row) for row in rows]
+
+
 def get_latest_no2_measurement_for_region(db: Session, region_id: int) -> dict | None:
     row = db.execute(
         text(

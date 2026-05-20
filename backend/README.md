@@ -97,6 +97,12 @@ Get region details with the latest NO2 measurement:
 curl http://localhost:8000/api/v1/regions/SI032
 ```
 
+Compare latest NO2 measurements for multiple statistical regions:
+
+```bash
+curl "http://localhost:8000/api/v1/regions/compare?region_codes=SI032&region_codes=SI036"
+```
+
 Export the selected region's latest NO2 measurement as CSV:
 
 ```bash
@@ -107,6 +113,7 @@ The regional API endpoints:
 
 - return one latest `NO2` measurement per statistical region,
 - exclude `SI_BBOX` and other non-statistical test regions by default,
+- compare two to twelve requested statistical regions by latest `NO2` value,
 - expose the selected region's latest `NO2` measurement as a single-row CSV export,
 - order the summary response by `region_code`,
 - use `measurement_end_time`, `measurement_start_time`, and the measurement id

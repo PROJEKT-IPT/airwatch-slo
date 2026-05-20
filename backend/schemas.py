@@ -62,6 +62,23 @@ class RegionLatestMeasurementSummaryResponse(BaseModel):
     source_product_name: str
 
 
+class RegionComparisonResponse(BaseModel):
+    region_code: str
+    region_name: str
+    region_type: str
+    value_mean: Optional[float] = None
+    value_min: Optional[float] = None
+    value_max: Optional[float] = None
+    pixel_count_valid: int
+    qa_threshold: Optional[float] = None
+    quality_status: Optional[str] = None
+    unit: str
+    measurement_start_time: datetime
+    measurement_end_time: datetime
+    processing_run_id: int
+    source_product_name: str
+
+
 class RegionLatestMeasurementDetailsResponse(BaseModel):
     value_mean: Optional[float] = None
     value_min: Optional[float] = None
