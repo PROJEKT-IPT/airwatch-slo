@@ -15,6 +15,7 @@ import RegionComparisonCard from '../components/RegionComparisonCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
 import RegionalMap from '../components/RegionalMap'
+import TrendChart from '../components/TrendChart'
 
 function Dashboard() {
   const [regionSummaries, setRegionSummaries] = useState([])
@@ -336,18 +337,10 @@ function Dashboard() {
             hasRegion={Boolean(selectedRegionCode)}
           />
 
-          <section className="card coming-soon-card">
-            <div>
-              <p className="section-kicker">Prihaja kmalu</p>
-              <h2>Zgodovina meritev</h2>
-              <p>
-                Naslednji koraki vključujejo zgodovinske trende za izbrano regijo.
-              </p>
-            </div>
-            <div className="coming-soon-list" aria-label="Prihodnje funkcionalnosti">
-              <span>Zgodovinski trend</span>
-            </div>
-          </section>
+          <TrendChart
+            regionCode={selectedRegionCode}
+            regionName={displayRegionName}
+          />
         </section>
       </main>
   )

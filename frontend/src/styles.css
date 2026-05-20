@@ -999,6 +999,38 @@ select {
   align-items: center;
 }
 
+.trend-chart-card {
+  grid-column: 1 / -1;
+}
+
+.trend-chart-container {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  margin-top: 18px;
+  min-height: 300px;
+}
+
+.trend-chart-axis-label {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--stem-grey);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.trend-chart-plot {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .coming-soon-list {
   display: flex;
   flex-wrap: wrap;

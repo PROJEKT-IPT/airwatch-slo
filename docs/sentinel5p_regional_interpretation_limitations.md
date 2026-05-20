@@ -102,6 +102,16 @@ Recommended interpretation:
 | `no_valid_pixels` | No pixels passed the QA filter for that region. |
 | `processing_error` | Processing failed before a reliable regional result was produced. |
 
+## Trend Chart Presentation
+
+The dashboard trend chart uses the same regional `value_mean` measurements, but it presents them
+with a tightened Y-axis so small changes are easier to see. The chart keeps the underlying unit as
+`mol/m²` and shows the scale separately in scientific notation, such as `×10⁻⁵` or `×10⁻⁶`,
+depending on the value range in view.
+
+This is a display choice only. It does not change the stored measurement values or imply a more
+precise physical interpretation than the regional Sentinel-5P data supports.
+
 ## End-User Wording
 
 Sentinel-5P / TROPOMI NO2 data is satellite-derived and averaged over pixels of
