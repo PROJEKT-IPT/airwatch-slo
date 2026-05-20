@@ -62,6 +62,13 @@ class RegionLatestMeasurementSummaryResponse(BaseModel):
     source_product_name: str
 
 
+class RegionGeometryResponse(BaseModel):
+    region_code: str
+    region_name: str
+    region_type: str
+    geometry: Optional[dict[str, Any]] = None
+
+
 class RegionComparisonResponse(BaseModel):
     region_code: str
     region_name: str

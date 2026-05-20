@@ -18,6 +18,7 @@ from schemas import (
     RegionComparisonResponse,
     RegionCsvExportRow,
     RegionDetailsResponse,
+    RegionGeometryResponse,
     RegionLatestMeasurementSummaryResponse,
     RegionResponse,
 )
@@ -27,7 +28,10 @@ from services.region_measurement_service import (
     get_latest_no2_measurement_for_region,
     get_latest_no2_measurements_for_statistical_regions,
 )
-from services.region_service import get_region_details_by_code
+from services.region_service import (
+    get_region_details_by_code,
+    get_region_geometries_for_statistical_regions,
+)
 
 app = FastAPI(title="AirWatch SLO API")
 logger = logging.getLogger(__name__)
@@ -297,6 +301,21 @@ def _normalize_region_codes(region_codes: Optional[list[str]]) -> list[str]:
                 seen_region_codes.add(normalized_region_code)
 
     return normalized_region_codes
+
+
+@app.get(
+    "/api/v1/regions/geometries",
+    response_model=list[RegionGeometryResponse],
+)
+def get_region_geometries(db: Session = Depends(get_db)):
+    try:
+        return get_region_geometries_for_statistical_regions(db)
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to fetch regional geometries")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch regional geometries.",
+        ) from exc
 
 
 @app.get("/api/v1/regions/{region_code}", response_model=RegionDetailsResponse)

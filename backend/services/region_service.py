@@ -9,6 +9,32 @@ from sqlalchemy.orm import Session
 from services.region_measurement_service import STATISTICAL_REGION_TYPE
 
 
+def get_region_geometries_for_statistical_regions(db: Session) -> list[dict]:
+    rows = db.execute(
+        text(
+            """
+            SELECT
+                r.region_code,
+                r.region_name,
+                r.region_type,
+                CASE
+                    WHEN r.geometry IS NULL THEN NULL
+                    ELSE ST_AsGeoJSON(r.geometry)
+                END AS geometry
+            FROM region r
+            WHERE r.region_type = :region_type
+            ORDER BY r.region_code
+            """
+        ),
+        {"region_type": STATISTICAL_REGION_TYPE},
+    ).mappings().all()
+
+    regions = [dict(row) for row in rows]
+    for region in regions:
+        region["geometry"] = _parse_geojson(region.get("geometry"))
+    return regions
+
+
 def get_region_details_by_code(
     db: Session,
     region_code: str,

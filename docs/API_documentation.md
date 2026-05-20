@@ -383,6 +383,44 @@ Pravila za izbor "latest" meritve:
 - backend uporablja temu vrstnemu redu usklajene sestavljene indekse, da so
   pogoste regionalne poizvedbe deterministicne in hitrejse.
 
+## Endpoint: Regional Geometries
+
+Vrne geometrije vseh slovenskih statisticnih regij v enem klicu za prikaz na
+zemljevidu.
+
+```http
+GET /api/v1/regions/geometries
+```
+
+Primer:
+
+```bash
+curl http://localhost:8000/api/v1/regions/geometries
+```
+
+Primer odgovora:
+
+```json
+[
+  {
+    "region_code": "SI032",
+    "region_name": "Podravska",
+    "region_type": "statistical_region",
+    "geometry": {
+      "type": "MultiPolygon",
+      "coordinates": []
+    }
+  }
+]
+```
+
+Opombe:
+
+- endpoint vrne samo regije z `region_type = statistical_region`,
+- `SI_BBOX` in druge testne regije niso vkljucene,
+- rezultat je urejen po `region_code`,
+- `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo.
+
 ## Endpoint: Region Details
 
 Vrne metapodatke regije in njeno najnovejso `NO2` meritev.

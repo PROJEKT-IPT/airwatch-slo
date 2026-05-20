@@ -91,6 +91,12 @@ Get latest NO2 measurements for all public Slovenian statistical regions:
 curl http://localhost:8000/api/v1/regions/latest-measurements
 ```
 
+Get geometries for all public Slovenian statistical regions:
+
+```bash
+curl http://localhost:8000/api/v1/regions/geometries
+```
+
 Get region details with the latest NO2 measurement:
 
 ```bash
@@ -112,6 +118,7 @@ curl -OJ http://localhost:8000/api/v1/regions/SI032/export.csv
 The regional API endpoints:
 
 - return one latest `NO2` measurement per statistical region,
+- return all statistical region geometries in one map-friendly request,
 - exclude `SI_BBOX` and other non-statistical test regions by default,
 - compare two to twelve requested statistical regions by latest `NO2` value,
 - expose the selected region's latest `NO2` measurement as a single-row CSV export,

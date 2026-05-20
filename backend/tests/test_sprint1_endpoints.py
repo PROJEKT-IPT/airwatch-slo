@@ -58,6 +58,11 @@ SAMPLE_STATISTICAL_REGION = {
     },
 }
 
+SAMPLE_STATISTICAL_REGION_GEOMETRY_TEXT = (
+    '{"type":"MultiPolygon","coordinates":[[[[15.0,46.5],'
+    "[15.1,46.5],[15.1,46.6],[15.0,46.5]]]]}"
+)
+
 SAMPLE_REGION_LATEST_MEASUREMENT = {
     "region_code": "SI032",
     "region_name": "Podravska",
@@ -188,6 +193,22 @@ class FakeSprint1Session:
             )
             return FakeMappingResult(rows)
 
+        if (
+            "ST_AsGeoJSON" in query
+            and "FROM region r" in query
+            and "ORDER BY r.region_code" in query
+        ):
+            return FakeMappingResult(
+                [
+                    {
+                        "region_code": SAMPLE_STATISTICAL_REGION["region_code"],
+                        "region_name": SAMPLE_STATISTICAL_REGION["region_name"],
+                        "region_type": SAMPLE_STATISTICAL_REGION["region_type"],
+                        "geometry": SAMPLE_STATISTICAL_REGION_GEOMETRY_TEXT,
+                    }
+                ]
+            )
+
         if "ST_AsGeoJSON" in query and "FROM region r" in query:
             if params.get("region_code") == SAMPLE_STATISTICAL_REGION["region_code"]:
                 return FakeMappingResult(
@@ -197,10 +218,7 @@ class FakeSprint1Session:
                             "region_code": SAMPLE_STATISTICAL_REGION["region_code"],
                             "region_name": SAMPLE_STATISTICAL_REGION["region_name"],
                             "region_type": SAMPLE_STATISTICAL_REGION["region_type"],
-                            "geometry": (
-                                '{"type":"MultiPolygon","coordinates":[[[[15.0,46.5],'
-                                "[15.1,46.5],[15.1,46.6],[15.0,46.5]]]]}"
-                            ),
+                            "geometry": SAMPLE_STATISTICAL_REGION_GEOMETRY_TEXT,
                         }
                     ]
                 )
@@ -333,6 +351,21 @@ def test_compare_regions_returns_404_for_unknown_region(client):
             "region_codes": ["UNKNOWN"],
         }
     }
+
+
+def test_get_region_geometries_returns_statistical_region_geometries(client):
+    response = client.get("/api/v1/regions/geometries")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data == [
+        {
+            "region_code": "SI032",
+            "region_name": "Podravska",
+            "region_type": "statistical_region",
+            "geometry": SAMPLE_STATISTICAL_REGION["geometry"],
+        }
+    ]
 
 
 def test_get_region_details_returns_latest_measurement_and_geometry(client):
