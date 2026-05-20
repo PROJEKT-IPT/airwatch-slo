@@ -1,0 +1,22 @@
+[Unit]
+Description=AirWatch SLO — daily Sentinel-5P NO2 refresh
+Documentation=file:///opt/airwatch-slo/data_pipeline/automation/README.md
+# Wait for the Docker daemon (db + backend live in Docker Compose).
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Adjust to the user that owns the repo checkout and is in the `docker` group.
+User=airwatch
+Group=airwatch
+# Adjust to your deploy path. The wrapper resolves the repo root from its own
+# location, so this just needs to point at the script.
+ExecStart=/opt/airwatch-slo/data_pipeline/automation/refresh_latest_no2.sh
+WorkingDirectory=/opt/airwatch-slo
+# Cap a stuck run so the timer can take over the next day.
+TimeoutStartSec=30min
+# stdout/stderr from the wrapper go to journald; the wrapper's own
+# logs/refresh_*.log files keep the per-day record.
+StandardOutput=journal
+StandardError=journal

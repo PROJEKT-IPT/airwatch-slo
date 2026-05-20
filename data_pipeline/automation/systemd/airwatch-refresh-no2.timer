@@ -1,0 +1,19 @@
+[Unit]
+Description=AirWatch SLO — schedule the daily Sentinel-5P NO2 refresh
+Requires=airwatch-refresh-no2.service
+
+[Timer]
+# Daily at 06:15 local — same rationale as the local launchd agent:
+# Sentinel-5P overpasses ~midday UTC, OFFL NO2 product lands ~2-3 days
+# later, so one morning poll reliably catches anything new.
+OnCalendar=*-*-* 06:15:00
+# If the machine was off at 06:15, run as soon as it's available again.
+# AirWatch is not a real-time system, so a few minutes' drift is fine.
+Persistent=true
+# Tiny jitter so coordinated swarms of VMs do not hit CDSE in the same
+# millisecond.
+RandomizedDelaySec=5min
+Unit=airwatch-refresh-no2.service
+
+[Install]
+WantedBy=timers.target

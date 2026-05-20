@@ -1,4 +1,4 @@
-# Continuous Integration
+ci# Continuous Integration
 
 AirWatch SLO uses GitHub Actions for basic CI checks. This is CI only, not deployment.
 

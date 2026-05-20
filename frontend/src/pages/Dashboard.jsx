@@ -130,6 +130,18 @@ function Dashboard() {
   )
   const csvExportUrl = selectedRegionCode ? getRegionCsvExportUrl(selectedRegionCode) : ''
 
+  const latestRefreshAt = useMemo(() => {
+    let newest = null
+    for (const item of regionSummaries) {
+      const ts = item?.measurement_end_time
+      if (!ts) continue
+      const date = new Date(ts)
+      if (Number.isNaN(date.getTime())) continue
+      if (!newest || date > newest) newest = date
+    }
+    return newest
+  }, [regionSummaries])
+
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
   const timeRangeLabel = formatDateTimeRange(
     measurement?.measurement_start_time,
@@ -148,9 +160,12 @@ function Dashboard() {
               času.
             </p>
           </div>
-          <div className="header-status">
-            <span className="status-dot" />
-            <span>Copernicus Sentinel-5P</span>
+          <div className="header-status-group">
+            <div className="header-status">
+              <span className="status-dot" />
+              <span>Copernicus Sentinel-5P</span>
+            </div>
+            <FreshnessBadge latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} />
           </div>
         </header>
 
@@ -234,6 +249,45 @@ function Dashboard() {
         </section>
       </main>
   )
+}
+
+function FreshnessBadge({ latestRefreshAt, isLoading }) {
+  if (isLoading) {
+    return (
+      <div className="freshness-badge freshness-badge--loading" aria-live="polite">
+        <span className="freshness-badge-label">Podatki nazadnje osveženi</span>
+        <span className="freshness-badge-value">Nalaganje…</span>
+      </div>
+    )
+  }
+
+  if (!latestRefreshAt) {
+    return (
+      <div className="freshness-badge freshness-badge--missing">
+        <span className="freshness-badge-label">Podatki nazadnje osveženi</span>
+        <span className="freshness-badge-value">Ni podatka</span>
+      </div>
+    )
+  }
+
+  const ageDays = Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
+  const stale = ageDays >= 4
+  const className = stale ? 'freshness-badge freshness-badge--stale' : 'freshness-badge'
+  const absolute = formatDateTime(latestRefreshAt.toISOString())
+
+  return (
+    <div className={className} title={absolute}>
+      <span className="freshness-badge-label">Podatki nazadnje osveženi</span>
+      <span className="freshness-badge-value">{formatRelativeAgeDays(ageDays)}</span>
+      <em className="freshness-badge-absolute">{absolute}</em>
+    </div>
+  )
+}
+
+function formatRelativeAgeDays(ageDays) {
+  if (ageDays <= 0) return 'danes'
+  if (ageDays === 1) return 'včeraj'
+  return `pred ${ageDays} dnevi`
 }
 
 function MetadataItem({ label, value, detail = '' }) {

@@ -183,6 +183,55 @@ select {
   background: #6fa17a;
 }
 
+.header-status-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  min-width: fit-content;
+}
+
+.freshness-badge {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--blueberry-skin);
+  text-align: right;
+}
+
+.freshness-badge--stale {
+  border-color: #d8a55a;
+  background: rgba(247, 220, 168, 0.45);
+}
+
+.freshness-badge--missing,
+.freshness-badge--loading {
+  color: var(--stem-grey);
+}
+
+.freshness-badge-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--berry-bloom);
+}
+
+.freshness-badge-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.freshness-badge-absolute {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--stem-grey);
+}
+
 .top-controls {
   display: grid;
   grid-template-columns: minmax(260px, 360px) minmax(0, 1fr);

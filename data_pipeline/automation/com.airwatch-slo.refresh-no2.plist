@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd agent that runs refresh_latest_no2.sh daily at 06:15 local time.
+
+  06:15 sits comfortably after the OFFL processing latency window: Sentinel-5P
+  overpasses Slovenia around midday UTC, and the OFFL NO2 product lands at
+  Copernicus Data Space ~2-3 days later, so a morning poll reliably catches
+  the newest available product whenever a new one has appeared.
+
+  Install:
+    cp data_pipeline/automation/com.airwatch-slo.refresh-no2.plist \
+       ~/Library/LaunchAgents/
+    # Edit the copy: replace <REPO_PATH> with the absolute repo path.
+    launchctl load ~/Library/LaunchAgents/com.airwatch-slo.refresh-no2.plist
+
+  Trigger once manually (for testing):
+    launchctl start com.airwatch-slo.refresh-no2
+
+  Uninstall:
+    launchctl unload ~/Library/LaunchAgents/com.airwatch-slo.refresh-no2.plist
+    rm ~/Library/LaunchAgents/com.airwatch-slo.refresh-no2.plist
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.airwatch-slo.refresh-no2</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string><REPO_PATH>/data_pipeline/automation/refresh_latest_no2.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string><REPO_PATH></string>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>6</integer>
+    <key>Minute</key>
+    <integer>15</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string><REPO_PATH>/data_pipeline/automation/logs/launchd.stdout.log</string>
+
+  <key>StandardErrorPath</key>
+  <string><REPO_PATH>/data_pipeline/automation/logs/launchd.stderr.log</string>
+</dict>
+</plist>
