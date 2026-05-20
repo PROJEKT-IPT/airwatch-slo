@@ -160,6 +160,7 @@ Prenesene `.nc` in `.zip` datoteke ostanejo v `data_pipeline/sample_data/` in ne
 - Database navodila: `database/README.md`
 - Data pipeline navodila: `data_pipeline/README.md`
 - CI navodila: `docs/ci.md`
+- Frontend E2E testi: `docs/frontend_e2e_tests.md`
 - Sentinel-5P NO2 discovery template: `docs/data_discovery_sentinel5p_no2.md`
 - Regional NO₂ pipeline runbook: `docs/regional_pipeline_runbook.md`
 - Predlagana struktura projekta: `structure.md`
@@ -182,6 +183,14 @@ Frontend lokalno:
 cd frontend
 npm install
 npm run dev
+```
+
+Frontend E2E test:
+
+```bash
+cd frontend
+npx playwright install chromium
+npm run test:e2e
 ```
 
 Frontend lokalno teče na `http://localhost:3000` in kliče backend prek `/api` proxyja na `http://localhost:8000`.

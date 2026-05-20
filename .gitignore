@@ -35,6 +35,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 dist/
+frontend/dist-e2e/
+frontend/test-results/
 build/
 .next/
 .nuxt/
