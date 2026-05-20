@@ -19,13 +19,21 @@ const regionSummaries = [
     region_code: 'SI031',
     region_name: 'Pomurska',
     region_type: 'statistical_region',
+    value_mean: null,
+    pixel_count_valid: 0,
     quality_status: 'no_valid_pixels',
+    unit: 'mol/m²',
+    measurement_end_time: '2025-03-11T13:18:05+00:00',
   },
   {
     region_code: 'SI032',
     region_name: 'Podravska',
     region_type: 'statistical_region',
+    value_mean: 0.000031,
+    pixel_count_valid: 41,
     quality_status: 'valid',
+    unit: 'mol/m²',
+    measurement_end_time: '2025-03-11T13:18:05+00:00',
   },
 ]
 
@@ -119,5 +127,27 @@ describe('Dashboard', () => {
       'href',
       '/api/api/v1/regions/SI031/export.csv',
     )
+  })
+
+  it('renders region comparison rows and selects a region from the comparison', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+    })
+
+    expect(screen.getByRole('heading', { name: 'NO2 po statističnih regijah' })).toBeInTheDocument()
+    expect(screen.getByText('1/2 z vrednostjo')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Izberi regijo Pomurska' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Izberi regijo Pomurska' }))
+
+    await waitFor(() => {
+      expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
+    })
+    await waitFor(() => {
+      expect(screen.getByRole('combobox')).toHaveValue('SI031')
+    })
   })
 })

@@ -10,6 +10,7 @@ import DataQualityCard from '../components/DataQualityCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import MapPlaceholder from '../components/MapPlaceholder'
 import No2ExplanationCard from '../components/No2ExplanationCard'
+import RegionComparisonCard from '../components/RegionComparisonCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
 
@@ -225,6 +226,14 @@ function Dashboard() {
 
           <No2ExplanationCard />
 
+          <RegionComparisonCard
+            regions={regionSummaries}
+            selectedRegionCode={selectedRegionCode}
+            onRegionSelect={setSelectedRegionCode}
+            isLoading={isLoadingRegions}
+            error={regionsError}
+          />
+
           <DataProvenanceCard
             measurement={measurement}
             selectedRegion={selectedSummary}
@@ -236,14 +245,13 @@ function Dashboard() {
           <section className="card coming-soon-card">
             <div>
               <p className="section-kicker">Prihaja kmalu</p>
-              <h2>Zgodovina in primerjava</h2>
+              <h2>Zgodovina meritev</h2>
               <p>
-                Naslednji koraki vključujejo zgodovinske trende in primerjavo regij.
+                Naslednji koraki vključujejo zgodovinske trende za izbrano regijo.
               </p>
             </div>
             <div className="coming-soon-list" aria-label="Prihodnje funkcionalnosti">
               <span>Zgodovinski trend</span>
-              <span>Primerjava regij</span>
             </div>
           </section>
         </section>
