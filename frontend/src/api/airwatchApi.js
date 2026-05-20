@@ -28,6 +28,16 @@ export async function getRegionalLatestMeasurements() {
   return response.json()
 }
 
+export async function getRegionGeometries() {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/regions/geometries`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load region geometries: ${response.status}`)
+  }
+
+  return response.json()
+}
+
 export async function getRegionComparison(regionCodes) {
   const safeCodes = [...new Set(regionCodes.filter(Boolean))]
 

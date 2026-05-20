@@ -6,6 +6,7 @@ import {
   getRegionCsvExportUrl,
   getRegionComparison,
   getRegionDetails,
+  getRegionGeometries,
   getRegionalLatestMeasurements,
 } from '../../src/api/airwatchApi'
 
@@ -13,6 +14,7 @@ vi.mock('../../src/api/airwatchApi', () => ({
   getRegionCsvExportUrl: vi.fn(),
   getRegionComparison: vi.fn(),
   getRegionDetails: vi.fn(),
+  getRegionGeometries: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
 }))
 
@@ -115,6 +117,43 @@ const regionDetails = {
   },
 }
 
+const regionGeometries = [
+  {
+    region_code: 'SI031',
+    region_name: 'Pomurska',
+    region_type: 'statistical_region',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [16.0, 46.5],
+          [16.8, 46.5],
+          [16.8, 47.0],
+          [16.0, 47.0],
+          [16.0, 46.5],
+        ],
+      ],
+    },
+  },
+  {
+    region_code: 'SI032',
+    region_name: 'Podravska',
+    region_type: 'statistical_region',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [15.1, 46.0],
+          [16.0, 46.0],
+          [16.0, 46.5],
+          [15.1, 46.5],
+          [15.1, 46.0],
+        ],
+      ],
+    },
+  },
+]
+
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -122,6 +161,7 @@ describe('Dashboard', () => {
     getRegionalLatestMeasurements.mockResolvedValue(regionSummaries)
     getRegionComparison.mockResolvedValue(regionComparison)
     getRegionDetails.mockImplementation(regionCode => Promise.resolve(regionDetails[regionCode]))
+    getRegionGeometries.mockResolvedValue(regionGeometries)
     getRegionCsvExportUrl.mockImplementation(
       regionCode => `/api/api/v1/regions/${regionCode}/export.csv`,
     )
@@ -140,6 +180,9 @@ describe('Dashboard', () => {
 
     const metricCard = container.querySelector('.metric-card')
     expect(within(metricCard).getByText('41')).toBeInTheDocument()
+    expect(screen.getByLabelText('Interaktivni Leaflet zemljevid slovenskih statističnih regij'))
+      .toBeInTheDocument()
+    expect(screen.getByText('Izbrano')).toBeInTheDocument()
   })
 
   it('updates the cards when the selected region changes', async () => {
@@ -165,6 +208,23 @@ describe('Dashboard', () => {
       'href',
       '/api/api/v1/regions/SI031/export.csv',
     )
+    expect(container.querySelector('.map-selected-region')).toHaveTextContent('SI031')
+  })
+
+  it('selects a region from the regional map', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Izberi regijo na zemljevidu Pomurska' }))
+
+    await waitFor(() => {
+      expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
+    })
+    expect(screen.getByRole('combobox')).toHaveValue('SI031')
   })
 
   it('renders region comparison rows and selects a region from the comparison', async () => {

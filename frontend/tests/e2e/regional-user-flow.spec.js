@@ -80,6 +80,43 @@ const regionDetails = {
   },
 }
 
+const regionGeometries = [
+  {
+    region_code: 'SI031',
+    region_name: 'Pomurska',
+    region_type: 'statistical_region',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [16.0, 46.5],
+          [16.8, 46.5],
+          [16.8, 47.0],
+          [16.0, 47.0],
+          [16.0, 46.5],
+        ],
+      ],
+    },
+  },
+  {
+    region_code: 'SI032',
+    region_name: 'Podravska',
+    region_type: 'statistical_region',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [
+        [
+          [15.1, 46.0],
+          [16.0, 46.0],
+          [16.0, 46.5],
+          [15.1, 46.5],
+          [15.1, 46.0],
+        ],
+      ],
+    },
+  },
+]
+
 test('covers the main regional dashboard flow', async ({ page }) => {
   await page.route('**/api/api/v1/regions/**', async route => {
     const url = new URL(route.request().url())
@@ -89,6 +126,15 @@ test('covers the main regional dashboard flow', async ({ page }) => {
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify(regionSummaries),
+      })
+      return
+    }
+
+    if (url.pathname.endsWith('/geometries')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(regionGeometries),
       })
       return
     }
@@ -135,7 +181,10 @@ test('covers the main regional dashboard flow', async ({ page }) => {
 
   const regionSelect = page.getByLabel(/Statisti.*na regija/i)
   await expect(regionSelect).toHaveValue('SI032')
-  await expect(page.locator('.region-block-active')).toHaveText('SI032')
+  await expect(
+    page.getByLabel('Interaktivni Leaflet zemljevid slovenskih statističnih regij'),
+  ).toBeVisible()
+  await expect(page.locator('.map-selected-region')).toContainText('SI032')
 
   const latestMeasurementCard = page.locator('.metric-card')
   await expect(latestMeasurementCard.getByRole('heading', { name: 'Podravska' })).toBeVisible()
@@ -149,7 +198,7 @@ test('covers the main regional dashboard flow', async ({ page }) => {
 
   await regionSelect.selectOption('SI031')
 
-  await expect(page.locator('.region-block-active')).toHaveText('SI031')
+  await expect(page.locator('.map-selected-region')).toContainText('SI031')
   await expect(latestMeasurementCard.getByRole('heading', { name: 'Pomurska' })).toBeVisible()
   await expect(latestMeasurementCard).toContainText('Ni veljavnih podatkov za izbrano regijo')
   await expect(detailsCard).toContainText('Koda regije: SI031')

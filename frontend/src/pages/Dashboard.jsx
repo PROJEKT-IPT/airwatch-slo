@@ -4,23 +4,27 @@ import {
   getRegionCsvExportUrl,
   getRegionComparison,
   getRegionDetails,
+  getRegionGeometries,
   getRegionalLatestMeasurements,
 } from '../api/airwatchApi'
 import DataProvenanceCard from '../components/DataProvenanceCard'
 import DataQualityCard from '../components/DataQualityCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
-import MapPlaceholder from '../components/MapPlaceholder'
 import No2ExplanationCard from '../components/No2ExplanationCard'
 import RegionComparisonCard from '../components/RegionComparisonCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
+import RegionalMap from '../components/RegionalMap'
 
 function Dashboard() {
   const [regionSummaries, setRegionSummaries] = useState([])
+  const [regionGeometries, setRegionGeometries] = useState([])
   const [regionComparison, setRegionComparison] = useState([])
   const [selectedRegionCode, setSelectedRegionCode] = useState('')
   const [isLoadingRegions, setIsLoadingRegions] = useState(true)
+  const [isLoadingGeometries, setIsLoadingGeometries] = useState(true)
   const [regionsError, setRegionsError] = useState('')
+  const [geometriesError, setGeometriesError] = useState('')
   const [isLoadingComparison, setIsLoadingComparison] = useState(false)
   const [comparisonError, setComparisonError] = useState('')
   const [regionDetail, setRegionDetail] = useState(null)
@@ -65,6 +69,44 @@ function Dashboard() {
     }
 
     loadRegionSummaries()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadRegionGeometries() {
+      setIsLoadingGeometries(true)
+      setGeometriesError('')
+
+      try {
+        const geometries = await getRegionGeometries()
+
+        if (!isMounted) {
+          return
+        }
+
+        setRegionGeometries(Array.isArray(geometries) ? geometries : [])
+      } catch (error) {
+        if (!isMounted) {
+          return
+        }
+
+        setRegionGeometries([])
+        setGeometriesError(
+          'Geometrij statističnih regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so regionalne meje naložene v bazo.',
+        )
+      } finally {
+        if (isMounted) {
+          setIsLoadingGeometries(false)
+        }
+      }
+    }
+
+    loadRegionGeometries()
 
     return () => {
       isMounted = false
@@ -256,11 +298,13 @@ function Dashboard() {
             hasRegion={Boolean(selectedRegionCode)}
           />
 
-          <MapPlaceholder
+          <RegionalMap
             regions={regionSummaries}
+            geometries={regionGeometries}
             selectedRegionCode={selectedRegionCode}
-            isLoading={isLoadingRegions}
-            error={regionsError}
+            onRegionSelect={setSelectedRegionCode}
+            isLoading={isLoadingRegions || isLoadingGeometries}
+            error={regionsError || geometriesError}
           />
 
           <RegionDetailsCard

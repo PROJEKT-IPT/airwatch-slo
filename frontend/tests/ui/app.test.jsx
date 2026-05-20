@@ -7,6 +7,7 @@ import {
   getRegionCsvExportUrl,
   getRegionComparison,
   getRegionDetails,
+  getRegionGeometries,
   getRegionalLatestMeasurements,
 } from '../../src/api/airwatchApi'
 
@@ -15,6 +16,7 @@ vi.mock('../../src/api/airwatchApi', () => ({
   getRegionCsvExportUrl: vi.fn(),
   getRegionComparison: vi.fn(),
   getRegionDetails: vi.fn(),
+  getRegionGeometries: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
 }))
 
@@ -31,6 +33,25 @@ describe('App navigation', () => {
       },
     ])
     getRegionComparison.mockResolvedValue([])
+    getRegionGeometries.mockResolvedValue([
+      {
+        region_code: 'SI032',
+        region_name: 'Podravska',
+        region_type: 'statistical_region',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [15.1, 46.0],
+              [16.0, 46.0],
+              [16.0, 46.5],
+              [15.1, 46.5],
+              [15.1, 46.0],
+            ],
+          ],
+        },
+      },
+    ])
     getRegionDetails.mockResolvedValue({
       region_code: 'SI032',
       region_name: 'Podravska',
