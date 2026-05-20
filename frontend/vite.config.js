@@ -14,4 +14,10 @@ export default defineConfig({
       },
     },
   },
+  test: {
+    include: ['tests/ui/**/*.test.{js,jsx}'],
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './tests/setup.js',
+  },
 })

@@ -50,10 +50,9 @@ CI does not run scripts that require Copernicus credentials or the large Sentine
 CI uses Node.js 20 and:
 
 - installs dependencies with `npm ci`,
-- runs `npm run lint` only if a lint script exists,
+- runs `npm run lint`,
+- runs `npm test` for basic UI tests in Vitest,
 - runs `npm run build`.
-
-Missing lint script does not fail CI.
 
 ## What CI Intentionally Does Not Do
 

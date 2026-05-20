@@ -185,6 +185,14 @@ npm install
 npm run dev
 ```
 
+Frontend lint in basic UI testi:
+
+```bash
+cd frontend
+npm run lint
+npm test
+```
+
 Frontend E2E test:
 
 ```bash
