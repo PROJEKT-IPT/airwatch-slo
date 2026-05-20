@@ -104,3 +104,12 @@ Both scripts are safe to run multiple times:
 ## Limitations
 
 The generated GISCO GeoJSON and regional NO2 JSON files are local generated/input artifacts and are ignored by Git. They must not be committed.
+
+## Sprint 3 regional history prototype
+
+The Sprint 3 history prototype uses regional Sentinel-5P OFFL L2 NO2 products,
+not the old `SI_BBOX` test row. The local setup currently uses two regional
+`.nc` products, `2026-05-08` and `2026-05-11`, as documented in
+[`docs/sprint3_history_no2_input_product.md`](./sprint3_history_no2_input_product.md)
+with product metadata, validation summaries, processing commands, and the SQL
+verification query for statistical-region history rows.
