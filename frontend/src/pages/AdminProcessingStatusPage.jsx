@@ -1,42 +1,54 @@
 import { useEffect, useState } from 'react'
 
-import { getProcessingStatus } from '../api/airwatchApi'
+import { getProcessingHistory, getProcessingStatus } from '../api/airwatchApi'
+
+const HISTORY_LIMIT = 20
 
 function AdminProcessingStatusPage() {
   const [status, setStatus] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [history, setHistory] = useState([])
+  const [isHistoryLoading, setIsHistoryLoading] = useState(true)
+  const [historyError, setHistoryError] = useState('')
 
   useEffect(() => {
     let isMounted = true
 
-    async function loadProcessingStatus() {
+    async function loadProcessingData() {
       setIsLoading(true)
+      setIsHistoryLoading(true)
       setError('')
+      setHistoryError('')
 
-      try {
-        const loadedStatus = await getProcessingStatus()
+      const [statusResult, historyResult] = await Promise.allSettled([
+        getProcessingStatus(),
+        getProcessingHistory({ limit: HISTORY_LIMIT }),
+      ])
 
-        if (!isMounted) {
-          return
-        }
+      if (!isMounted) {
+        return
+      }
 
-        setStatus(loadedStatus)
-      } catch (requestError) {
-        if (!isMounted) {
-          return
-        }
-
+      if (statusResult.status === 'fulfilled') {
+        setStatus(statusResult.value)
+      } else {
         setStatus(null)
         setError('Statusa obdelave ni bilo mogoče naložiti iz API-ja.')
-      } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
       }
+
+      if (historyResult.status === 'fulfilled') {
+        setHistory(historyResult.value || [])
+      } else {
+        setHistory([])
+        setHistoryError('Zgodovine obdelav ni bilo mogoče naložiti iz API-ja.')
+      }
+
+      setIsLoading(false)
+      setIsHistoryLoading(false)
     }
 
-    loadProcessingStatus()
+    loadProcessingData()
 
     return () => {
       isMounted = false
@@ -69,9 +81,9 @@ function AdminProcessingStatusPage() {
         <section className="admin-status-grid">
           <article className="card processing-status-card">
             {isLoading ? (
-              <LoadingState />
+              <LoadingState text="Nalagam status obdelave ..." />
             ) : error ? (
-              <ErrorState text={error} />
+              <ErrorState title="Napaka pri nalaganju statusa" text={error} />
             ) : !status ? (
               <EmptyState />
             ) : (
@@ -121,6 +133,25 @@ function AdminProcessingStatusPage() {
               </>
             )}
           </article>
+          <article className="card processing-history-card">
+            <div className="card-heading">
+              <div>
+                <p className="section-kicker">Zgodovina obdelav</p>
+                <h2>Pretekli processing runi</h2>
+              </div>
+              <span className="history-count">Zadnjih {HISTORY_LIMIT}</span>
+            </div>
+
+            {isHistoryLoading ? (
+              <LoadingState text="Nalagam zgodovino obdelav ..." />
+            ) : historyError ? (
+              <ErrorState title="Napaka pri nalaganju zgodovine" text={historyError} />
+            ) : history.length === 0 ? (
+              <HistoryEmptyState />
+            ) : (
+              <ProcessingHistoryList items={history} />
+            )}
+          </article>
         </section>
       </main>
   )
@@ -135,21 +166,21 @@ function DetailRow({ label, value }) {
   )
 }
 
-function LoadingState() {
+function LoadingState({ text }) {
   return (
     <div className="state-block" role="status" aria-live="polite">
       <div className="loading-line loading-line-title" />
       <div className="loading-line" />
       <div className="loading-line" />
-      <p>Nalagam status obdelave ...</p>
+      <p>{text}</p>
     </div>
   )
 }
 
-function ErrorState({ text }) {
+function ErrorState({ title, text }) {
   return (
     <div className="state-block state-error" role="alert">
-      <h2>Napaka pri nalaganju statusa</h2>
+      <h2>{title}</h2>
       <p>{text}</p>
     </div>
   )
@@ -160,6 +191,41 @@ function EmptyState() {
     <div className="state-block">
       <h2>Ni zapisov obdelave</h2>
       <p>V bazi trenutno ni nobenega zapisa obdelave.</p>
+    </div>
+  )
+}
+
+function HistoryEmptyState() {
+  return (
+    <div className="state-block">
+      <h2>Ni zgodovine obdelav</h2>
+      <p>V bazi trenutno ni nobenega processing run zapisa.</p>
+    </div>
+  )
+}
+
+function ProcessingHistoryList({ items }) {
+  return (
+    <div className="processing-history-list" role="list">
+      {items.map(item => {
+        const statusInfo = getRunStatusInfo(item.run_status)
+
+        return (
+          <div className="history-row" role="listitem" key={item.id_processing_run}>
+            <div className="history-main">
+              <span className="history-product">{item.source_product_name}</span>
+              <span className="history-meta">
+                Run {item.id_processing_run} - {formatRunWindow(item)}
+              </span>
+            </div>
+            <div className="history-metric">
+              <span className="history-label">Veljavne regije</span>
+              <strong>{formatNumber(item.valid_region_count)}</strong>
+            </div>
+            <span className={`quality-badge ${statusInfo.className}`}>{statusInfo.label}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -235,6 +301,17 @@ function getRunTimestamp(status) {
   }
 
   return status.finished_at || status.started_at || null
+}
+
+function formatRunWindow(run) {
+  const startedAt = formatDateTime(run.started_at)
+  const finishedAt = formatDateTime(run.finished_at)
+
+  if (!run.finished_at) {
+    return startedAt
+  }
+
+  return `${startedAt} - ${finishedAt}`
 }
 
 export default AdminProcessingStatusPage

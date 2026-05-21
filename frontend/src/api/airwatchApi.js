@@ -71,6 +71,21 @@ export async function getProcessingStatus() {
   return fetchJsonOrNull(`${getApiBaseUrl()}/processing/status`, 'processing status')
 }
 
+export async function getProcessingHistory({ limit = 20, offset = 0 } = {}) {
+  const params = new URLSearchParams()
+  if (limit !== null && limit !== undefined) params.append('limit', String(limit))
+  if (offset !== null && offset !== undefined) params.append('offset', String(offset))
+
+  const query = params.toString() ? `?${params.toString()}` : ''
+  const response = await fetch(`${getApiBaseUrl()}/processing/history${query}`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load processing history: ${response.status}`)
+  }
+
+  return response.json()
+}
+
 export function getRegionCsvExportUrl(regionCode) {
   const safeCode = encodeURIComponent(regionCode)
   return `${getApiBaseUrl()}/api/v1/regions/${safeCode}/export.csv`

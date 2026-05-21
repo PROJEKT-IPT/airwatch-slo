@@ -28,6 +28,25 @@ It also reports the newest successful run (if any):
 
 If no processing run exists, the endpoint returns `404`.
 
+## Backend Endpoint: Processing History
+
+```text
+GET /processing/history?limit=20&offset=0
+```
+
+The endpoint returns a list of recent processing runs ordered by the newest
+timestamp (finish or start time). Each row includes:
+
+- processing run id,
+- run status,
+- script name and version,
+- QA threshold,
+- start and finish time,
+- source product name,
+- number of regions with valid data (pixel_count_valid > 0).
+
+If no processing runs exist, the response is an empty list.
+
 ## Frontend View
 
 The frontend sidebar has an `Admin/debug` item. The page calls
@@ -36,6 +55,9 @@ successful, running, failed, or unknown. It also highlights the last
 successful update time and product for quick troubleshooting.
 
 The page includes basic loading, error, and empty states.
+
+The page also shows a history list with the latest processing runs, the source
+product name, count of regions with valid data, and the run status.
 
 ## Local Check
 

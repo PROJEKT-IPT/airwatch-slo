@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from schemas import (
     LatestMeasurementResponse,
+    ProcessingRunHistoryItem,
     ProcessingStatusResponse,
     RegionComparisonResponse,
     RegionCsvExportRow,
@@ -518,3 +519,51 @@ def get_processing_status(db: Session = Depends(get_db)):
         )
 
     return response
+
+
+@app.get("/processing/history", response_model=list[ProcessingRunHistoryItem])
+def get_processing_history(
+    limit: int = Query(default=20, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+):
+    rows = db.execute(
+        text(
+            """
+            SELECT
+                pr.id_processing_run,
+                pr.run_status,
+                pr.script_name,
+                pr.script_version,
+                pr.qa_threshold,
+                pr.started_at,
+                pr.finished_at,
+                pr.error_message,
+                sf.product_name AS source_product_name,
+                COUNT(DISTINCT rm.fk_region)
+                    FILTER (WHERE rm.pixel_count_valid > 0) AS valid_region_count
+            FROM processing_run pr
+            JOIN source_file sf ON sf.id_source_file = pr.fk_source_file
+            LEFT JOIN region_measurement rm
+                ON rm.fk_processing_run = pr.id_processing_run
+            GROUP BY
+                pr.id_processing_run,
+                pr.run_status,
+                pr.script_name,
+                pr.script_version,
+                pr.qa_threshold,
+                pr.started_at,
+                pr.finished_at,
+                pr.error_message,
+                sf.product_name
+            ORDER BY
+                COALESCE(pr.finished_at, pr.started_at) DESC,
+                pr.id_processing_run DESC
+            LIMIT :limit
+            OFFSET :offset
+            """
+        ),
+        {"limit": limit, "offset": offset},
+    ).mappings().all()
+
+    return [dict(row) for row in rows]

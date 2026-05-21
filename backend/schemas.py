@@ -49,6 +49,19 @@ class ProcessingStatusResponse(BaseModel):
     last_successful_product_name: Optional[str] = None
 
 
+class ProcessingRunHistoryItem(BaseModel):
+    id_processing_run: int
+    run_status: str
+    script_name: str
+    script_version: Optional[str] = None
+    qa_threshold: Optional[float] = None
+    started_at: datetime
+    finished_at: Optional[datetime] = None
+    error_message: Optional[str] = None
+    source_product_name: str
+    valid_region_count: int
+
+
 class RegionLatestMeasurementSummaryResponse(BaseModel):
     region_code: str
     region_name: str

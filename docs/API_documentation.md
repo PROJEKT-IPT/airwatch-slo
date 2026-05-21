@@ -311,6 +311,39 @@ Status:
 404 Not Found
 ```
 
+## Endpoint: Processing History
+
+Vrne zgodovino obdelav podatkov za admin/debug pregled.
+
+```http
+GET /processing/history?limit=20&offset=0
+```
+
+Primer:
+
+```bash
+curl "http://localhost:8000/processing/history?limit=5"
+```
+
+Primer odgovora:
+
+```json
+[
+  {
+    "id_processing_run": 7,
+    "run_status": "success",
+    "script_name": "process_no2_slovenia_bbox.py",
+    "script_version": "sprint_2",
+    "qa_threshold": 0.75,
+    "started_at": "2025-03-12T08:30:00+00:00",
+    "finished_at": "2025-03-12T08:33:00+00:00",
+    "error_message": null,
+    "source_product_name": "S5P_OFFL_L2__NO2____20250312T062021_20250312T080151_38394_03_020800_20250314T042205.nc",
+    "valid_region_count": 12
+  }
+]
+```
+
 ## Trenutni Sprint 1 Podatki
 
 Sprint 1 seed data vsebuje testno regijo:
