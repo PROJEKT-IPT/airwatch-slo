@@ -7,6 +7,7 @@ import {
   getRegionComparison,
   getRegionDetails,
   getRegionGeometries,
+  getRegionHistory,
   getRegionalLatestMeasurements,
 } from '../../src/api/airwatchApi'
 
@@ -15,6 +16,7 @@ vi.mock('../../src/api/airwatchApi', () => ({
   getRegionComparison: vi.fn(),
   getRegionDetails: vi.fn(),
   getRegionGeometries: vi.fn(),
+  getRegionHistory: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
 }))
 
@@ -162,6 +164,7 @@ describe('Dashboard', () => {
     getRegionComparison.mockResolvedValue(regionComparison)
     getRegionDetails.mockImplementation(regionCode => Promise.resolve(regionDetails[regionCode]))
     getRegionGeometries.mockResolvedValue(regionGeometries)
+    getRegionHistory.mockResolvedValue({ measurements: [] })
     getRegionCsvExportUrl.mockImplementation(
       regionCode => `/api/api/v1/regions/${regionCode}/export.csv`,
     )
