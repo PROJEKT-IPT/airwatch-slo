@@ -308,10 +308,10 @@ describe('Dashboard', () => {
 
   it('renders provenance details and no-data note for a no-valid-pixels region', async () => {
     const user = userEvent.setup()
-    render(<Dashboard />)
+    const { container } = render(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Podravska' })).toBeInTheDocument()
+      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
     })
 
     expect(screen.getByText('Izvor in sledljivost podatka')).toBeInTheDocument()
@@ -319,10 +319,10 @@ describe('Dashboard', () => {
     expect(screen.getByText('ID produkta')).toBeInTheDocument()
     expect(screen.getByText('product-si032')).toBeInTheDocument()
 
-    await user.selectOptions(screen.getByRole('combobox'), 'SI031')
+    await user.selectOptions(screen.getByLabelText('Statistična regija'), 'SI031')
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Pomurska' })).toBeInTheDocument()
+      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Pomurska')
     })
 
     expect(

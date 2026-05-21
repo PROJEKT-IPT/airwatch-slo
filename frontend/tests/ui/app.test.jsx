@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 
 import App from '../../src/App'
 import {
+  getProcessingHistory,
   getProcessingStatus,
   getRegionCsvExportUrl,
   getRegionComparison,
@@ -13,6 +14,7 @@ import {
 } from '../../src/api/airwatchApi'
 
 vi.mock('../../src/api/airwatchApi', () => ({
+  getProcessingHistory: vi.fn(),
   getProcessingStatus: vi.fn(),
   getRegionCsvExportUrl: vi.fn(),
   getRegionComparison: vi.fn(),
@@ -86,6 +88,7 @@ describe('App navigation', () => {
       source_product_name: 'S5P_OFFL_L2__NO2____20250311T115807_20250311T133937.nc',
       error_message: null,
     })
+    getProcessingHistory.mockResolvedValue([])
   })
 
   it('switches from dashboard to the admin view', async () => {
