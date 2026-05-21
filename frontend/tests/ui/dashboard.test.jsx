@@ -156,6 +156,19 @@ const regionGeometries = [
   },
 ]
 
+const regionHistoryWithMeasurements = {
+  measurements: [
+    {
+      value_mean: 0.000018,
+      measurement_end_time: '2025-02-10T13:18:05+00:00',
+    },
+    {
+      value_mean: 0.000031,
+      measurement_end_time: '2025-03-11T13:18:05+00:00',
+    },
+  ],
+}
+
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -251,5 +264,69 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(screen.getByRole('combobox')).toHaveValue('SI031')
     })
+  })
+
+  it('renders comparison summary tiles with counts', async () => {
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'NO2 po statističnih regijah' })).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('Najvišja vrednost')).toBeInTheDocument()
+    expect(screen.getByText('Najnižja vrednost')).toBeInTheDocument()
+    expect(screen.getByText('Brez veljavnih pikslov')).toBeInTheDocument()
+    expect(screen.getByText('1/2 z vrednostjo')).toBeInTheDocument()
+  })
+
+  it('renders trend chart content when history is available', async () => {
+    getRegionHistory.mockResolvedValue(regionHistoryWithMeasurements)
+
+    const { container } = render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
+    })
+
+    expect(container.querySelector('.trend-chart-plot')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Graf prikazuje povprečne vrednosti NO₂ po času/i),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the no-data message when trend history is empty', async () => {
+    getRegionHistory.mockResolvedValue({ measurements: [] })
+
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('Ni podatkov za izbrani datum')).toBeInTheDocument()
+  })
+
+  it('renders provenance details and no-data note for a no-valid-pixels region', async () => {
+    const user = userEvent.setup()
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Podravska' })).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('Izvor in sledljivost podatka')).toBeInTheDocument()
+    expect(screen.getByText('Sentinel-5P / Copernicus')).toBeInTheDocument()
+    expect(screen.getByText('ID produkta')).toBeInTheDocument()
+    expect(screen.getByText('product-si032')).toBeInTheDocument()
+
+    await user.selectOptions(screen.getByRole('combobox'), 'SI031')
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Pomurska' })).toBeInTheDocument()
+    })
+
+    expect(
+      screen.getByText(/ni bilo dovolj veljavnih pikslov/i),
+    ).toBeInTheDocument()
   })
 })
