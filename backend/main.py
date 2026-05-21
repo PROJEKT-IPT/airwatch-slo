@@ -365,6 +365,8 @@ def get_region_details(
 def get_region_history(
     region_code: str,
     include_test_region: bool = Query(default=False),
+    start_date: Optional[str] = Query(default=None),
+    end_date: Optional[str] = Query(default=None),
     db: Session = Depends(get_db),
 ):
     normalized_region_code = region_code.strip()
@@ -378,7 +380,12 @@ def get_region_history(
         if region is None:
             raise HTTPException(status_code=404, detail="Region not found.")
 
-        measurements = get_no2_measurement_history_for_region(db, region["id_region"])
+        measurements = get_no2_measurement_history_for_region(
+            db,
+            region["id_region"],
+            start_date=start_date,
+            end_date=end_date,
+        )
         if not measurements:
             raise HTTPException(
                 status_code=404,

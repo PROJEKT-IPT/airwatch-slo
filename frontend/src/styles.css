@@ -803,6 +803,83 @@ select {
   white-space: nowrap;
 }
 
+/* Trend chart date-range filter */
+.trend-filter-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 12px 0 18px;
+}
+
+.trend-filter-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.trend-filter-item input[type="date"] {
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px solid rgba(47, 58, 85, 0.12);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--blueberry-skin);
+}
+
+.trend-filter-item select {
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px solid rgba(47, 58, 85, 0.12);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--blueberry-skin);
+}
+
+.trend-filter-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.btn {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(47, 58, 85, 0.12);
+  background: var(--surface);
+  font-weight: 800;
+  color: var(--blueberry-skin);
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--blueberry-skin);
+  color: var(--plate-white);
+  border-color: transparent;
+}
+
+.btn-secondary {
+  background: rgba(245, 246, 243, 0.92);
+  color: var(--blueberry-skin);
+}
+
+/* Suppress focus rectangles and outlines when interacting with the recharts SVG */
+.trend-chart-plot svg:focus,
+.trend-chart-plot svg *:focus,
+.trend-chart-plot .recharts-wrapper:focus,
+.trend-chart-plot .recharts-layer *:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Prevent visible rect/stroke appearing on click/focus for dots and tooltip layers */
+.trend-chart-plot .recharts-dot:focus,
+.trend-chart-plot .recharts-tooltip-wrapper:focus,
+.trend-chart-plot rect:focus {
+  stroke: none !important;
+}
+
 .comparison-summary {
   margin-top: 18px;
   display: grid;

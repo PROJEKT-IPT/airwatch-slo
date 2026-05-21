@@ -171,10 +171,14 @@ def get_latest_no2_measurement_for_region(db: Session, region_id: int) -> dict |
     return dict(row) if row is not None else None
 
 
-def get_no2_measurement_history_for_region(db: Session, region_id: int) -> list[dict]:
-    rows = db.execute(
-        text(
-            """
+def get_no2_measurement_history_for_region(
+    db: Session,
+    region_id: int,
+    *,
+    start_date: str | None = None,
+    end_date: str | None = None,
+) -> list[dict]:
+    sql = """
             SELECT
                 rm.value_mean,
                 rm.value_min,
@@ -193,14 +197,21 @@ def get_no2_measurement_history_for_region(db: Session, region_id: int) -> list[
             JOIN source_file sf ON sf.id_source_file = rm.fk_source_file
             WHERE rm.fk_region = :region_id
                 AND i.indicator_code = :indicator_code
-            ORDER BY
-                rm.measurement_end_time ASC,
-                rm.measurement_start_time ASC,
-                rm.id_region_measurement ASC
-            """
-        ),
-        {"region_id": region_id, "indicator_code": NO2_INDICATOR_CODE},
-    ).mappings().all()
+    """
+
+    params: dict = {"region_id": region_id, "indicator_code": NO2_INDICATOR_CODE}
+
+    if start_date:
+        sql += "\n                AND rm.measurement_end_time >= :start_date"
+        params["start_date"] = start_date
+
+    if end_date:
+        sql += "\n                AND rm.measurement_end_time <= :end_date"
+        params["end_date"] = end_date
+
+    sql += "\n            ORDER BY\n                rm.measurement_end_time ASC,\n                rm.measurement_start_time ASC,\n                rm.id_region_measurement ASC\n            "
+
+    rows = db.execute(text(sql), params).mappings().all()
     return [dict(row) for row in rows]
 
 

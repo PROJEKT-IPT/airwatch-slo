@@ -271,7 +271,38 @@ class FakeSprint1Session:
         if "sf.external_product_id AS source_product_id" in query:
             if params.get("region_id") == SAMPLE_STATISTICAL_REGION["id_region"]:
                 if "rm.measurement_end_time ASC" in query:
-                    return FakeMappingResult(SAMPLE_REGION_HISTORY_MEASUREMENTS)
+                    # Support optional start_date / end_date filtering in tests
+                    start_date = params.get("start_date")
+                    end_date = params.get("end_date")
+
+                    def in_range(item):
+                        me = item["measurement_end_time"]
+                        if start_date:
+                            try:
+                                from datetime import datetime, timezone
+
+                                sd = datetime.fromisoformat(start_date)
+                                if sd.tzinfo is None:
+                                    sd = sd.replace(tzinfo=timezone.utc)
+                            except Exception:
+                                sd = None
+                            if sd and me < sd:
+                                return False
+                        if end_date:
+                            try:
+                                from datetime import datetime, timezone
+
+                                ed = datetime.fromisoformat(end_date)
+                                if ed.tzinfo is None:
+                                    ed = ed.replace(tzinfo=timezone.utc)
+                            except Exception:
+                                ed = None
+                            if ed and me > ed:
+                                return False
+                        return True
+
+                    rows = [m for m in SAMPLE_REGION_HISTORY_MEASUREMENTS if in_range(m)]
+                    return FakeMappingResult(rows)
                 if "r.region_code" in query and "i.indicator_name" in query:
                     return FakeMappingResult([SAMPLE_REGION_CSV_EXPORT_ROW])
                 return FakeMappingResult([SAMPLE_REGION_DETAIL_MEASUREMENT])
@@ -458,6 +489,26 @@ def test_get_region_history_returns_404_for_unknown_statistical_region(client):
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Region not found."}
+
+
+def test_get_region_history_filters_by_start_date(client):
+    # start_date after the first sample should return only the later measurement
+    response = client.get("/api/v1/regions/SI032/history?start_date=2026-05-01")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["measurements"]) == 1
+    assert data["measurements"][0]["measurement_end_time"] == "2026-05-08T13:01:35Z"
+
+
+def test_get_region_history_filters_by_end_date(client):
+    # end_date before the 2026 sample should return only the earlier measurement
+    response = client.get("/api/v1/regions/SI032/history?end_date=2025-12-31")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["measurements"]) == 1
+    assert data["measurements"][0]["measurement_end_time"] == "2025-03-11T13:18:05Z"
 
 
 def test_export_region_csv_returns_latest_measurement_csv(client):

@@ -521,6 +521,16 @@ Pravila:
 - endpoint privzeto vrne samo regije z `region_type = statistical_region`,
 - testne regije, kot je `SI_BBOX`, niso izpostavljene brez
   `?include_test_region=true`,
+ - opcijsko: `start_date` in `end_date` kot query parametra omogočata omejitev
+   zgodovine na izbrano časovno obdobje. Format datuma je `YYYY-MM-DD` ali
+   ISO časovni žig. Primer:
+
+```bash
+curl "http://localhost:8000/api/v1/regions/SI032/history?start_date=2026-05-01&end_date=2026-05-15"
+```
+
+  Parametra sta vključujoča (>= start_date in <= end_date). Če parametra ni,
+  se vrne celotna razpoložljiva zgodovina.
 - meritve so urejene od najstarejse do najnovejse po `measurement_end_time`,
   nato `measurement_start_time`, nato `id_region_measurement`,
 - vrstice z `no_valid_pixels` ostanejo v zgodovini kot obdelani rezultati,
