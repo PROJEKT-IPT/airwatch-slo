@@ -209,7 +209,7 @@ describe('Dashboard', () => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
     })
 
-    await user.selectOptions(screen.getByRole('combobox'), 'SI031')
+    await user.selectOptions(screen.getByLabelText('Statistična regija'), 'SI031')
 
     await waitFor(() => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
@@ -240,7 +240,7 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
     })
-    expect(screen.getByRole('combobox')).toHaveValue('SI031')
+    expect(screen.getByLabelText('Statistična regija')).toHaveValue('SI031')
   })
 
   it('renders region comparison rows and selects a region from the comparison', async () => {
@@ -262,7 +262,7 @@ describe('Dashboard', () => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
     })
     await waitFor(() => {
-      expect(screen.getByRole('combobox')).toHaveValue('SI031')
+      expect(screen.getByLabelText('Statistična regija')).toHaveValue('SI031')
     })
   })
 

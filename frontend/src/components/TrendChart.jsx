@@ -22,7 +22,9 @@ function TrendChart({ regionCode, regionName }) {
         setAvailableDates([])
         setStartDate('')
         setEndDate('')
-        setAppliedRange({ start: null, end: null })
+        setAppliedRange(prev =>
+          prev.start === null && prev.end === null ? prev : { start: null, end: null },
+        )
         setDateError('')
         return
       }
@@ -74,7 +76,9 @@ function TrendChart({ regionCode, regionName }) {
         setAvailableDates([])
         setStartDate('')
         setEndDate('')
-        setAppliedRange({ start: null, end: null })
+        setAppliedRange(prev =>
+          prev.start === null && prev.end === null ? prev : { start: null, end: null },
+        )
         setDateError('')
         return
       }
