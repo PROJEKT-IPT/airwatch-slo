@@ -383,6 +383,13 @@ select {
   grid-template-columns: minmax(0, 760px);
 }
 
+.admin-summary-grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .processing-status-card {
   min-height: 420px;
 }
@@ -1196,6 +1203,10 @@ select {
 
   .provenance-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-summary-grid {
+    grid-template-columns: 1fr;
   }
 
   .comparison-row {

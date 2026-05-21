@@ -44,6 +44,9 @@ class ProcessingStatusResponse(BaseModel):
     finished_at: Optional[datetime] = None
     error_message: Optional[str] = None
     source_product_name: str
+    last_successful_run_id: Optional[int] = None
+    last_successful_at: Optional[datetime] = None
+    last_successful_product_name: Optional[str] = None
 
 
 class RegionLatestMeasurementSummaryResponse(BaseModel):

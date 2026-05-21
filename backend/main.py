@@ -487,4 +487,34 @@ def get_processing_status(db: Session = Depends(get_db)):
             detail="No processing runs found.",
         )
 
-    return dict(row)
+    last_success_row = db.execute(
+        text(
+            """
+            SELECT
+                pr.id_processing_run AS last_successful_run_id,
+                COALESCE(pr.finished_at, pr.started_at) AS last_successful_at,
+                sf.product_name AS last_successful_product_name
+            FROM processing_run pr
+            JOIN source_file sf ON sf.id_source_file = pr.fk_source_file
+            WHERE pr.run_status = 'success'
+            ORDER BY
+                COALESCE(pr.finished_at, pr.started_at) DESC,
+                pr.id_processing_run DESC
+            LIMIT 1
+            """
+        )
+    ).mappings().first()
+
+    response = dict(row)
+    if last_success_row:
+        response.update(last_success_row)
+    else:
+        response.update(
+            {
+                "last_successful_run_id": None,
+                "last_successful_at": None,
+                "last_successful_product_name": None,
+            }
+        )
+
+    return response

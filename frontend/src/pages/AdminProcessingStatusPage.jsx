@@ -44,6 +44,9 @@ function AdminProcessingStatusPage() {
   }, [])
 
   const statusInfo = getRunStatusInfo(status?.run_status)
+  const latestRunAt = status ? formatDateTime(getRunTimestamp(status)) : 'Ni podatka'
+  const lastSuccessfulAt = status ? formatDateTime(status.last_successful_at) : 'Ni podatka'
+  const lastSuccessfulProduct = status?.last_successful_product_name || 'Ni podatka'
 
   return (
       <main className="dashboard-main admin-main">
@@ -83,6 +86,24 @@ function AdminProcessingStatusPage() {
                   </span>
                 </div>
 
+                <div className="admin-summary-grid">
+                  <div className="info-tile">
+                    <span>Zadnji processing run</span>
+                    <strong>{latestRunAt}</strong>
+                    <em>Run ID: {status.id_processing_run}</em>
+                  </div>
+                  <div className="info-tile">
+                    <span>Zadnji Sentinel-5P produkt</span>
+                    <strong>{status.source_product_name}</strong>
+                    <em>Status: {status.run_status}</em>
+                  </div>
+                  <div className="info-tile">
+                    <span>Zadnja uspešna posodobitev</span>
+                    <strong>{lastSuccessfulAt}</strong>
+                    <em>Produkt: {lastSuccessfulProduct}</em>
+                  </div>
+                </div>
+
                 <dl className="details-list">
                   <DetailRow label="Run ID" value={status.id_processing_run} />
                   <DetailRow label="Status" value={status.run_status} />
@@ -92,6 +113,7 @@ function AdminProcessingStatusPage() {
                   <DetailRow label="Začetek" value={formatDateTime(status.started_at)} />
                   <DetailRow label="Konec" value={formatDateTime(status.finished_at)} />
                   <DetailRow label="Produkt" value={status.source_product_name} />
+                  <DetailRow label="Zadnja uspešna posodobitev" value={lastSuccessfulAt} />
                   {status.error_message ? (
                     <DetailRow label="Napaka" value={status.error_message} />
                   ) : null}
@@ -205,6 +227,14 @@ function formatDateTime(value) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date)
+}
+
+function getRunTimestamp(status) {
+  if (!status) {
+    return null
+  }
+
+  return status.finished_at || status.started_at || null
 }
 
 export default AdminProcessingStatusPage
