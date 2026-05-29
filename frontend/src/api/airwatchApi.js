@@ -1,4 +1,4 @@
-const DEFAULT_API_URL = ''
+const DEFAULT_API_URL = 'https://airwatch-slo-production.up.railway.app'
 
 function getApiBaseUrl() {
   return (import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace(/\/$/, '')
