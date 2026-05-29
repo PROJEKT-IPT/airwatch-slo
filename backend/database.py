@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-load_dotenv(PROJECT_ROOT / ".env", override=True)
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 
 def read_env_value(name: str, default: Optional[str] = None) -> Optional[str]:
@@ -18,20 +18,23 @@ def read_env_value(name: str, default: Optional[str] = None) -> Optional[str]:
 
 
 def build_database_url() -> str:
-    running_in_docker = Path("/.dockerenv").exists()
-    host = read_env_value("DATABASE_HOST") if running_in_docker else "127.0.0.1"
-    port = read_env_value("DATABASE_PORT", "5432")
+    host = (
+        read_env_value("DATABASE_HOST")
+        or read_env_value("POSTGRES_HOST")
+        or "127.0.0.1"
+    )
+    port = read_env_value("DATABASE_PORT") or read_env_value("POSTGRES_PORT") or "5432"
     database = read_env_value("POSTGRES_DB") or read_env_value("DATABASE_NAME") or "airwatch"
     user = read_env_value("POSTGRES_USER") or read_env_value("DATABASE_USER") or "postgres"
-    password = read_env_value("POSTGRES_PASSWORD")
+    password = read_env_value("POSTGRES_PASSWORD") or read_env_value("DATABASE_PASSWORD")
 
     if not password:
-        raise RuntimeError("POSTGRES_PASSWORD must be set for backend database access")
+        raise RuntimeError("POSTGRES_PASSWORD or DATABASE_PASSWORD must be set for backend database access")
 
     return (
         "postgresql://"
         f"{quote_plus(user)}:{quote_plus(password)}@"
-        f"{host or 'db'}:{port or '5432'}/"
+        f"{host}:{port}/"
         f"{quote_plus(database)}"
     )
 
