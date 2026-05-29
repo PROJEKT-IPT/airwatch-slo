@@ -421,7 +421,7 @@ select {
 }
 
 .section-grid--analysis {
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
 }
 
 .section-grid--details {
@@ -1075,7 +1075,7 @@ select {
   background: rgba(255, 255, 255, 0.74);
   color: var(--text);
   display: grid;
-  grid-template-columns: 46px minmax(150px, 0.75fr) minmax(160px, 1fr) minmax(140px, 0.45fr);
+  grid-template-columns: 30px minmax(0, 1fr) minmax(36px, 0.7fr) minmax(0, 0.9fr);
   gap: 12px;
   align-items: center;
   text-align: left;
