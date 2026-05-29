@@ -1,292 +1,335 @@
-# Data Discovery: Sentinel-5P NO₂
+# AirWatch SLO – Pregled podatkovnega toka (data pipeline)
 
-Dokument za Sprint 1, namenjen zapisu rezultatov prvega pregleda in osnovne obdelave podatkov Copernicus Sentinel-5P NO₂ za projekt AirWatch SLO.
+Ta dokument je **enotni visokonivojski pregled** podatkovnega toka AirWatch SLO:
+od Sentinel-5P NO₂ produkta do regionalnih meritev, vidnih v dashboardu.
+Podrobni koraki so dokumentirani v ločenih datotekah, ki so povezane spodaj –
+ta dokument jih ne podvaja, ampak razloži celoto in nanje kaže.
 
-## Namen
+> Dokument je bil pregledan in usklajen z dejansko kodo v `data_pipeline/scripts/`
+> in `backend/scripts/ingest_regional_no2_measurements.py` (AIRSLO-104). Kjer je
+> korak deloma ročen, je to izrecno označeno.
 
-Namen pregleda je preveriti, ali lahko iz Copernicus Data Space pridobimo realen Sentinel-5P NO₂ produkt, ga odpremo, pregledamo njegovo strukturo in iz njega izračunamo osnovne statistike NO₂ za območje Slovenije.
-
-Rezultat tega dokumenta je podlaga za nadaljnjo zasnovo baze, podatkovnega pipeline-a in dashboarda.
-
-## Izbira Copernicus NO₂ produkta (product choice)
-
-Za Sprint 1/MVP smo izbrali Sentinel-5P TROPOMI NO₂ produkt na procesnem nivoju L2.
-
-### Izbrani produkt
-
-- Product code: `S5P_OFFL_L2__NO2`
-- Platform: `Sentinel-5P`
-- Instrument: `TROPOMI`
-- Processing level: `L2`
-- Format: `NetCDF` (`.nc`)
-- Group za branje v NetCDF: `PRODUCT`
-- Glavna spremenljivka (NO₂): `nitrogendioxide_tropospheric_column`
-- Spremenljivka kakovosti: `qa_value`
-
-### Razlogi za izbiro (scope Sprint 1)
-
-- Izbrana je OFFL (offline) varianta, ker je primerna za stabilen MVP tok in ponuja konsistentne rezultate za osnovne statistike po regiji.
-- Produkt vsebuje ključne sloje, potrebne za MVP agregacijo: geolokacijo (`latitude`, `longitude`), NO₂ polje in indikator kakovosti.
-
-### Način dostopa
-
-- Vir: Copernicus Data Space Ecosystem (CDSE) katalog in download.
-- Avtentikacija: uporabniški račun + pridobitev access tokena (skripta `data_pipeline/scripts/get_copernicus_token.py`).
-- Iskanje produktov: `data_pipeline/scripts/search_s5p_no2_products.py` (časovni interval + bbox Slovenije).
-- Prenos produkta: `data_pipeline/scripts/download_s5p_no2_product.py --product-id ...`.
-- Branje podatkov: `xarray.open_dataset(file, group="PRODUCT")` (zahteva nameščen `netCDF4`).
-
-### Omejitve in tradeoffi
-
-- Velikost datotek: posamezen `.nc` produkt je velik (v praksi ~ 500–700 MB), zato ni primeren za commit v Git in ni primeren za prenos iz browserja.
-- OFFL latenca: OFFL produkt ni real-time; na voljo je z zamikom glede na čas zajema (primerno za analitiko, ne pa za takojšnje opozarjanje).
-- Geometrija podatkov: produkt je L2 swath (ne nujno regularna mreža); za Sprint 1 je uporabljena poenostavitev z bounding box filtrom, kasneje je potrebna prava prostorska agregacija po regijah.
-- Kakovost podatkov: priporočena je filtracija z `qa_value` pragom (v Sprint 1: `qa_value >= 0.75`). Prag neposredno vpliva na število veljavnih pikslov in stabilnost statistike.
-- Dostop in omejitve storitve: dostop zahteva CDSE račun; prenos lahko traja in je odvisen od omrežja/omejitev storitve (rate limiting). Skripte zato uporabljajo lokalni, ročno sprožen download.
-- Reproducibilnost: za seed/test v Sprint 1 je uporabljen en konkreten prenesen produkt (Product ID je zapisan v dokumentu in seed podatkih), vendar datoteka sama ni del repozitorija.
+> **Zgodovinska opomba.** Prejšnja različica tega dokumenta je bila Sprint 1
+> "data discovery" zapis. Sprint-specifični zapisi (izbira produkta, PoC bbox
+> obdelava) so ohranjeni kot zgodovinske reference (glej §13), tu pa je opisan
+> trenutni operativni tok brez "Sprint 2/Sprint 3" terminologije.
 
 ---
 
-## Iskanje produktov
+## Narava podatkov
 
-- Datum izvedbe: 9. 5. 2025
-- Ukaz za iskanje:
-
-```bash
-python data_pipeline/scripts/search_s5p_no2_products.py --start-date 2025-03-08 --end-date 2025-03-12
-```
-
-- Začetni datum iskanja: `2025-03-08`
-- Končni datum iskanja: `2025-03-12`
-- Območje Slovenije: `lat 45.4–46.9`, `lon 13.4–16.6`
-- Načrtovan filter kakovosti: `qa_value >= 0.75`
+- AirWatch SLO **ni** aplikacija v realnem času in **ne** prikazuje uličnih
+  meritev.
+- Prikazuje **zadnjo razpoložljivo veljavno obdelano** Sentinel-5P NO₂ meritev
+  za slovenske statistične regije – **satelitsko regionalno oceno**.
+- Vrednosti so povprečja veljavnih pikslov, dodeljenih posamezni regiji; en
+  TROPOMI piksel pokriva pribl. 3,5 × 5,5 km (glej
+  [`sentinel5p_regional_interpretation_limitations.md`](sentinel5p_regional_interpretation_limitations.md)).
+- Manjkajoče vrednosti so `null`, nikoli lažni `0`.
 
 ---
 
-## Najdeni produkti
-
-Primeri najdenih Sentinel-5P OFFL Level 2 NO₂ produktov nad območjem Slovenije:
+## Pregled toka
 
 ```text
-Name: S5P_OFFL_L2__NO2____20250312T113910_20250312T132040_38407_03_020800_20250314T040215.nc
-Product ID: 29c7bd09-38cb-49fe-9785-9efacbee7216
-Start date: 2025-03-12T12:00:45.000000Z
-End date: 2025-03-12T12:59:08.000000Z
-
-Name: S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc
-Product ID: b898f30a-1d6e-4c6c-bdc2-9933a06e316e
-Start date: 2025-03-11T12:19:40.000000Z
-End date: 2025-03-11T13:18:05.000000Z
-
-Name: S5P_OFFL_L2__NO2____20250308T111325_20250308T125456_38350_03_020800_20250310T033030.nc
-Product ID: 2c327f1f-9876-4616-972d-bb1b093b797d
-Start date: 2025-03-08T11:35:00.000000Z
-End date: 2025-03-08T12:33:23.000000Z
+Copernicus Sentinel-5P NO₂ OFFL L2 produkt (.nc)
+  → odkrivanje + prenos               (search / download skripte)
+  → pregled strukture                 (inspect skripta)
+  → crop na bbox Slovenije            (crop_filter_no2_slovenia.py)
+  → QA filter (qa_value >= 0.75)      (isti korak)
+  → regionalne meje NUTS3             (GISCO GeoJSON, inspect_region_boundaries.py)
+  → regionalna agregacija (point-in-polygon)  (aggregate_no2_by_region.py → JSON)
+  → validacija JSON izhoda            (validate_regional_no2_output.py)
+  → vnos v bazo                       (backend/.../ingest_regional_no2_measurements.py)
+  → FastAPI /api/v1 + React dashboard
 ```
+
+Celotno verigo je mogoče zagnati ročno korak za korakom (spodaj) ali z
+orkestratorjem `run_latest_no2_pipeline.py` (§12). Polni end-to-end ukazi z
+Docker okoljem so v [`regional_pipeline_runbook.md`](regional_pipeline_runbook.md).
 
 ---
 
-## Prenesen produkt
+## 1. Vir podatkov
 
-Za testno obdelavo je bil uporabljen naslednji produkt:
+- **Satelit / instrument:** Copernicus Sentinel-5P / TROPOMI.
+- **Produkt:** `S5P_OFFL_L2__NO2` (OFFL, Level 2, NetCDF `.nc`).
+- **NetCDF grupa za branje:** `PRODUCT` (`xarray.open_dataset(file, group="PRODUCT")`,
+  zahteva `netCDF4`).
+- Aplikacija dela z **obdelanimi satelitskimi produkti**, ne z živim senzorskim
+  tokom. OFFL varianta je na voljo z zamikom glede na čas zajema.
+- Posamezna `.nc` datoteka je velika (~500–700 MB). **`.nc` datoteke so lokalni
+  artefakti in se ne commitajo** (`.gitignore`: `*.nc`, `data_pipeline/sample_data/*`).
 
-- Product ID: `b898f30a-1d6e-4c6c-bdc2-9933a06e316e`
-- Ime datoteke: `S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc`
-- Lokalna pot:
+Podrobnosti o izbiri produkta:
+[`sprint2_selected_no2_input_product.md`](sprint2_selected_no2_input_product.md),
+[`sprint3_selected_no2_input_product.md`](sprint3_selected_no2_input_product.md)
+(zgodovinske reference).
 
-```text
-data_pipeline/sample_data/S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc
-```
+## 2. Odkrivanje in prenos produktov
 
-- Velikost datoteke: približno `594 MB`
-- Format: `NetCDF`
-- Opomba: `.nc` datoteke niso vključene v Git repozitorij, ker so dodane v `.gitignore`.
+| Korak | Skripta | Opomba |
+|---|---|---|
+| Avtentikacija | `get_copernicus_token.py` | preveri poverilnice, ne izpiše celega tokena |
+| Iskanje | `search_s5p_no2_products.py` | po časovnem oknu + bbox Slovenije |
+| Prenos | `download_s5p_no2_product.py --product-id ...` | ročno sprožen prenos enega produkta |
 
-### Sprint 2 izbrani vhodni produkt
+- **Poverilnice (okoljske spremenljivke):** `COPERNICUS_USERNAME`,
+  `COPERNICUS_PASSWORD` v root `.env`. **Vrednosti niso del dokumentacije in se
+  ne commitajo** (`.gitignore`: `.env`).
+- **Lokacija prenosa:** `data_pipeline/sample_data/` (gitignored; sledi se le
+  `.gitkeep`).
+- Prenos je **ročen** – skripte ničesar ne prenašajo samodejno; reproducibilnost
+  zagotavlja en konkreten, dokumentiran produkt.
 
-Isti produkt je izbran kot fiksni vhod za Sprint 2 regionalno agregacijo po slovenskih statističnih regijah.
+## 3. Pregled vhodnega produkta
 
-Namen izbire je reproducibilnost: regionalno agregacijo bomo najprej razvijali nad že preverjeno Sentinel-5P NO₂ datoteko, preden razširimo pipeline na več produktov ali časovne serije.
-
-Podrobnosti in ukazi za preverjanje/prenos so dokumentirani v:
-
-```text
-docs/sprint2_selected_no2_input_product.md
-```
-
-### Sprint 3 novejši vhodni produkt
-
-Za AIRSLO-80 je bil izbran novejši OFFL Sentinel-5P NO₂ produkt (`1cee3f1c-b237-4532-9505-d20f9baf7daf`, senzing 2026-05-08T12:03Z–13:01Z), ki je bil obdelan in vnesen v bazo. Sprint 2 produkt ostaja v bazi kot zgodovinski zapis. Dashboard zato prikazuje novejše obdelane regionalne meritve.
-
-Podrobnosti so dokumentirane v:
-
-```text
-docs/sprint3_selected_no2_input_product.md
-```
-
----
-
-## Struktura NetCDF datoteke
-
-Produkt je bil odprt z uporabo knjižnice `xarray` in grupe `PRODUCT`.
-
-Ukaz:
-
-```bash
-python data_pipeline/scripts/inspect_s5p_no2_structure.py --file data_pipeline/sample_data/S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc
-```
-
-Rezultat pregleda:
-
-```text
-Dimensions:
-  scanline: 4174
-  ground_pixel: 450
-  time: 1
-  corner: 4
-  layer: 34
-
-Coordinates:
-  latitude
-  longitude
-
-Data variables:
-  qa_value
-  nitrogendioxide_tropospheric_column
-  nitrogendioxide_tropospheric_column_precision
-  averaging_kernel
-  air_mass_factor_troposphere
-  air_mass_factor_total
-
-Required variable check:
-  latitude: OK
-  longitude: OK
-  nitrogendioxide_tropospheric_column: OK
-  qa_value: OK
-```
-
-### Ključna polja
-
-Za MVP so pomembna naslednja polja:
+Skripta `inspect_s5p_no2_structure.py` preveri strukturo NetCDF datoteke pred
+obdelavo. Pomembno je potrditi prisotnost zahtevanih spremenljivk v grupi
+`PRODUCT`:
 
 - `latitude` – geografska širina piksla,
 - `longitude` – geografska dolžina piksla,
-- `nitrogendioxide_tropospheric_column` – vrednost NO₂,
-- `qa_value` – indikator kakovosti podatka.
+- `nitrogendioxide_tropospheric_column` – vrednost NO₂ (troposferski stolpec),
+- `qa_value` – indikator kakovosti piksla.
 
----
+Vsi obdelovalni koraki berejo iz grupe `PRODUCT` prek `xarray`.
 
-## Statistika NO₂ za območje Slovenije
+## 4. Crop / filter za Slovenijo
 
-Za prvi proof of concept je bila uporabljena poenostavljena prostorska omejitev z bounding boxom za Slovenijo.
+Skripta `crop_filter_no2_slovenia.py` omeji piksle na bounding box Slovenije in
+uporabi QA filter (en korak).
 
-Uporabljen prostorski filter:
+- **Privzeti bbox:** `lat 45.4–46.9`, `lon 13.4–16.6`.
+- **Izhod je samo povzetek** (`total_pixels_in_bbox_before_qa`,
+  `valid_pixels_after_qa`, `value_mean/min/max`, `unit`). **Rasterska polja se ne
+  shranjujejo.** Neobvezni `--output` zapiše majhen JSON/CSV povzetek.
+- `total_pixels_in_bbox_before_qa` = število pikslov, ki padejo v bbox **pred**
+  uporabo QA filtra (vsi piksli v okviru, ne glede na kakovost ali NaN).
 
-```text
-LAT_MIN = 45.4
-LAT_MAX = 46.9
-LON_MIN = 13.4
-LON_MAX = 16.6
-```
+Ta korak je predvsem **sanity-check**; dejanske regionalne vrednosti izračuna
+agregacija (§6). Več:
+[`slovenia_no2_crop_filter.md`](slovenia_no2_crop_filter.md).
 
-Uporabljen filter kakovosti:
+> Sprint 1 PoC skripta `process_no2_slovenia_bbox.py` (samo bbox statistika) je
+> ohranjena kot zgodovinski predhodnik tega koraka.
 
-```text
-qa_value >= 0.75
-```
+## 5. QA filter
 
-Ukaz:
+- Pravilo: **`qa_value >= 0.75`**.
+- Piksli z NaN NO₂ vrednostjo so izločeni iz statistike (`np.isfinite`).
+- Piksli pod QA pragom niso vključeni v izračun.
+- QA prag je **pravilo za presejanje kakovosti**, ne znanstveno jamstvo
+  pravilnosti meritve. Prag neposredno vpliva na število veljavnih pikslov in
+  stabilnost statistike.
+
+## 6. Regionalne meje
+
+- **Vir:** Eurostat **GISCO NUTS 2024**, Level 3 (statistične regije).
+- **12 slovenskih statističnih regij** (filter `CNTR_CODE = SI` in
+  `LEVL_CODE = 3`); agregacija zahteva natanko 12 regij.
+- **Koordinate:** EPSG:4326 / WGS84 (agregacija preveri CRS; zavrne ne-4326/CRS84).
+- **Surovi GeoJSON je lokalna referenca in se ne commita**
+  (`.gitignore`: `data_pipeline/reference_data/regions/raw/*`); sledi se le
+  `.gitkeep`, da mapa obstaja.
+- Pregled in preverjanje meja: `inspect_region_boundaries.py` (izpiše CRS,
+  število regij, atribute, imena; opozori, če SI/NUTS3 ni 12).
+
+Več: [`slovenian_region_boundaries.md`](slovenian_region_boundaries.md).
+
+## 7. Regionalna agregacija
+
+Skripta `aggregate_no2_by_region.py` dodeli veljavne piksle regijam in izračuna
+statistiko.
+
+- Vsak veljaven Sentinel-5P piksel se obravnava kot **točka (longitude, latitude)**
+  z NO₂ vrednostjo.
+- **Point-in-polygon** dodelitev v NUTS3 geometrijo (čisti Python ray-casting;
+  podpira `Polygon` in `MultiPolygon`, upošteva luknje). Piksel se dodeli prvi
+  ustrezni regiji.
+- Statistika **na regijo** (polja JSON izhoda):
+
+  | Polje | Opomba |
+  |---|---|
+  | `region_code`, `region_name` | NUTS3 koda in ime |
+  | `value_mean`, `value_min`, `value_max` | `null`, če ni veljavnih pikslov |
+  | `pixel_count_valid` | število dodeljenih veljavnih pikslov |
+  | `quality_status` | `valid` ali `no_valid_pixels` |
+  | `qa_threshold`, `unit` | `0.75`, `mol/m²` |
+  | `measurement_start_time`, `measurement_end_time` | iz argumentov → NetCDF atributov → imena datoteke |
+  | `source_product_id` | neobvezno; `null`, če ni podan z `--source-product-id` |
+  | `source_product_name` | privzeto ime `.nc` datoteke |
+
+- **`no_valid_pixels`:** regija brez dodeljenih veljavnih pikslov dobi
+  `quality_status = no_valid_pixels`, `pixel_count_valid = 0` in `null` vrednosti
+  (ostane v izhodu kot obdelan rezultat).
+- Skripta poroča tudi **piksle zunaj vseh regij** (bbox vključuje območja izven
+  Slovenije, meje pa so generalizirane – glej §11).
+
+> `processing_run_id` **ni** del JSON izhoda agregacije; dodeli se šele ob vnosu
+> v bazo (§9). Status `processing_error` je dovoljen v validaciji/bazi, vendar ga
+> trenutna agregacijska skripta ne generira (uporablja samo `valid` /
+> `no_valid_pixels`).
+
+Več: [`regional_no2_aggregation_strategy.md`](regional_no2_aggregation_strategy.md),
+[`regional_no2_aggregation_result.md`](regional_no2_aggregation_result.md).
+
+## 8. Validacija
+
+Skripta `validate_regional_no2_output.py` preveri **strukturno in interno
+doslednost** JSON izhoda – **ne dokazuje znanstvene pravilnosti** vrednosti.
+
+Preverja med drugim:
+
+- izhod je seznam s pričakovanim številom regij (privzeto 12),
+- prisotnost obveznih polj, brez podvojenih `region_code`,
+- `unit = mol/m²`, `qa_threshold = 0.75`,
+- `quality_status ∈ {valid, no_valid_pixels, processing_error}`,
+- pri `valid`: `pixel_count_valid > 0` in `value_min <= value_mean <= value_max`,
+- pri `no_valid_pixels`: `pixel_count_valid == 0` in `null` vrednosti.
+
+Neobvezni pričakovani parametri (`--expected-valid-regions`,
+`--expected-no-data-regions`, `--expected-assigned-valid-pixels`) omogočajo
+preverjanje glede na znan referenčni produkt. Ob napaki skripta vrne izhodni
+status `1`. Pričakovani izhodi za konkretne produkte so dokumentirani v
+[`regional_no2_validation.md`](regional_no2_validation.md).
+
+## 9. Vnos v bazo
+
+Skripta `backend/scripts/ingest_regional_no2_measurements.py` vnese validiran
+regionalni JSON v tabelo `region_measurement`.
+
+- Bere 12-vrstični JSON; zahteva enotne `source_product_id`,
+  `source_product_name`, časovni okvir in `qa_threshold` čez vse vrstice.
+- **Preslikava:**
+  - poišče `data_product` po `product_code` (privzeto `S5P_OFFL_L2__NO2`),
+  - **upsert** `source_file` po `external_product_id`,
+  - **upsert** `processing_run` (`run_status = success`),
+  - **upsert** `region_measurement` na regijo (povezava prek `region_code`).
+- Regije morajo **že obstajati** v bazi (najprej `backend/scripts/load_regions.py`);
+  sicer skripta javi `Region not found ...`.
+- **Idempotentno** prek `ON CONFLICT ... DO UPDATE`; ponoven zagon ne podvaja
+  zapisov.
+- Pričakovani izpis: `Ingested N regional NO2 measurements.` + število veljavnih
+  in brez-podatkovnih regij ter dodeljenih pikslov.
+
+### Docker workaround (ko backend kontejner ne vidi izhoda pipeline-a)
+
+Če lokalno okolje ne dosega baze, je vnos mogoč prek backend kontejnerja
+(runbook §11, Option B): kopiraj JSON v `backend/`, ponovno zgradi sliko, zaženi
+skripto v enkratnem kontejnerju, **nato izbriši začasni JSON** in znova zgradi
+sliko. **`backend/regional_no2_results.json` je gitignored in se ne commita.**
+Polni ukazi: [`regional_pipeline_runbook.md`](regional_pipeline_runbook.md) §11.
+
+## 10. Povezava z API in frontendom
+
+Po vnosu so podatki vidni prek FastAPI `/api/v1` endpointov; React dashboard
+bere regionalne zadnje meritve, podrobnosti regije, zgodovino, primerjavo, CSV
+izvoz in geometrije. Točka, kjer izhod pipeline-a postane viden, je tabela
+`region_measurement` → endpoint `GET /api/v1/regions/latest-measurements`.
+Podrobnosti endpointov: [`API_documentation.md`](API_documentation.md).
+
+## 11. Znane omejitve
+
+- Sentinel-5P **ni ulična meritev** (piksel ~3,5 × 5,5 km).
+- Aplikacija **ni v realnem času**; OFFL produkti so na voljo z zamikom.
+- Razpoložljivost produktov je odvisna od satelitskega preleta in objave v
+  Copernicus Data Space.
+- Nekateri produkti imajo za določene regije **ničveljavnih pikslov**
+  (oblačnost, kakovost retrieval-a) → `no_valid_pixels`.
+- GISCO **20M** meje so **generalizirane** (poenostavljene).
+- Trenutna agregacija je **point-in-polygon**, ne pixel-footprint utežena.
+- **Veljavni piksli zunaj vseh regij** so možni, ker bbox vključuje območja
+  izven Slovenije, meje pa so generalizirane.
+- Rezultati so **regionalne satelitske ocene**, ne uradne meritve talnih postaj.
+
+## 12. Reproducibilnost / ukazi
+
+Kratek pregled (kode regij in produkti so primeri):
 
 ```bash
-python data_pipeline/scripts/process_no2_slovenia_bbox.py --file data_pipeline/sample_data/S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc
+# Pregled mej
+python data_pipeline/scripts/inspect_region_boundaries.py \
+  --file data_pipeline/reference_data/regions/raw/NUTS_RG_20M_2024_4326_LEVL_3.geojson
+
+# Crop/filter povzetek (sanity-check)
+python data_pipeline/scripts/crop_filter_no2_slovenia.py \
+  --file data_pipeline/sample_data/<PRODUCT>.nc
+
+# Regionalna agregacija → JSON
+python data_pipeline/scripts/aggregate_no2_by_region.py \
+  --no2-file data_pipeline/sample_data/<PRODUCT>.nc \
+  --regions-file data_pipeline/reference_data/regions/raw/NUTS_RG_20M_2024_4326_LEVL_3.geojson \
+  --output data_pipeline/outputs/no2_by_region/regional_no2_results.json \
+  --source-product-id <UUID> \
+  --measurement-start-time <ISO8601> --measurement-end-time <ISO8601>
+
+# Validacija
+python data_pipeline/scripts/validate_regional_no2_output.py \
+  --file data_pipeline/outputs/no2_by_region/regional_no2_results.json
+
+# Vnos v bazo (host-side; glej runbook za Docker workaround)
+python backend/scripts/ingest_regional_no2_measurements.py \
+  --file data_pipeline/outputs/no2_by_region/regional_no2_results.json
+
+# Preverjanje baze / API-ja
+curl http://localhost:8000/api/v1/regions/latest-measurements
 ```
 
-Rezultat:
+**Celoten end-to-end** (Docker, migracije, preverjanje baze/API/frontend) je v
+[`regional_pipeline_runbook.md`](regional_pipeline_runbook.md) – ta dokument ga
+namerno ne podvaja.
 
-```text
-Valid pixel count: 69
-Mean NO2: 3.306649159640074e-05
-Min NO2: 1.130456894316012e-05
-Max NO2: 5.404165858635679e-05
-Unit: mol/m²
+**Orkestrator (najnovejši produkt naenkrat):**
+
+```bash
+python data_pipeline/scripts/run_latest_no2_pipeline.py
 ```
 
----
+Zažene celotno verigo (search → download → aggregate → validate → ingest →
+preverjanje API-ja) za najnovejši razpoložljiv OFFL produkt nad Slovenijo.
+Idempotenten; uporabne zastavice `--dry-run`, `--start-date` / `--end-date`,
+`--product-id`, `--force`. Ne razporeja sam – za periodičnost ga ovij v
+cron / launchd / GitHub Actions.
 
-## Vpliv na zasnovo baze
+Lahki testi pipeline-a (sintetični podatki, brez poverilnic/omrežja/baze):
 
-Na podlagi pregleda podatkov potrebujemo predvsem naslednje tabele:
-
-### `source_file`
-
-Hrani podatke o prenesenem Copernicus produktu.
-
-Predvidena polja:
-
-- `id_source_file`
-- `fk_data_product`
-- `external_product_id`
-- `file_name`
-- `file_format`
-- `file_size_bytes`
-- `sensing_start_at`
-- `sensing_end_at`
-- `download_status`
-- `created_at`
-
-### `region_measurement`
-
-Hrani izračunane statistike za regijo in kazalnik.
-
-Predvidena polja:
-
-- `id_region_measurement`
-- `fk_region`
-- `fk_indicator`
-- `fk_source_file`
-- `measurement_date`
-- `value_mean`
-- `value_min`
-- `value_max`
-- `unit`
-- `pixel_count_valid`
-- `qa_threshold`
-- `quality_status`
-- `created_at`
-
-Za Sprint 1 lahko rezultat bounding box obdelave uporabimo kot testno meritev. V Sprintu 2 je treba obdelavo nadgraditi iz slovenskega bounding boxa na agregacijo po statističnih regijah.
-
-Strategija za Sprint 2 regionalno agregacijo je dokumentirana v:
-
-```text
-docs/regional_no2_aggregation_strategy.md
+```bash
+python -m pytest data_pipeline/tests
 ```
 
-Omejitve Sentinel-5P NO₂ podatkov za regionalno interpretacijo so dokumentirane v:
+Več: [`pipeline_tests.md`](pipeline_tests.md).
 
-```text
-docs/sentinel5p_regional_interpretation_limitations.md
-```
+## 13. Čiščenje in Git higiena
 
-End-to-end navodila za ponovljiv regionalni NO₂ tok (od `.nc` produkta prek
-agregacije in validacije do baze, API-ja in frontend preverjanja) so v:
+**Nikoli ne commitaj:**
 
-```text
-docs/regional_pipeline_runbook.md
-```
+- `.env` in poverilnic (`COPERNICUS_*`, tokenov),
+- `.nc` (in `.zip`) Copernicus produktov,
+- generiranih JSON/CSV izhodov pod `data_pipeline/outputs/...`,
+- začasne backend kopije JSON-a (`backend/regional_no2_results.json` iz Docker
+  workarounda),
+- surovih velikih GIS datotek pod
+  `data_pipeline/reference_data/regions/raw/...`.
 
----
+Sledi se le `.gitkeep` datotekam (da mape obstajajo). Ustrezna pravila so že v
+korenskem `.gitignore`. Po Docker workaroundu odstrani začasni JSON in ponovno
+zgradi sliko (glej §9 in runbook §15 "Cleanup checklist").
 
-## Zaključek
+## 14. Povezane podrobne reference
 
-Data discovery je uspešen. Potrjeno je, da lahko projekt:
+| Dokument | Vsebina |
+|---|---|
+| [`regional_pipeline_runbook.md`](regional_pipeline_runbook.md) | polni end-to-end ukazi (Docker, migracije, vnos, preverjanje) |
+| [`slovenian_region_boundaries.md`](slovenian_region_boundaries.md) | izbira in vir mej (GISCO NUTS 2024) |
+| [`slovenia_no2_crop_filter.md`](slovenia_no2_crop_filter.md) | crop/filter korak |
+| [`regional_no2_aggregation_strategy.md`](regional_no2_aggregation_strategy.md) | strategija agregacije |
+| [`regional_no2_aggregation_result.md`](regional_no2_aggregation_result.md) | zagon in interpretacija izhoda |
+| [`regional_no2_validation.md`](regional_no2_validation.md) | validacija izhoda |
+| [`sentinel5p_regional_interpretation_limitations.md`](sentinel5p_regional_interpretation_limitations.md) | omejitve interpretacije |
+| [`pipeline_tests.md`](pipeline_tests.md) | testi pipeline-a |
+| [`API_documentation.md`](API_documentation.md) | API endpointi nad podatki |
+| [`sprint2_selected_no2_input_product.md`](sprint2_selected_no2_input_product.md), [`sprint3_selected_no2_input_product.md`](sprint3_selected_no2_input_product.md) | izbira produktov (zgodovinske reference) |
 
-1. pridobi access token za Copernicus Data Space,
-2. poišče Sentinel-5P NO₂ produkte nad Slovenijo,
-3. prenese realen NetCDF produkt,
-4. odpre grupo `PRODUCT`,
-5. prebere ključna polja za NO₂,
-6. filtrira podatke po območju Slovenije in kakovosti,
-7. izračuna osnovne NO₂ statistike.
-
-Ta rezultat potrjuje tehnično izvedljivost osnovnega podatkovnega toka za MVP AirWatch SLO.
+Operativni vstopni točki sta `data_pipeline/README.md` (lokalni ukazi) in
+zgornji runbook (celotni tok).
