@@ -1,217 +1,51 @@
 # AirWatch SLO
 
-AirWatch SLO je spletna analitična platforma za spremljanje kakovosti zraka nad Slovenijo na podlagi satelitskih podatkov Copernicus, primarno Sentinel-5P NO2.
+Spletna aplikacija za prikaz regionalnih vrednosti dušikovega dioksida (NO₂) nad
+Slovenijo na podlagi satelitskih podatkov Copernicus Sentinel-5P (TROPOMI).
 
-MVP je osredotočen na osnovni podatkovni tok:
+AirWatch SLO prikazuje **zadnjo razpoložljivo obdelano** Sentinel-5P NO₂ meritev
+po 12 slovenskih statističnih regijah. **Ni v realnem času** in **ni ulična
+meritev** – vrednosti so regionalne satelitske ocene (piksel ~3,5 × 5,5 km).
 
 ```text
-Copernicus Sentinel-5P NO2 produkt
-        -> Python data pipeline
-        -> obdelava podatkov za Slovenijo / regije
-        -> PostgreSQL + PostGIS baza
-        -> FastAPI backend
-        -> React dashboard
+Sentinel-5P NO₂ produkt → Python data pipeline → PostgreSQL/PostGIS → FastAPI → React dashboard
 ```
-
-## Cilj MVP-ja
-
-Uporabnik mora v končni verziji MVP-ja lahko:
-
-- odpreti spletni dashboard,
-- izbrati slovensko regijo,
-- videti zadnjo razpoložljivo NO2 vrednost,
-- videti datum meritve in vir podatkov,
-- pregledati zgodovinski trend,
-- primerjati regije,
-- izvoziti rezultate v CSV.
-
-Sprint 1 trenutno pokriva podatkovno odkrivanje za Sentinel-5P NO2, začetni ER model, Alembic migracije in seed podatke za bazo.
 
 ## Tehnologije
 
-- Backend: Python, FastAPI
-- Frontend: React, Vite
-- Baza: PostgreSQL + PostGIS
-- Data pipeline: Python, requests, xarray, numpy
-- Infrastruktura: Docker, Docker Compose
+Python · FastAPI · SQLAlchemy · Alembic · PostgreSQL/PostGIS · React + Vite ·
+Docker Compose · Railway
 
-## Struktura projekta
-
-```text
-airwatch-slo/
-├── backend/                 FastAPI aplikacija
-├── frontend/                React dashboard
-├── data_pipeline/           Sentinel-5P NO2 discovery in processing skripte
-├── database/                ER diagram, SQL inicializacija in seed podatki
-├── docs/                    projektna dokumentacija
-├── docker-compose.yml       lokalno Docker okolje
-├── .env.example             primer konfiguracije brez skrivnosti
-└── README.md
-```
-
-## Predpogoji
-
-- Docker in Docker Compose
-- Python 3 za lokalni data pipeline
-- Copernicus Data Space račun za iskanje in prenos Sentinel-5P produktov
-
-## Konfiguracija
-
-Ustvari lokalno `.env` datoteko iz primera:
+## Hiter zagon (lokalno)
 
 ```bash
-cp .env.example .env
-```
-
-Nato v `.env` nastavi vsaj:
-
-```env
-POSTGRES_DB=airwatch
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_local_password
-
-COPERNICUS_USERNAME=your_email_here
-COPERNICUS_PASSWORD=your_password_here
-```
-
-Frontend privzeto uporablja relativno pot `/api`. Lokalni Vite server in Docker nginx to pot preusmerita na backend. Če frontend kliče API neposredno iz brskalnika, nastavi `CORS_ORIGINS` v `.env.example` slogu.
-
-Datoteka `.env` vsebuje skrivnosti in ne sme biti commitana v Git.
-
-## Zagon z Dockerjem
-
-Zaženi celotno lokalno okolje:
-
-```bash
+cp .env.example .env          # nastavi vrednosti; .env se ne commita
 docker compose up --build
-```
-
-Ali samo bazo:
-
-```bash
-docker compose up -d db
-```
-
-Dostop:
-
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- Backend health check: http://localhost:8000/health
-- PostgreSQL: `localhost:5432`
-
-## Inicializacija baze
-
-Primarni način inicializacije baze je Alembic. Zaženi migracije znotraj backend Docker servisa, da se poveže na Compose database service `db`:
-
-```bash
-docker compose up -d db
 docker compose run --rm backend alembic upgrade head
 ```
 
-Preveri tabele:
+- Frontend: <http://localhost:3000>
+- Backend: <http://localhost:8000> · health: `/health`
 
-```bash
-docker compose exec db psql -U postgres -d airwatch -c "\dt"
-```
-
-Raw SQL skripte v `database/init/` ostajajo kot referenca, vendar za razvoj uporabljaj Alembic:
-
-- `001_create_extensions.sql` omogoči PostGIS.
-- `002_create_tables.sql` ustvari core MVP tabele.
-- `003_seed_initial_data.sql` doda Sprint 1 seed podatke.
-
-Sprint 1 seed podatki predstavljajo:
-
-- testno regijo `SI_BBOX` za Slovenijo,
-- kazalnik `NO2` z enoto `mol/m²`,
-- Copernicus Data Space vir,
-- Sentinel-5P OFFL L2 NO2 produkt,
-- eno odkrito/preneseno izvorno datoteko,
-- en uspešen processing run,
-- eno obdelano regionalno meritev za Slovenijo bbox.
-
-## Data Pipeline
-
-Data pipeline je v `data_pipeline/` in ne prenaša podatkov samodejno. Skripte omogočajo lokalno avtentikacijo, iskanje produktov, prenos izbranega produkta, pregled NetCDF strukture in izračun NO2 statistik.
-
-Namestitev lokalnih odvisnosti:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install requests python-dotenv xarray numpy netCDF4
-```
-
-Uporabni ukazi:
-
-```bash
-python data_pipeline/scripts/get_copernicus_token.py
-python data_pipeline/scripts/search_s5p_no2_products.py --start-date 2025-03-11 --end-date 2025-03-11
-python data_pipeline/scripts/download_s5p_no2_product.py --product-id PRODUCT_UUID_FROM_SEARCH
-python data_pipeline/scripts/inspect_s5p_no2_structure.py --file data_pipeline/sample_data/YOUR_PRODUCT.nc
-python data_pipeline/scripts/process_no2_slovenia_bbox.py --file data_pipeline/sample_data/YOUR_PRODUCT.nc
-```
-
-Prenesene `.nc` in `.zip` datoteke ostanejo v `data_pipeline/sample_data/` in ne smejo biti commitane.
+NO₂ meritve se vnesejo prek data pipeline-a – glej dokumentacijo spodaj.
 
 ## Dokumentacija
 
-- ER diagram: `database/diagrams/er_diagram.md`
-- Database navodila: `database/README.md`
-- Data pipeline navodila: `data_pipeline/README.md`
-- CI navodila: `docs/ci.md`
-- Frontend E2E testi: `docs/frontend_e2e_tests.md`
-- Sentinel-5P NO2 discovery template: `docs/data_discovery_sentinel5p_no2.md`
-- Regional NO₂ pipeline runbook: `docs/regional_pipeline_runbook.md`
-- Predlagana struktura projekta: `structure.md`
+| Dokument | Vsebina |
+|---|---|
+| [docs/01_project_overview.md](docs/01_project_overview.md) | pregled projekta in cilji |
+| [docs/02_architecture.md](docs/02_architecture.md) | arhitektura in komponente |
+| [docs/03_data_pipeline.md](docs/03_data_pipeline.md) | obdelava podatkov |
+| [docs/04_api_documentation.md](docs/04_api_documentation.md) | API endpointi |
+| [docs/05_deployment_guide.md](docs/05_deployment_guide.md) | lokalni in Railway deploy |
+| [docs/06_user_demo_walkthrough.md](docs/06_user_demo_walkthrough.md) | predstavitev / demo |
+| [docs/07_limitations_and_methodology.md](docs/07_limitations_and_methodology.md) | omejitve in metodologija |
+| [docs/08_developer_handover.md](docs/08_developer_handover.md) | predaja razvijalcu |
 
-## Lokalni razvoj
+Podrobni in zgodovinski zapisi so v [docs/archive/](docs/archive/).
+Komponentni README-ji so v `backend/`, `frontend/`, `data_pipeline/` in `database/`.
 
-Backend lokalno:
+## Skrivnosti in Git
 
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-Frontend lokalno:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend lint in basic UI testi:
-
-```bash
-cd frontend
-npm run lint
-npm test
-```
-
-Frontend E2E test:
-
-```bash
-cd frontend
-npx playwright install chromium
-npm run test:e2e
-```
-
-Frontend lokalno teče na `http://localhost:3000` in kliče backend prek `/api` proxyja na `http://localhost:8000`.
-
-## Varnost in Git pravila
-
-Ne commitaj:
-
-- `.env`
-- Copernicus prijavnih podatkov
-- access tokenov
-- `.nc` ali `.zip` produktov
-- lokalnih virtualnih okolij
-- velikih generiranih podatkovnih datotek
-
-Repozitorij vsebuje samo skripte, dokumentacijo, shemo baze in seed metapodatke, ne pa dejanskih prenesenih Copernicus produktov.
+Ne commitaj: `.env`, Copernicus poverilnic, tokenov, Railway skrivnosti, `.nc` /
+`.zip` produktov ali generiranih JSON/CSV izhodov. Pravila pokriva `.gitignore`.
