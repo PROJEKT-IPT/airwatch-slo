@@ -1,10 +1,9 @@
 const navigationItems = [
   { id: 'dashboard', label: 'Pregled' },
-  { id: 'admin', label: 'Admin/debug' },
   { label: 'Zgodovinski trend', target: 'trend-section' },
   { label: 'Primerjava regij', target: 'comparison-section' },
   { label: 'Podatki & izvoz', target: 'details-section' },
-  { label: 'O projektu', disabled: true },
+  { id: 'admin', label: 'Admin/debug' },
 ]
 
 function Sidebar({ activeView = 'dashboard', onViewChange }) {
