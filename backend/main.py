@@ -38,7 +38,6 @@ from services.region_service import (
 
 app = FastAPI(title="AirWatch SLO API")
 logger = logging.getLogger(__name__)
-print(f"DEBUG CORS_ORIGINS={os.getenv('CORS_ORIGINS')}", flush=True)
 # DEPLOY: uncomment these two lines once `admin_refresh.py`'s deploy
 # prerequisites are in place (see that module's docstring for the checklist).
 # Activating this exposes POST /admin/refresh-latest with X-Admin-Token auth.
