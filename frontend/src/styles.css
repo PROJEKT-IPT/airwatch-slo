@@ -425,23 +425,12 @@ select {
 }
 
 .section-grid--details {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 }
 
-/* The methodology note spans the full width below the two data cards */
-.methodology-card {
-  grid-column: 1 / -1;
-}
-
-.methodology-list {
-  margin: 16px 0 0;
-  padding-left: 18px;
-  color: var(--stem-grey);
-  line-height: 1.55;
-}
-
-.methodology-list li + li {
-  margin-top: 8px;
+/* Quiet methodology note, sits beside the data details card */
+.methodology-card p + p {
+  margin-top: 12px;
 }
 
 .admin-status-grid {
@@ -875,15 +864,6 @@ select {
 
 .map-selected-region strong {
   font-size: 0.92rem;
-}
-
-.metric-provenance {
-  margin: 18px 0 0;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-  color: var(--stem-grey);
-  font-size: 0.82rem;
-  line-height: 1.55;
 }
 
 .region-code-line {

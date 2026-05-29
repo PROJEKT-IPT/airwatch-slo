@@ -7,7 +7,6 @@ import {
   getRegionGeometries,
   getRegionalLatestMeasurements,
 } from '../api/airwatchApi'
-import DataProvenanceCard from '../components/DataProvenanceCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import MethodologyCard from '../components/MethodologyCard'
 import RegionComparisonCard from '../components/RegionComparisonCard'
@@ -326,14 +325,6 @@ function Dashboard() {
               error={detailError}
               hasRegion={Boolean(selectedRegionCode)}
               csvExportUrl={csvExportUrl}
-            />
-
-            <DataProvenanceCard
-              measurement={measurement}
-              selectedRegion={selectedSummary}
-              isLoading={isLoadingDetail}
-              error={detailError}
-              hasRegion={Boolean(selectedRegionCode)}
             />
 
             <MethodologyCard />

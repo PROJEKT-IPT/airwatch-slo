@@ -64,8 +64,6 @@ function LatestMeasurementCard({
           text={missingDataState.text}
           measurement={measurement}
         />
-
-        <ProvenanceFootnote measurement={measurement} />
       </article>
     )
   }
@@ -86,12 +84,9 @@ function LatestMeasurementCard({
       </div>
 
       <div className="metric-meta-grid">
-        <InfoTile label="Indikator" value="NO₂" />
-        <InfoTile label="Status meritve" value={formatQualityStatus(measurement.quality_status)} />
         <InfoTile label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
         <InfoTile label="QA prag" value={formatNumber(measurement.qa_threshold)} />
         <InfoTile label="Čas meritve" value={formatDateTime(measurement.measurement_end_time)} />
-        <InfoTile label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
         <InfoTile
           label="Vir produkta"
           value={formatProductLabel(measurement.source_product_name)}
@@ -99,21 +94,7 @@ function LatestMeasurementCard({
           wide
         />
       </div>
-
-      <ProvenanceFootnote measurement={measurement} />
     </article>
-  )
-}
-
-function ProvenanceFootnote({ measurement }) {
-  return (
-    <p className="metric-provenance">
-      Satelitska regionalna ocena na podlagi obdelanega Sentinel-5P produkta.
-      Prikaz ne predstavlja meritev v realnem času.
-      {measurement?.source_product_id
-        ? ` ID produkta: ${measurement.source_product_id}.`
-        : ''}
-    </p>
   )
 }
 

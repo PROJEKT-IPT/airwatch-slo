@@ -16,7 +16,7 @@ function RegionDetailsCard({
     <section className="card detail-card" id="details-section">
       <div className="card-heading">
         <div>
-          <p className="section-kicker">Podrobnosti izbrane regije</p>
+          <p className="section-kicker">Podatki in izvor regije</p>
           <h2>{hasRegion ? regionName : 'Regija ni izbrana'}</h2>
           {regionCode ? <p className="muted-text region-code-line">Koda regije: {regionCode}</p> : null}
         </div>
@@ -74,31 +74,39 @@ function RegionDetailsCard({
             <DetailRow label="Začetek meritve" value={formatDateTime(measurement.measurement_start_time)} />
             <DetailRow label="Konec meritve" value={formatDateTime(measurement.measurement_end_time)} />
             <DetailRow label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
+            <DetailRow label="Izvor podatkov" value="Sentinel-5P / Copernicus" />
             <DetailRow
               label="Vir produkta"
               value={measurement.source_product_name || 'Ni podatka'}
             />
+            <DetailRow label="ID produkta" value={measurement.source_product_id || 'Ni podatka'} />
           </dl>
+          <p className="provenance-note">{getProvenanceNote(measurement)}</p>
         </div>
       ) : (
-        <dl className="details-list">
-          <DetailRow label="Zadnja NO₂ vrednost" value={formatNo2Value(measurement.value_mean)} />
-          <DetailRow
-            label="Min / max NO₂"
-            value={`${formatNo2Value(measurement.value_min)} / ${formatNo2Value(measurement.value_max)}`}
-          />
-          <DetailRow label="Enota" value={measurement.unit || 'Ni podatka'} />
-          <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
-          <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
-          <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
-          <DetailRow label="Začetek meritve" value={formatDateTime(measurement.measurement_start_time)} />
-          <DetailRow label="Konec meritve" value={formatDateTime(measurement.measurement_end_time)} />
-          <DetailRow label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
-          <DetailRow
-            label="Vir produkta"
-            value={measurement.source_product_name || 'Ni podatka'}
-          />
-        </dl>
+        <>
+          <dl className="details-list">
+            <DetailRow label="Zadnja NO₂ vrednost" value={formatNo2Value(measurement.value_mean)} />
+            <DetailRow
+              label="Min / max NO₂"
+              value={`${formatNo2Value(measurement.value_min)} / ${formatNo2Value(measurement.value_max)}`}
+            />
+            <DetailRow label="Enota" value={measurement.unit || 'Ni podatka'} />
+            <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
+            <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
+            <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
+            <DetailRow label="Začetek meritve" value={formatDateTime(measurement.measurement_start_time)} />
+            <DetailRow label="Konec meritve" value={formatDateTime(measurement.measurement_end_time)} />
+            <DetailRow label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
+            <DetailRow label="Izvor podatkov" value="Sentinel-5P / Copernicus" />
+            <DetailRow
+              label="Vir produkta"
+              value={measurement.source_product_name || 'Ni podatka'}
+            />
+            <DetailRow label="ID produkta" value={measurement.source_product_id || 'Ni podatka'} />
+          </dl>
+          <p className="provenance-note">{getProvenanceNote(measurement)}</p>
+        </>
       )}
     </section>
   )
@@ -137,6 +145,18 @@ function getQualityStatus(status) {
     return { label: 'Napaka obdelave', className: 'quality-error' }
   }
   return { label: 'Neznano', className: 'quality-empty' }
+}
+
+function getProvenanceNote(measurement) {
+  if (measurement.quality_status === 'no_valid_pixels') {
+    return 'Sentinel-5P produkt je bil obdelan, vendar regionalna NO₂ vrednost ni bila izračunana, ker ni bilo dovolj veljavnih pikslov po kakovostnem filtru. Zgornji podatki ohranjajo sledljivost do izvornega produkta in zapisa obdelave.'
+  }
+
+  if (measurement.quality_status === 'processing_error') {
+    return 'Obdelava izbrane meritve ni bila uspešna, zato zanesljiva regionalna NO₂ vrednost ni bila zapisana. Zgornji podatki ohranjajo sledljivost do izvornega produkta in zapisa obdelave.'
+  }
+
+  return 'Podatek je sledljiv do izvornega Sentinel-5P produkta; čas meritve se nanaša na satelitski prelet, ID obdelave pa na interni processing run zapis.'
 }
 
 function getMissingDataState(measurement) {

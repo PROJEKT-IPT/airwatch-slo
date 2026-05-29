@@ -332,7 +332,7 @@ describe('Dashboard', () => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
     })
 
-    expect(screen.getByText('Izvor in sledljivost podatka')).toBeInTheDocument()
+    expect(screen.getByText('Podatki in izvor regije')).toBeInTheDocument()
     expect(screen.getByText('Sentinel-5P / Copernicus')).toBeInTheDocument()
     expect(screen.getByText('ID produkta')).toBeInTheDocument()
     expect(screen.getByText('product-si032')).toBeInTheDocument()
