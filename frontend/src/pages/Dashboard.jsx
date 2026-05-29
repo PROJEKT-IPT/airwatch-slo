@@ -8,9 +8,8 @@ import {
   getRegionalLatestMeasurements,
 } from '../api/airwatchApi'
 import DataProvenanceCard from '../components/DataProvenanceCard'
-import DataQualityCard from '../components/DataQualityCard'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
-import No2ExplanationCard from '../components/No2ExplanationCard'
+import MethodologyCard from '../components/MethodologyCard'
 import RegionComparisonCard from '../components/RegionComparisonCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
@@ -237,10 +236,6 @@ function Dashboard() {
   }, [regionSummaries])
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
-  const timeRangeLabel = formatDateTimeRange(
-    measurement?.measurement_start_time,
-    measurement?.measurement_end_time,
-  )
 
   return (
       <main className="dashboard-main">
@@ -249,9 +244,8 @@ function Dashboard() {
             <p className="eyebrow">AirWatch SLO</p>
             <h1>Pregled NO₂ po slovenskih statističnih regijah</h1>
             <p className="dashboard-subtitle">
-              Prikaz zadnje razpoložljive veljavne NO₂ meritve iz obdelanih
-              Sentinel-5P produktov. Prikaz ne predstavlja meritev v realnem
-              času.
+              Zadnja razpoložljiva obdelana meritev NO₂ iz satelitskih produktov
+              Sentinel-5P. Prikaz ni v realnem času.
             </p>
           </div>
           <div className="header-status-group">
@@ -263,41 +257,24 @@ function Dashboard() {
           </div>
         </header>
 
-        <section className="top-controls" aria-label="Izbira regije in metapodatki">
-          <RegionSelect
-            regions={regionSummaries}
-            selectedRegionCode={selectedRegionCode}
-            onRegionChange={setSelectedRegionCode}
-            isLoading={isLoadingRegions}
-            error={regionsError}
-          />
+        <section className="dashboard-hero" aria-label="Izbrana regija in zadnja meritev">
+          <div className="hero-primary">
+            <RegionSelect
+              regions={regionSummaries}
+              selectedRegionCode={selectedRegionCode}
+              onRegionChange={setSelectedRegionCode}
+              isLoading={isLoadingRegions}
+              error={regionsError}
+            />
 
-          <div className="metadata-strip">
-            <MetadataItem
-              label="Izbrana regija"
-              value={displayRegionName || 'Ni izbrana'}
-              detail={selectedRegionCode || ''}
-            />
-            <MetadataItem
-              label="Čas meritve"
-              value={formatDateTime(measurement?.measurement_end_time)}
-              detail={timeRangeLabel}
-            />
-            <ProductMetadataItem
-              label="Vir produkta"
-              sourceProductName={measurement?.source_product_name}
+            <LatestMeasurementCard
+              measurement={measurement}
+              selectedRegion={selectedSummary}
+              isLoading={isLoadingDetail}
+              error={detailError}
+              hasRegion={Boolean(selectedRegionCode)}
             />
           </div>
-        </section>
-
-        <section className="dashboard-grid">
-          <LatestMeasurementCard
-            measurement={measurement}
-            selectedRegion={selectedSummary}
-            isLoading={isLoadingDetail}
-            error={detailError}
-            hasRegion={Boolean(selectedRegionCode)}
-          />
 
           <RegionalMap
             regions={regionSummaries}
@@ -307,40 +284,60 @@ function Dashboard() {
             isLoading={isLoadingRegions || isLoadingGeometries}
             error={regionsError || geometriesError}
           />
+        </section>
 
-          <RegionDetailsCard
-            measurement={measurement}
-            selectedRegion={selectedSummary}
-            isLoading={isLoadingDetail}
-            error={detailError}
-            hasRegion={Boolean(selectedRegionCode)}
-            csvExportUrl={csvExportUrl}
-          />
+        <section className="dashboard-section" aria-label="Analiza">
+          <div className="section-head">
+            <h2 className="section-title">Analiza</h2>
+            <p className="section-lead">
+              Zgodovinski trend izbrane regije in primerjava regij po zadnji
+              razpoložljivi vrednosti NO₂.
+            </p>
+          </div>
+          <div className="section-grid section-grid--analysis">
+            <TrendChart
+              regionCode={selectedRegionCode}
+              regionName={displayRegionName}
+            />
 
-          <DataQualityCard />
+            <RegionComparisonCard
+              regions={regionComparison}
+              selectedRegionCode={selectedRegionCode}
+              onRegionSelect={setSelectedRegionCode}
+              isLoading={isLoadingComparison}
+              error={comparisonError}
+            />
+          </div>
+        </section>
 
-          <No2ExplanationCard />
+        <section className="dashboard-section" aria-label="Podatki in metodologija">
+          <div className="section-head">
+            <h2 className="section-title">Podatki in metodologija</h2>
+            <p className="section-lead">
+              Podrobnosti meritve, izvor in sledljivost podatka ter kako brati
+              rezultat.
+            </p>
+          </div>
+          <div className="section-grid section-grid--details">
+            <RegionDetailsCard
+              measurement={measurement}
+              selectedRegion={selectedSummary}
+              isLoading={isLoadingDetail}
+              error={detailError}
+              hasRegion={Boolean(selectedRegionCode)}
+              csvExportUrl={csvExportUrl}
+            />
 
-          <RegionComparisonCard
-            regions={regionComparison}
-            selectedRegionCode={selectedRegionCode}
-            onRegionSelect={setSelectedRegionCode}
-            isLoading={isLoadingComparison}
-            error={comparisonError}
-          />
+            <DataProvenanceCard
+              measurement={measurement}
+              selectedRegion={selectedSummary}
+              isLoading={isLoadingDetail}
+              error={detailError}
+              hasRegion={Boolean(selectedRegionCode)}
+            />
 
-          <DataProvenanceCard
-            measurement={measurement}
-            selectedRegion={selectedSummary}
-            isLoading={isLoadingDetail}
-            error={detailError}
-            hasRegion={Boolean(selectedRegionCode)}
-          />
-
-          <TrendChart
-            regionCode={selectedRegionCode}
-            regionName={displayRegionName}
-          />
+            <MethodologyCard />
+          </div>
         </section>
       </main>
   )
@@ -385,38 +382,6 @@ function formatRelativeAgeDays(ageDays) {
   return `pred ${ageDays} dnevi`
 }
 
-function MetadataItem({ label, value, detail = '' }) {
-  return (
-    <div className="metadata-item" title={detail || ''}>
-      <span>{label}</span>
-      <strong>{value || 'Ni podatka'}</strong>
-      {detail ? <em>{detail}</em> : null}
-    </div>
-  )
-}
-
-function ProductMetadataItem({ label, sourceProductName }) {
-  return (
-    <div className="metadata-item" title={sourceProductName || ''}>
-      <span>{label}</span>
-      <strong>{formatProductLabel(sourceProductName)}</strong>
-      {sourceProductName ? <em>{sourceProductName}</em> : null}
-    </div>
-  )
-}
-
-function formatProductLabel(sourceProductName) {
-  if (!sourceProductName) {
-    return 'Ni podatka'
-  }
-
-  if (sourceProductName.includes('S5P') && sourceProductName.includes('NO2')) {
-    return 'Sentinel-5P OFFL L2 NO₂'
-  }
-
-  return sourceProductName
-}
-
 function formatDateTime(value) {
   if (!value) {
     return 'Ni podatka'
@@ -432,25 +397,6 @@ function formatDateTime(value) {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date)
-}
-
-function formatDateTimeRange(startValue, endValue) {
-  if (!startValue || !endValue) {
-    return ''
-  }
-
-  const startText = formatDateTime(startValue)
-  const endText = formatDateTime(endValue)
-
-  if (startText === 'Ni podatka' || endText === 'Ni podatka') {
-    return ''
-  }
-
-  if (startText === endText) {
-    return startText
-  }
-
-  return `${startText} – ${endText}`
 }
 
 export default Dashboard
