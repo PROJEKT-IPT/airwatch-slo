@@ -1,14 +1,30 @@
 const navigationItems = [
   { id: 'dashboard', label: 'Pregled' },
   { id: 'admin', label: 'Admin/debug' },
-  { id: 'regions', label: 'Regije', disabled: true },
-  { label: 'Zgodovinski trend', soon: true },
-  { label: 'Primerjava regij', soon: true },
-  { label: 'Podatki & izvoz', soon: true },
+  { label: 'Zgodovinski trend', target: 'trend-section' },
+  { label: 'Primerjava regij', target: 'comparison-section' },
+  { label: 'Podatki & izvoz', target: 'details-section' },
   { label: 'O projektu', disabled: true },
 ]
 
 function Sidebar({ activeView = 'dashboard', onViewChange }) {
+  function handleClick(item) {
+    if (item.id) {
+      onViewChange?.(item.id)
+      return
+    }
+
+    if (item.target) {
+      // Section links live on the dashboard view; switch to it first, then
+      // scroll once the dashboard has had a chance to render.
+      onViewChange?.('dashboard')
+      requestAnimationFrame(() => {
+        const element = document.getElementById(item.target)
+        element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      })
+    }
+  }
+
   return (
     <aside className="sidebar">
       <div className="brand-block">
@@ -24,16 +40,12 @@ function Sidebar({ activeView = 'dashboard', onViewChange }) {
           <button
             key={item.label}
             type="button"
-            className={`nav-item ${item.id === activeView ? 'nav-item-active' : ''}`}
-            disabled={item.soon || item.disabled}
-            onClick={() => {
-              if (item.id) {
-                onViewChange?.(item.id)
-              }
-            }}
+            className={`nav-item ${item.id && item.id === activeView ? 'nav-item-active' : ''}`}
+            disabled={item.disabled}
+            aria-current={item.id && item.id === activeView ? 'page' : undefined}
+            onClick={() => handleClick(item)}
           >
             <span>{item.label}</span>
-            {item.soon ? <span className="nav-soon">kmalu</span> : null}
           </button>
         ))}
       </nav>

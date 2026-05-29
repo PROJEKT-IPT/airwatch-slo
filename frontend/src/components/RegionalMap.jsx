@@ -169,6 +169,21 @@ function RegionalMap({
         )}
       </div>
 
+      {!isLoading && !error && mapRegions.length > 0 ? (
+        <ul className="map-legend" aria-label="Pomen barv na zemljevidu">
+          {QUALITY_LEGEND.map(item => (
+            <li key={item.status} className="map-legend-item">
+              <span
+                className="map-legend-swatch"
+                style={{ backgroundColor: qualityFillColor(item.status) }}
+                aria-hidden="true"
+              />
+              <span>{item.label}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
       <div className="map-footer">
         <p className="map-hint">
           Klik na regijo izbere isto regijo kot spustni seznam. Barva prikazuje status kakovosti
@@ -243,6 +258,12 @@ function getRegionStyle(properties, selectedRegionCode) {
     weight: isSelected ? 2.25 : 1.15,
   }
 }
+
+const QUALITY_LEGEND = [
+  { status: 'valid', label: 'Veljavna meritev' },
+  { status: 'no_valid_pixels', label: 'Ni veljavnih pikslov' },
+  { status: 'processing_error', label: 'Napaka obdelave' },
+]
 
 function qualityFillColor(status) {
   if (status === 'valid') {

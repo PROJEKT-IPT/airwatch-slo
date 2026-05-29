@@ -223,7 +223,7 @@ function TrendChart({ regionCode, regionName }) {
 
   if (isLoading) {
     return (
-      <section className="card trend-chart-card">
+      <section className="card trend-chart-card" id="trend-section">
         <p className="section-kicker">Zgodovina meritev</p>
         <h2>Zgodovinski trend NO₂</h2>
         <div className="state-block">
@@ -236,7 +236,7 @@ function TrendChart({ regionCode, regionName }) {
 
   if (error) {
     return (
-      <section className="card trend-chart-card">
+      <section className="card trend-chart-card" id="trend-section">
         <p className="section-kicker">Zgodovina meritev</p>
         <h2>Zgodovinski trend NO₂</h2>
         <div className="state-block state-error">
@@ -252,7 +252,7 @@ function TrendChart({ regionCode, regionName }) {
   const yDomain = getZoomedNo2Domain(chartData)
 
   return (
-    <section className="card trend-chart-card">
+    <section className="card trend-chart-card" id="trend-section">
       <p className="section-kicker">Zgodovina meritev</p>
       <h2>Zgodovinski trend NO₂</h2>
       {renderDateSelectors()}

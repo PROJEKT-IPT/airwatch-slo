@@ -13,7 +13,7 @@ function RegionDetailsCard({
   const isExportDisabled = !measurement || isLoading || Boolean(error) || !csvExportUrl
 
   return (
-    <section className="card detail-card">
+    <section className="card detail-card" id="details-section">
       <div className="card-heading">
         <div>
           <p className="section-kicker">Podrobnosti izbrane regije</p>
@@ -182,7 +182,34 @@ function formatNo2Value(value) {
     return String(value)
   }
 
-  return numberValue.toExponential(3).replace('e', ' × 10^')
+  if (numberValue === 0) {
+    return '0'
+  }
+
+  const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
+  const mantissa = numberValue / 10 ** exponent
+  return `${mantissa.toFixed(2)} × 10${toSuperscript(exponent)}`
+}
+
+function toSuperscript(value) {
+  const map = {
+    '-': '⁻',
+    0: '⁰',
+    1: '¹',
+    2: '²',
+    3: '³',
+    4: '⁴',
+    5: '⁵',
+    6: '⁶',
+    7: '⁷',
+    8: '⁸',
+    9: '⁹',
+  }
+
+  return String(value)
+    .split('')
+    .map(character => map[character] || character)
+    .join('')
 }
 
 function formatNumber(value) {

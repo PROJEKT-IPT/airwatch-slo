@@ -99,34 +99,38 @@ select {
   border-radius: 8px;
   color: rgba(245, 246, 243, 0.76);
   background: transparent;
-  cursor: default;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   text-align: left;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
 }
 
-.nav-item-active {
+.nav-item:not(:disabled):hover {
+  color: var(--plate-white);
+  background: rgba(245, 246, 243, 0.08);
+}
+
+.nav-item-active,
+.nav-item-active:not(:disabled):hover {
   color: var(--plate-white);
   background: rgba(245, 246, 243, 0.13);
   box-shadow: inset 3px 0 0 var(--yogurt-tint);
 }
 
 .nav-item:disabled {
-  opacity: 0.76;
-}
-
-.nav-soon {
-  padding: 3px 6px;
-  border-radius: 8px;
-  background: rgba(231, 226, 222, 0.14);
-  color: rgba(245, 246, 243, 0.82);
-  font-size: 0.68rem;
-  font-weight: 800;
+  opacity: 0.6;
+  cursor: default;
 }
 
 .dashboard-main {
+  width: 100%;
+  max-width: 1640px;
+  margin-inline: auto;
   padding: 34px;
   overflow: hidden;
 }
@@ -754,7 +758,34 @@ select {
   border: 0;
 }
 
+.map-legend {
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--stem-grey);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.map-legend-swatch {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  border-radius: 4px;
+  border: 1px solid rgba(47, 58, 85, 0.18);
+}
+
 .map-footer {
+  margin-top: 14px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
@@ -939,6 +970,20 @@ select {
   color: var(--blueberry-skin);
 }
 
+.nav-item:focus-visible {
+  outline: 2px solid var(--yogurt-tint);
+  outline-offset: 2px;
+}
+
+.btn:focus-visible,
+.export-button:focus-visible,
+.comparison-row:focus-visible,
+.region-select select:focus-visible,
+.trend-filter-item select:focus-visible {
+  outline: 2px solid var(--berry-bloom);
+  outline-offset: 2px;
+}
+
 /* Suppress focus rectangles and outlines when interacting with the recharts SVG */
 .trend-chart-plot svg:focus,
 .trend-chart-plot svg *:focus,
@@ -1082,8 +1127,7 @@ select {
 .map-hint,
 .muted-text,
 .quality-info-card p,
-.no2-explainer-card p,
-.coming-soon-card p {
+.no2-explainer-card p {
   color: var(--stem-grey);
   line-height: 1.6;
 }
@@ -1117,8 +1161,7 @@ select {
 }
 
 .quality-notes,
-.no2-explainer-list,
-.coming-soon-list {
+.no2-explainer-list {
   margin: 16px 0 0;
   padding: 0;
 }
@@ -1141,14 +1184,6 @@ select {
 
 .no2-explainer-list li + li {
   margin-top: 8px;
-}
-
-.coming-soon-card {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-  align-items: center;
 }
 
 .trend-chart-card {
@@ -1181,22 +1216,6 @@ select {
 .trend-chart-plot {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.coming-soon-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.coming-soon-list span {
-  padding: 8px 10px;
-  border-radius: 8px;
-  color: var(--berry-bloom);
-  background: rgba(92, 107, 138, 0.11);
-  font-weight: 800;
-  white-space: nowrap;
 }
 
 .state-block {
@@ -1291,8 +1310,7 @@ select {
     padding: 22px;
   }
 
-  .dashboard-header,
-  .coming-soon-card {
+  .dashboard-header {
     flex-direction: column;
     align-items: stretch;
   }

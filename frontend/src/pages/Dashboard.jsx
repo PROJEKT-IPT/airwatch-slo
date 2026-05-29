@@ -144,7 +144,7 @@ function Dashboard() {
 
         setRegionComparison([])
         setComparisonError(
-          'Primerjave regij ni bilo mogoÄe naloÅ¾iti iz API-ja. Preverite, ali backend deluje in ali so podatki naloÅ¾eni v bazo.',
+          'Primerjave regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
         )
       } finally {
         if (isMounted) {

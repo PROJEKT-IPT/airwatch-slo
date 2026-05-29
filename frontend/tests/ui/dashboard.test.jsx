@@ -251,7 +251,7 @@ describe('Dashboard', () => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
     })
 
-    expect(screen.getByRole('heading', { name: 'NO2 po statističnih regijah' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'NO₂ po statističnih regijah' })).toBeInTheDocument()
     expect(getRegionComparison).toHaveBeenCalledWith(['SI031', 'SI032'])
     expect(screen.getByText('1/2 z vrednostjo')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Izberi regijo Pomurska' })).toBeInTheDocument()
@@ -270,7 +270,7 @@ describe('Dashboard', () => {
     render(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'NO2 po statističnih regijah' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'NO₂ po statističnih regijah' })).toBeInTheDocument()
     })
 
     expect(screen.getByText('Najvišja vrednost')).toBeInTheDocument()
@@ -304,6 +304,20 @@ describe('Dashboard', () => {
     })
 
     expect(screen.getByText('Ni podatkov za izbrani datum')).toBeInTheDocument()
+  })
+
+  it('renders the map quality legend so colour is not the only status indicator', async () => {
+    const { container } = render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+    })
+
+    const legend = container.querySelector('.map-legend')
+    expect(legend).toBeInTheDocument()
+    expect(within(legend).getByText('Veljavna meritev')).toBeInTheDocument()
+    expect(within(legend).getByText('Ni veljavnih pikslov')).toBeInTheDocument()
+    expect(within(legend).getByText('Napaka obdelave')).toBeInTheDocument()
   })
 
   it('renders provenance details and no-data note for a no-valid-pixels region', async () => {

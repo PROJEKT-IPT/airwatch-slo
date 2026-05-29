@@ -13,11 +13,11 @@ function RegionComparisonCard({
   )
 
   return (
-    <section className="card comparison-card" aria-labelledby="region-comparison-title">
+    <section className="card comparison-card" id="comparison-section" aria-labelledby="region-comparison-title">
       <div className="card-heading">
         <div>
           <p className="section-kicker">Primerjava regij</p>
-          <h2 id="region-comparison-title">NO2 po statističnih regijah</h2>
+          <h2 id="region-comparison-title">NO₂ po statističnih regijah</h2>
         </div>
         <span className="comparison-count">{formatCount(validRows.length, rows.length)}</span>
       </div>

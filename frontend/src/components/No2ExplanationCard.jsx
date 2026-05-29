@@ -11,7 +11,7 @@ function No2ExplanationCard() {
       </p>
       <ul className="no2-explainer-list">
         <li>
-          Piksel TROPOMI pokriva približno 3.5 × 5.5 km, zato podatkov ni
+          Piksel TROPOMI pokriva približno 3,5 × 5,5 km, zato podatkov ni
           smiselno razlagati kot ulične ali mikrolokalne koncentracije.
         </li>
         <li>

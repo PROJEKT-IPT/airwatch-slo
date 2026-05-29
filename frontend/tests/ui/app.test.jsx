@@ -103,4 +103,17 @@ describe('App navigation', () => {
     expect(await screen.findByRole('heading', { name: 'Status obdelave podatkov' })).toBeVisible()
     expect(screen.getByText('run_latest_no2_pipeline.py')).toBeInTheDocument()
   })
+
+  it('does not advertise already-shipped dashboard features as "coming soon"', async () => {
+    render(<App />)
+
+    await screen.findByRole('heading', { name: /pregled no/i })
+
+    // Trend, comparison and export ship on the dashboard, so they must not be
+    // labelled "kmalu" (coming soon) in the sidebar.
+    expect(screen.queryByText('kmalu')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Zgodovinski trend' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Primerjava regij' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Podatki & izvoz' })).toBeEnabled()
+  })
 })
