@@ -28,10 +28,6 @@ def build_database_url() -> str:
     user = read_env_value("POSTGRES_USER") or read_env_value("DATABASE_USER") or "postgres"
     password = read_env_value("POSTGRES_PASSWORD") or read_env_value("DATABASE_PASSWORD")
 
-    print(f"DEBUG DATABASE_HOST={read_env_value('DATABASE_HOST')}", flush=True)
-    print(f"DEBUG POSTGRES_HOST={read_env_value('POSTGRES_HOST')}", flush=True)
-    print(f"DEBUG selected host={host}", flush=True)
-
     if not password:
         raise RuntimeError("POSTGRES_PASSWORD or DATABASE_PASSWORD must be set for backend database access")
 

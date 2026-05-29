@@ -17,7 +17,7 @@ if config.config_file_name is not None:
 target_metadata = None
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-load_dotenv(PROJECT_ROOT / ".env", override=True)
+load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 
 def read_env_value(name: str, default: Optional[str] = None) -> Optional[str]:
@@ -25,48 +25,55 @@ def read_env_value(name: str, default: Optional[str] = None) -> Optional[str]:
     return value.strip() if value is not None else None
 
 
-def get_database_settings() -> dict[str, str]:
+def get_database_url() -> str:
+    database_url = read_env_value("DATABASE_URL")
+    if database_url:
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+        return database_url
+
+    host = (
+        read_env_value("DATABASE_HOST")
+        or read_env_value("POSTGRES_HOST")
+        or "127.0.0.1"
+    )
+    port = read_env_value("DATABASE_PORT") or read_env_value("POSTGRES_PORT") or "5432"
     database = read_env_value("POSTGRES_DB") or read_env_value("DATABASE_NAME") or "airwatch"
     user = read_env_value("POSTGRES_USER") or read_env_value("DATABASE_USER") or "postgres"
-    password = read_env_value("POSTGRES_PASSWORD")
+    password = read_env_value("POSTGRES_PASSWORD") or read_env_value("DATABASE_PASSWORD")
+
     if not password:
-        raise RuntimeError("POSTGRES_PASSWORD must be set for Alembic migrations")
+        raise RuntimeError("POSTGRES_PASSWORD or DATABASE_PASSWORD must be set for Alembic migrations")
 
-    running_in_docker = Path("/.dockerenv").exists()
-    host = read_env_value("DATABASE_HOST") if running_in_docker else "127.0.0.1"
-    host = host or "db"
-    port = read_env_value("DATABASE_PORT") or "5432"
-
-    return {
-        "host": host,
-        "port": port,
-        "database": database or "airwatch",
-        "user": user or "postgres",
-        "password": password,
-    }
-
-
-def get_database_url() -> str:
-    settings = get_database_settings()
     return (
         "postgresql://"
-        f"{quote_plus(settings['user'])}:"
-        f"{quote_plus(settings['password'])}@"
-        f"{settings['host']}:{settings['port']}/"
-        f"{quote_plus(settings['database'])}"
+        f"{quote_plus(user)}:"
+        f"{quote_plus(password)}@"
+        f"{host}:{port}/"
+        f"{quote_plus(database)}"
     )
-
-
 def print_database_target() -> None:
-    settings = get_database_settings()
+    database_url = read_env_value("DATABASE_URL")
+    if database_url:
+        config.print_stdout("Alembic database target: DATABASE_URL is set")
+        return
+
+    host = (
+        read_env_value("DATABASE_HOST")
+        or read_env_value("POSTGRES_HOST")
+        or "127.0.0.1"
+    )
+    port = read_env_value("DATABASE_PORT") or read_env_value("POSTGRES_PORT") or "5432"
+    database = read_env_value("POSTGRES_DB") or read_env_value("DATABASE_NAME") or "airwatch"
+    user = read_env_value("POSTGRES_USER") or read_env_value("DATABASE_USER") or "postgres"
+
     config.print_stdout(
         "Alembic database target: "
-        f"host={settings['host']} "
-        f"port={settings['port']} "
-        f"database={settings['database']} "
-        f"user={settings['user']}"
+        f"host={host} "
+        f"port={port} "
+        f"database={database} "
+        f"user={user}"
     )
-
 
 def run_migrations_offline() -> None:
     print_database_target()
