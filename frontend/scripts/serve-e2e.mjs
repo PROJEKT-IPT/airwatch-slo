@@ -24,6 +24,11 @@ await build({
     '.js': 'jsx',
     '.jsx': 'jsx',
     '.css': 'css',
+    // Leaflet's CSS references image assets via url(...); inline them as data
+    // URLs so the esbuild e2e bundle resolves them (Vite handles this natively).
+    '.png': 'dataurl',
+    '.svg': 'dataurl',
+    '.gif': 'dataurl',
   },
   define: {
     'import.meta.env.VITE_API_URL': '"/api"',
