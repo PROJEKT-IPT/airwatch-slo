@@ -75,7 +75,9 @@ describe('App navigation', () => {
         source_product_name: 'S5P_OFFL_L2__NO2____20250311T115807_20250311T133937.nc',
       },
     })
-    getRegionCsvExportUrl.mockReturnValue('/api/api/v1/regions/SI032/export.csv')
+    getRegionCsvExportUrl.mockReturnValue(
+      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
+    )
     getRegionHistory.mockResolvedValue({ measurements: [] })
     getProcessingStatus.mockResolvedValue({
       id_processing_run: 22,

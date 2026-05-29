@@ -179,7 +179,8 @@ describe('Dashboard', () => {
     getRegionGeometries.mockResolvedValue(regionGeometries)
     getRegionHistory.mockResolvedValue({ measurements: [] })
     getRegionCsvExportUrl.mockImplementation(
-      regionCode => `/api/api/v1/regions/${regionCode}/export.csv`,
+      regionCode =>
+        `https://airwatch-slo-production.up.railway.app/api/v1/regions/${regionCode}/export.csv`,
     )
   })
 
@@ -192,7 +193,10 @@ describe('Dashboard', () => {
     expect(getRegionDetails).toHaveBeenCalledWith('SI032')
 
     const exportLink = screen.getByRole('link', { name: 'Izvozi CSV' })
-    expect(exportLink).toHaveAttribute('href', '/api/api/v1/regions/SI032/export.csv')
+    expect(exportLink).toHaveAttribute(
+      'href',
+      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
+    )
 
     const metricCard = container.querySelector('.metric-card')
     expect(within(metricCard).getByText('41')).toBeInTheDocument()
@@ -222,7 +226,7 @@ describe('Dashboard', () => {
     })
     expect(screen.getByRole('link', { name: 'Izvozi CSV' })).toHaveAttribute(
       'href',
-      '/api/api/v1/regions/SI031/export.csv',
+      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI031/export.csv',
     )
     expect(container.querySelector('.map-selected-region')).toHaveTextContent('SI031')
   })

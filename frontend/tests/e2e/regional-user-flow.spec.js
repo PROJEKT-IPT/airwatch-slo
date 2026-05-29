@@ -118,7 +118,7 @@ const regionGeometries = [
 ]
 
 test('covers the main regional dashboard flow', async ({ page }) => {
-  await page.route('**/api/api/v1/regions/**', async route => {
+  await page.route('**/api/v1/regions/**', async route => {
     const url = new URL(route.request().url())
 
     if (url.pathname.endsWith('/latest-measurements')) {
@@ -193,7 +193,10 @@ test('covers the main regional dashboard flow', async ({ page }) => {
 
   const detailsCard = page.locator('.detail-card')
   const exportLink = detailsCard.getByRole('link', { name: 'Izvozi CSV' })
-  await expect(exportLink).toHaveAttribute('href', '/api/api/v1/regions/SI032/export.csv')
+  await expect(exportLink).toHaveAttribute(
+    'href',
+    'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
+  )
   await expect(detailsCard).toContainText('Koda regije: SI032')
 
   await regionSelect.selectOption('SI031')
@@ -202,10 +205,13 @@ test('covers the main regional dashboard flow', async ({ page }) => {
   await expect(latestMeasurementCard.getByRole('heading', { name: 'Pomurska' })).toBeVisible()
   await expect(latestMeasurementCard).toContainText('Ni veljavnih podatkov za izbrano regijo')
   await expect(detailsCard).toContainText('Koda regije: SI031')
-  await expect(exportLink).toHaveAttribute('href', '/api/api/v1/regions/SI031/export.csv')
+  await expect(exportLink).toHaveAttribute(
+    'href',
+    'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI031/export.csv',
+  )
 
   const downloadPromise = page.waitForEvent('download')
   await exportLink.click()
   const download = await downloadPromise
-  expect(download.url()).toContain('/api/api/v1/regions/SI031/export.csv')
+  expect(download.url()).toContain('/api/v1/regions/SI031/export.csv')
 })

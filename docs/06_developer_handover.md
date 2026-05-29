@@ -84,10 +84,11 @@ HTTP-trigger (`POST /admin/refresh-latest`) so opisani v
   povezavo iz `POSTGRES_*` / `DATABASE_*`, ne iz `DATABASE_URL`. Backend Docker
   image ne vsebuje `data_pipeline/outputs/`; za vnos prek kontejnerja glej
   obhod v `docs/archive/regional_pipeline_runbook.md` (§11, Option B).
-- **Frontend API base.** `frontend/src/api/airwatchApi.js` uporablja
-  `VITE_API_URL`, sicer privzeto produkcijski Railway backend URL, in kliče
-  `<base>/api/v1/...`. (Starejša dokumentacija je omenjala podvojeno predpono
-  `/api/api/v1` za lokalni proxy – preveri trenutno obnašanje za svoj scenarij.)
+- **Frontend API base.** Vsi API klici gredo skozi
+  `frontend/src/api/airwatchApi.js`. Base URL je `VITE_API_URL`, sicer privzeto
+  produkcijski Railway backend URL; pot endpointa je vedno `/api/v1/...`
+  (regionalni endpointi) oz. `/processing/...` (admin/debug). Komponente ne
+  kličejo API-ja neposredno in ne uporabljajo legacy endpointov.
 - **Neaktivni admin endpoint.** `backend/admin_refresh.py` obstaja, a je v
   `backend/main.py` zakomentiran.
 - **`script_version = sprint_2_regional`.** Ingest skripta ima ta label kot
