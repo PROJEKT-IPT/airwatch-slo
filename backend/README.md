@@ -1,145 +1,58 @@
-# AirWatch SLO Backend
+# AirWatch SLO – Backend
 
-FastAPI backend for the AirWatch SLO MVP.
+FastAPI backend, ki streže regionalne NO₂ meritve iz PostgreSQL/PostGIS baze.
+Bere konfiguracijo iz korenskega `.env`, shemo upravlja Alembic.
 
-## Setup
+## Zagon
 
-Install dependencies:
+Lokalno (iz mape `backend/`):
 
 ```bash
-cd backend
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+uvicorn main:app --reload
 ```
 
-The backend reads database settings from the root `.env` file. For local Docker development, the actual PostgreSQL password comes from `POSTGRES_PASSWORD`.
+Z Dockerjem (iz korena projekta):
 
-## Database Migrations
+```bash
+docker compose up --build backend
+```
 
-Run migrations inside Docker so Alembic connects to the `db` service:
+Backend teče na <http://localhost:8000> (health: `/health`). Pri lokalnem zagonu
+se poveže na bazo prek `127.0.0.1`, znotraj Dockerja prek `db:5432`.
+
+## Migracije
 
 ```bash
 docker compose up -d db
 docker compose run --rm backend alembic upgrade head
 ```
 
-## Run API
+Migracije ustvarijo shemo, omogočijo PostGIS in seed-ajo 12 statističnih regij.
+NO₂ meritve se vnesejo prek data pipeline-a (glej `../docs/03_data_pipeline.md`).
 
-With Docker:
+## Struktura
 
-```bash
-docker compose up --build backend
+```text
+main.py        FastAPI app in endpointi
+schemas.py     Pydantic response sheme
+services/      poslovna logika (poizvedbe na bazo)
+database.py    SQLAlchemy povezava
+alembic/       migracije sheme
+scripts/       load_regions.py, ingest_regional_no2_measurements.py
+tests/         pytest testi API-ja
 ```
 
-Locally from the backend folder:
+## Endpointi
+
+Aktivni endpointi (`/api/v1/regions/...`, `/processing/...`, `/health`) so
+opisani v [`../docs/04_api_documentation.md`](../docs/04_api_documentation.md).
+
+## Testi
 
 ```bash
-cd backend
-uvicorn main:app --reload
-```
-
-When run locally on the host, the backend connects to PostgreSQL at `127.0.0.1:5432`. When run inside Docker, it connects to the Compose service host `db`.
-
-## Endpoints
-
-Health check:
-
-```bash
-curl http://localhost:8000/health
-```
-
-List regions:
-
-```bash
-curl http://localhost:8000/regions
-```
-
-Get latest measurement by region code:
-
-```bash
-curl "http://localhost:8000/measurements/latest?region_code=SI_BBOX"
-```
-
-Get latest measurement by region id:
-
-```bash
-curl "http://localhost:8000/measurements/latest?id_region=1"
-```
-
-Get latest measurement by foreign-key style region id alias:
-
-```bash
-curl "http://localhost:8000/measurements/latest?fk_region=1"
-```
-
-The latest measurement endpoint returns `400` when no region selector is provided,
-`404` when the region does not exist, and `404` when no NO2 measurement exists for
-the requested region.
-
-Get latest processing status:
-
-```bash
-curl http://localhost:8000/processing/status
-```
-
-The processing status endpoint returns the newest `processing_run` record and
-reports whether the last pipeline run was successful. It returns `404` when no
-processing runs exist yet.
-
-Get latest NO2 measurements for all public Slovenian statistical regions:
-
-```bash
-curl http://localhost:8000/api/v1/regions/latest-measurements
-```
-
-Get geometries for all public Slovenian statistical regions:
-
-```bash
-curl http://localhost:8000/api/v1/regions/geometries
-```
-
-Get region details with the latest NO2 measurement:
-
-```bash
-curl http://localhost:8000/api/v1/regions/SI032
-```
-
-Compare latest NO2 measurements for multiple statistical regions:
-
-```bash
-curl "http://localhost:8000/api/v1/regions/compare?region_codes=SI032&region_codes=SI036"
-```
-
-Export the selected region's latest NO2 measurement as CSV:
-
-```bash
-curl -OJ http://localhost:8000/api/v1/regions/SI032/export.csv
-```
-
-The regional API endpoints:
-
-- return one latest `NO2` measurement per statistical region,
-- return all statistical region geometries in one map-friendly request,
-- exclude `SI_BBOX` and other non-statistical test regions by default,
-- compare two to twelve requested statistical regions by latest `NO2` value,
-- expose the selected region's latest `NO2` measurement as a single-row CSV export,
-- order the summary response by `region_code`,
-- use `measurement_end_time`, `measurement_start_time`, and the measurement id
-  as the deterministic latest-record ordering,
-- use composite regional indexes plus a PostGIS geometry index for the most
-  common regional and spatial access patterns,
-- return `404` when a requested region does not exist or has no `NO2`
-  measurement yet.
-
-## Tests
-
-Run backend endpoint tests:
-
-```bash
-cd backend
-python -m pip install -r requirements-dev.txt
+pip install -r requirements-dev.txt
 python -m pytest tests
 ```
 
-The backend endpoint tests cover the Sprint 1 endpoints plus the new regional
-NO2 API endpoints. More detail is documented in
-[`../docs/backend_tests.md`](../docs/backend_tests.md).

@@ -38,14 +38,8 @@ NO₂ meritve se vnesejo prek data pipeline-a – glej dokumentacijo spodaj.
 | [docs/03_data_pipeline.md](docs/03_data_pipeline.md) | obdelava podatkov |
 | [docs/04_api_documentation.md](docs/04_api_documentation.md) | API endpointi |
 | [docs/05_deployment_guide.md](docs/05_deployment_guide.md) | lokalni in Railway deploy |
-| [docs/06_user_demo_walkthrough.md](docs/06_user_demo_walkthrough.md) | predstavitev / demo |
-| [docs/07_limitations_and_methodology.md](docs/07_limitations_and_methodology.md) | omejitve in metodologija |
-| [docs/08_developer_handover.md](docs/08_developer_handover.md) | predaja razvijalcu |
+| [docs/06_developer_handover.md](docs/06_developer_handover.md) | predaja razvijalcu |
 
 Podrobni in zgodovinski zapisi so v [docs/archive/](docs/archive/).
 Komponentni README-ji so v `backend/`, `frontend/`, `data_pipeline/` in `database/`.
 
-## Skrivnosti in Git
-
-Ne commitaj: `.env`, Copernicus poverilnic, tokenov, Railway skrivnosti, `.nc` /
-`.zip` produktov ali generiranih JSON/CSV izhodov. Pravila pokriva `.gitignore`.
