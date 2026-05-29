@@ -26,10 +26,15 @@ function RegionDetailsCard({
               {qualityStatus.label}
             </span>
           ) : null}
+          {/*
+            The download is driven by the backend's
+            `Content-Disposition: attachment` header. We intentionally omit the
+            native `download` attribute: the export is cross-origin (frontend
+            domain != backend domain), so browsers ignore it anyway.
+          */}
           <a
             className={`export-button${isExportDisabled ? ' export-button-disabled' : ''}`}
             href={isExportDisabled ? undefined : csvExportUrl}
-            download
             aria-disabled={isExportDisabled}
             onClick={event => {
               if (isExportDisabled) {

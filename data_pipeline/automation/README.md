@@ -169,7 +169,7 @@ The same prerequisites as `run_latest_no2_pipeline.py`:
 
 ## Verifying it works
 
-After a run, the dashboard's "Podatki nazadnje osveženi" indicator (top-right
+After a run, the dashboard's "Zadnja meritev" indicator (top-right
 of the header) should reflect the new `measurement_end_time`. From the shell:
 
 ```bash

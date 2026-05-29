@@ -3,7 +3,6 @@ const navigationItems = [
   { label: 'Zgodovinski trend', target: 'trend-section' },
   { label: 'Primerjava regij', target: 'comparison-section' },
   { label: 'Podatki & izvoz', target: 'details-section' },
-  { id: 'admin', label: 'Admin/debug' },
 ]
 
 function Sidebar({ activeView = 'dashboard', onViewChange }) {

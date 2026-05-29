@@ -1,5 +1,4 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 
 import App from '../../src/App'
 import {
@@ -27,6 +26,7 @@ vi.mock('../../src/api/airwatchApi', () => ({
 describe('App navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    window.location.hash = ''
 
     getRegionalLatestMeasurements.mockResolvedValue([
       {
@@ -93,17 +93,15 @@ describe('App navigation', () => {
     getProcessingHistory.mockResolvedValue([])
   })
 
-  it('switches from dashboard to the admin view', async () => {
-    const user = userEvent.setup()
+  it('renders the admin/debug view at the #admin hash (not advertised in nav)', async () => {
+    window.location.hash = '#admin'
 
     render(<App />)
 
-    await screen.findByRole('heading', { name: /pregled no/i })
-
-    await user.click(screen.getByRole('button', { name: 'Admin/debug' }))
-
     expect(await screen.findByRole('heading', { name: 'Status obdelave podatkov' })).toBeVisible()
     expect(screen.getByText('run_latest_no2_pipeline.py')).toBeInTheDocument()
+    // Admin/debug is internal: no public nav button advertises it.
+    expect(screen.queryByRole('button', { name: 'Admin/debug' })).not.toBeInTheDocument()
   })
 
   it('does not advertise already-shipped dashboard features as "coming soon"', async () => {

@@ -307,7 +307,7 @@ describe('Dashboard', () => {
       expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
     })
 
-    expect(screen.getByText('Ni podatkov za izbrani datum')).toBeInTheDocument()
+    expect(screen.getByText('Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.')).toBeInTheDocument()
   })
 
   it('renders the map quality legend so colour is not the only status indicator', async () => {

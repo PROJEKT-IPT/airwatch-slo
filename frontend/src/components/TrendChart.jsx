@@ -250,18 +250,25 @@ function TrendChart({ regionCode, regionName }) {
   const displayExponent = getNo2DisplayExponent(chartData)
   const axisLabel = `NO₂\u00A0(×10${toSuperscript(displayExponent)} mol/m²)`
   const yDomain = getZoomedNo2Domain(chartData)
+  // A trend needs at least two measurements over time. With one (or none) we
+  // show an honest message instead of an axis-only chart with a single dot.
+  const availablePointCount = Math.max(availableDates.length, chartData.length)
+  const canShowTrend = availablePointCount >= 2
+  const singleDateLabel = chartData[0]?.date || availableDates[0] || ''
 
   return (
     <section className="card trend-chart-card" id="trend-section">
       <p className="section-kicker">Zgodovina meritev</p>
       <h2>Zgodovinski trend NO₂</h2>
-      {renderDateSelectors()}
-      {dateError ? <div className="field-message-error">{dateError}</div> : null}
-      <p className="muted-text">
-        Prikaz zgodovinskih vrednosti NO₂ za regijo {regionName || history?.region_name}. Podatki
-        temeljijo na obdelanih Sentinel-5P produktih.
-      </p>
-      {hasMeasurements ? (
+      {canShowTrend ? (
+        <>
+          {renderDateSelectors()}
+          {dateError ? <div className="field-message-error">{dateError}</div> : null}
+          <p className="muted-text">
+            Prikaz zgodovinskih vrednosti NO₂ za regijo {regionName || history?.region_name}. Podatki
+            temeljijo na obdelanih Sentinel-5P produktih.
+          </p>
+          {hasMeasurements ? (
         <>
           <div className="trend-chart-container">
             <div className="trend-chart-axis-label" aria-hidden="true">
@@ -315,12 +322,25 @@ function TrendChart({ regionCode, regionName }) {
             določen časovni interval ni bilo veljavnih pikslov.
           </p>
         </>
+          ) : (
+            <div className="state-block">
+              <h2>Ni podatkov za izbrani datum</h2>
+              <p>
+                Za izbrani datumski interval ni zgodovinskih meritev NO₂. Izberite drug interval ali
+                počistite izbor, da se vrnete na razpoložljive podatke.
+              </p>
+            </div>
+          )}
+        </>
       ) : (
         <div className="state-block">
-          <h2>Ni podatkov za izbrani datum</h2>
+          <h2>{availablePointCount === 0 ? 'Ni zgodovinskih meritev' : 'Trend še ni na voljo'}</h2>
           <p>
-            Za izbrani datumski interval ni zgodovinskih meritev NO₂. Izberite drug interval ali
-            počistite izbor, da se vrnete na razpoložljive podatke.
+            {availablePointCount === 0
+              ? 'Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.'
+              : `Za prikaz trenda sta potrebni vsaj dve meritvi; trenutno je na voljo ena meritev${
+                  singleDateLabel ? ` (${singleDateLabel})` : ''
+                }.`}
           </p>
         </div>
       )}

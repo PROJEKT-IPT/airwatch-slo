@@ -21,8 +21,13 @@ docker compose up --build frontend
 Frontend uporablja `VITE_API_URL`, če je nastavljen, sicer privzeti backend URL
 iz `src/api/airwatchApi.js`, in kliče poti oblike `<base>/api/v1/...`.
 
+Pri lokalnem razvoju `npm run dev` prebere `frontend/.env.development`, ki kaže
+na lokalni backend (`http://localhost:8000`) — tako dev ne gađa produkcije.
+Produkcijski build (prazen `VITE_API_URL`) uporabi privzeti deployani backend.
+
 ```env
-VITE_API_URL=        # prazno = privzeti backend
+# frontend/.env.development
+VITE_API_URL=http://localhost:8000
 ```
 
 ## Struktura

@@ -338,7 +338,7 @@ function FreshnessBadge({ latestRefreshAt, isLoading }) {
   if (isLoading) {
     return (
       <div className="freshness-badge freshness-badge--loading" aria-live="polite">
-        <span className="freshness-badge-label">Podatki nazadnje osveženi</span>
+        <span className="freshness-badge-label">Zadnja meritev</span>
         <span className="freshness-badge-value">Nalaganje…</span>
       </div>
     )
@@ -347,7 +347,7 @@ function FreshnessBadge({ latestRefreshAt, isLoading }) {
   if (!latestRefreshAt) {
     return (
       <div className="freshness-badge freshness-badge--missing">
-        <span className="freshness-badge-label">Podatki nazadnje osveženi</span>
+        <span className="freshness-badge-label">Zadnja meritev</span>
         <span className="freshness-badge-value">Ni podatka</span>
       </div>
     )
