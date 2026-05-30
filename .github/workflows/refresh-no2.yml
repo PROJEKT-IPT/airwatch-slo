@@ -1,0 +1,54 @@
+name: Refresh NO2 (daily)
+
+# Daily ingest of the newest available OFFL Sentinel-5P NO2 product over
+# Slovenia into the deployed (Railway) database, so the dashboard's "latest
+# available" data keeps moving without a manual run. Idempotent: if the newest
+# product is already ingested, the run exits cleanly without downloading.
+#
+# Required repository secrets:
+#   COPERNICUS_USERNAME    - Copernicus Data Space account
+#   COPERNICUS_PASSWORD
+#   RAILWAY_DATABASE_URL   - postgresql://user:pass@host:port/dbname (public URL)
+
+on:
+  schedule:
+    - cron: "20 6 * * *" # 06:20 UTC daily (OFFL lands ~2-3 days after overpass)
+  workflow_dispatch: {}
+
+concurrency:
+  group: refresh-no2
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    name: Ingest newest OFFL into Railway
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install requests python-dotenv xarray numpy netCDF4 \
+            SQLAlchemy psycopg2-binary
+
+      - name: Fetch Slovenian NUTS3 boundaries (GISCO, not committed)
+        run: |
+          mkdir -p data_pipeline/reference_data/regions/raw
+          curl -fsSL \
+            "https://gisco-services.ec.europa.eu/distribution/v2/nuts/geojson/NUTS_RG_20M_2024_4326_LEVL_3.geojson" \
+            -o data_pipeline/reference_data/regions/raw/NUTS_RG_20M_2024_4326_LEVL_3.geojson
+
+      - name: Ingest newest product
+        env:
+          COPERNICUS_USERNAME: ${{ secrets.COPERNICUS_USERNAME }}
+          COPERNICUS_PASSWORD: ${{ secrets.COPERNICUS_PASSWORD }}
+          TARGET_DATABASE_URL: ${{ secrets.RAILWAY_DATABASE_URL }}
+        run: python data_pipeline/scripts/ingest_latest_no2_to_db.py
