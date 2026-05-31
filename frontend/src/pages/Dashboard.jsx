@@ -354,13 +354,15 @@ function FreshnessBadge({ latestRefreshAt, isLoading }) {
   }
 
   const ageDays = Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
-  const stale = ageDays >= 4
+  // OFFL products are published a few days to ~a week after the overpass, so a
+  // few days old is normal; only flag a genuine backlog (>= 8 days) as stale.
+  const stale = ageDays >= 8
   const className = stale ? 'freshness-badge freshness-badge--stale' : 'freshness-badge'
   const absolute = formatDateTime(latestRefreshAt.toISOString())
 
   return (
     <div className={className} title={absolute}>
-      <span className="freshness-badge-label">Podatki nazadnje osveženi</span>
+      <span className="freshness-badge-label">Zadnja meritev</span>
       <span className="freshness-badge-value">{formatRelativeAgeDays(ageDays)}</span>
       <em className="freshness-badge-absolute">{absolute}</em>
     </div>

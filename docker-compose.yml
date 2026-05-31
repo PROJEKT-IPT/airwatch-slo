@@ -43,7 +43,8 @@ services:
     build: ./frontend
     container_name: airwatch_frontend
     ports:
-      - "3000:3000"
+      # vite preview serves on 4173 inside the container (see frontend/Dockerfile)
+      - "3000:4173"
     depends_on:
       backend:
         condition: service_healthy
