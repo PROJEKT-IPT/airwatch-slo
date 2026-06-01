@@ -4,6 +4,18 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 const STORAGE_KEY = 'airwatch-language'
 const DEFAULT_LANGUAGE = 'sl'
 
+const locales = {
+  sl: 'sl-SI',
+  en: 'en-US',
+  de: 'de-DE',
+}
+
+export const supportedLanguages = [
+  { code: 'sl', label: 'SL' },
+  { code: 'en', label: 'EN' },
+  { code: 'de', label: 'DE' },
+]
+
 const translations = {
   sl: {
     languageName: 'Slovenscina',
@@ -377,6 +389,191 @@ const translations = {
     latestRunFailed: 'Latest processing run was not successful',
     latestRunUnknown: 'Latest processing status is unknown',
   },
+  de: {
+    languageName: 'Deutsch',
+    languageToggleLabel: 'Sprache der Oberflaeche',
+    switchToEnglish: 'Zu Englisch wechseln',
+    brandSubtitle: 'Satellitengestuetzte Luftqualitaetsueberwachung ueber Slowenien',
+    navMain: 'Hauptnavigation',
+    navOverview: 'Uebersicht',
+    navTrend: 'Historischer Trend',
+    navComparison: 'Regionenvergleich',
+    navDataExport: 'Daten & Export',
+    dashboardTitle: 'NO2-Uebersicht nach slowenischen statistischen Regionen',
+    dashboardSubtitle:
+      'Neueste verfuegbare verarbeitete NO2-Messung aus Sentinel-5P-Satellitenprodukten. Dies ist keine Echtzeitansicht.',
+    heroAria: 'Ausgewaehlte Region und neueste Messung',
+    analysis: 'Analyse',
+    analysisLead: 'Historischer Trend fuer die ausgewaehlte Region und Vergleich nach dem neuesten verfuegbaren NO2-Wert.',
+    dataMethodology: 'Daten und Methodik',
+    dataMethodologyLead: 'Messdetails, Datenherkunft, Nachvollziehbarkeit und Hinweise zum Lesen des Ergebnisses.',
+    latestMeasurement: 'Neueste Messung',
+    loading: 'Wird geladen...',
+    noData: 'Keine Daten',
+    today: 'heute',
+    yesterday: 'gestern',
+    daysAgo: 'vor {count} Tagen',
+    regionLoadError:
+      'Statistische Regionen konnten nicht aus der API geladen werden. Pruefen Sie, ob das Backend laeuft und die Daten in der Datenbank geladen sind.',
+    geometryLoadError:
+      'Geometrien der statistischen Regionen konnten nicht aus der API geladen werden. Pruefen Sie, ob das Backend laeuft und die Regionsgrenzen geladen sind.',
+    comparisonLoadError:
+      'Der Regionenvergleich konnte nicht aus der API geladen werden. Pruefen Sie, ob das Backend laeuft und die Daten geladen sind.',
+    detailLoadError:
+      'Details der ausgewaehlten Region konnten nicht aus der API geladen werden. Pruefen Sie, ob das Backend laeuft und die Daten geladen sind.',
+    selectedRegion: 'Ausgewaehlte Region',
+    noRegionSelected: 'Keine Region ausgewaehlt',
+    selectRegionForMeasurement: 'Waehlen Sie eine statistische Region, um die neueste verfuegbare gueltige Messung anzuzeigen.',
+    loadingLatestMeasurement: 'Neueste verfuegbare gueltige NO2-Messung wird geladen...',
+    measurementLoadErrorTitle: 'Fehler beim Laden der Messung',
+    noStoredMeasurementTitle: 'Keine gespeicherte Messung fuer die ausgewaehlte Region',
+    noStoredMeasurementText:
+      'Fuer die ausgewaehlte Region ist keine neueste verfuegbare gueltige NO2-Messung gespeichert. Versuchen Sie eine andere Region oder pruefen Sie den Verarbeitungsstatus.',
+    latestValidMeasurement: 'Neueste verfuegbare gueltige Messung',
+    validPixels: 'Gueltige Pixel',
+    qaThreshold: 'QA-Schwelle',
+    measurementTime: 'Messzeit',
+    productSource: 'Produktquelle',
+    status: 'Status',
+    valid: 'Gueltig',
+    noValidPixels: 'Keine gueltigen Pixel',
+    noDataStatus: 'Keine Daten',
+    processingError: 'Verarbeitungsfehler',
+    unknown: 'Unbekannt',
+    noValidDataTitle: 'Keine gueltigen Daten fuer die ausgewaehlte Region',
+    noValidDataText:
+      'Fuer das ausgewaehlte Sentinel-5P-Produkt gab es in dieser Region nach dem Qualitaetsfilter (qa_value >= 0.75) nicht genug gueltige NO2-Pixel. Haeufige Ursachen sind Wolken, Schnee oder geringe Retrieval-Qualitaet.',
+    measurementProcessingErrorTitle: 'Fehler bei der Messverarbeitung',
+    measurementProcessingErrorText:
+      'Die ausgewaehlte Messung kann derzeit nicht als verlaesslicher Wert angezeigt werden, weil die Verarbeitung nicht erfolgreich abgeschlossen wurde. Werte werden daher ausgeblendet.',
+    no2UnavailableTitle: 'NO2-Wert nicht verfuegbar',
+    no2UnavailableText: 'Die ausgewaehlte Region hat nicht genug gueltige Daten, um einen regionalen NO2-Wert zu berechnen.',
+    regionLabel: 'Statistische Region',
+    loadingRegions: 'Regionen werden geladen...',
+    chooseRegion: 'Region waehlen',
+    noValidPixelsSuffix: 'keine gueltigen Pixel',
+    regionsUnavailable:
+      'Regionale Daten sind derzeit nicht verfuegbar. Regionale Messungen wurden moeglicherweise noch nicht in die Datenbank geladen.',
+    methodology: 'Methodik',
+    howToRead: 'Ergebnis lesen',
+    methodologyText1:
+      'Der Wert ist eine satellitenbasierte regionale NO2-Schaetzung aus Sentinel-5P-Produkten (TROPOMI), aggregiert nach statistischer Region. Ein Pixel deckt ungefaehr 3,5 x 5,5 km ab, daher sollten die Daten nicht als Konzentrationen auf Strassenebene gelesen werden. Dies ist keine Echtzeitansicht.',
+    methodologyText2:
+      'Es wird ein Qualitaetsfilter qa_value >= 0.75 verwendet. Wenn eine Region nicht genug gueltige Pixel hat, wird sie als "keine Daten" angezeigt und kein Wert berechnet.',
+    spatialOverview: 'Raeumliche Uebersicht',
+    mapTitle: 'Karte der statistischen Regionen',
+    mapAria: 'Karte der slowenischen statistischen Regionen',
+    loadingMap: 'Raeumliche Regionsuebersicht wird geladen...',
+    mapErrorTitle: 'Regionen koennen nicht angezeigt werden',
+    noGeometriesTitle: 'Regionsgeometrien sind derzeit nicht verfuegbar',
+    noGeometriesText: 'Regionale Grenzen wurden moeglicherweise noch nicht in die Datenbank geladen.',
+    interactiveMapAria: 'Interaktive Leaflet-Karte der slowenischen statistischen Regionen',
+    mapControlsAria: 'Region auf der Karte auswaehlen',
+    selectMapRegion: 'Region auf Karte auswaehlen {region}',
+    mapLegendAria: 'Bedeutung der Kartenfarben',
+    validMeasurement: 'Gueltige Messung',
+    processingErrorLegend: 'Verarbeitungsfehler',
+    mapHint:
+      'Ein Klick auf eine Region waehlt dieselbe Region wie die Auswahlliste. Die Farbe zeigt den Qualitaetsstatus der neuesten verfuegbaren Messung.',
+    selected: 'Ausgewaehlt',
+    comparisonTitle: 'NO2 nach statistischer Region',
+    noRegions: 'Keine Regionen',
+    withValue: '{valid}/{total} mit Wert',
+    comparisonUnavailable:
+      'Regionale Daten sind derzeit nicht verfuegbar. Der Vergleich erscheint, sobald Messungen aus der API geladen sind.',
+    comparisonSummaryAria: 'Zusammenfassung des Regionenvergleichs',
+    highestValue: 'Hoechster Wert',
+    lowestValue: 'Niedrigster Wert',
+    withoutValidPixels: 'Ohne gueltige Pixel',
+    comparisonListAria: 'Vergleich der neuesten Messungen',
+    selectRegion: 'Region {region} auswaehlen',
+    loadingComparison: 'Regionenvergleich wird geladen...',
+    noValidValue: 'Kein gueltiger Wert',
+    detailsKicker: 'Regionsdaten und Quelle',
+    regionNotSelected: 'Region nicht ausgewaehlt',
+    regionCode: 'Regionscode',
+    exportCsv: 'CSV exportieren',
+    selectRegionForDetails: 'Waehlen Sie eine statistische Region, um die neueste NO2-Messung anzuzeigen.',
+    loadingRegionData: 'Daten fuer die ausgewaehlte Region werden geladen...',
+    detailsLoadErrorTitle: 'Daten koennen nicht geladen werden',
+    noRegionDataTitle: 'Keine Daten fuer die ausgewaehlte Region',
+    noRegionDataText: 'Fuer die ausgewaehlte Region ist derzeit keine neueste NO2-Messung gespeichert.',
+    qualityStatus: 'Qualitaetsstatus',
+    measurementStart: 'Messbeginn',
+    measurementEnd: 'Messende',
+    processingRunId: 'Verarbeitungs-ID',
+    dataSource: 'Datenquelle',
+    productId: 'Produkt-ID',
+    latestNo2Value: 'Neuester NO2-Wert',
+    minMaxNo2: 'Min. / max. NO2',
+    unit: 'Einheit',
+    provenanceNoPixels:
+      'Das Sentinel-5P-Produkt wurde verarbeitet, aber ein regionaler NO2-Wert wurde nicht berechnet, weil nach dem Qualitaetsfilter nicht genug gueltige Pixel vorhanden waren. Die Felder oben erhalten die Nachvollziehbarkeit zur Quelle und zum Verarbeitungsdatensatz.',
+    provenanceProcessingError:
+      'Die Verarbeitung der ausgewaehlten Messung war nicht erfolgreich, daher wurde kein verlaesslicher regionaler NO2-Wert gespeichert. Die Felder oben erhalten die Nachvollziehbarkeit zur Quelle und zum Verarbeitungsdatensatz.',
+    provenanceDefault:
+      'Der Wert ist bis zum Sentinel-5P-Quellprodukt nachvollziehbar; die Messzeit bezieht sich auf den Satellitenueberflug, die Verarbeitungs-ID auf den internen Processing-Run-Datensatz.',
+    historyKicker: 'Messhistorie',
+    trendTitle: 'Historischer NO2-Trend',
+    historyLoadError:
+      'Die Messhistorie konnte nicht aus der API geladen werden. Pruefen Sie, ob das Backend laeuft und die Daten geladen sind.',
+    startDateUnavailable: 'Das ausgewaehlte Startdatum hat keine verfuegbaren Daten.',
+    endDateUnavailable: 'Das ausgewaehlte Enddatum hat keine verfuegbaren Daten.',
+    startBeforeEnd: 'Das Startdatum muss vor oder gleich dem Enddatum liegen.',
+    from: 'Von',
+    to: 'Bis',
+    allDates: 'Alle Daten',
+    noAvailableDates: 'Keine verfuegbaren Daten',
+    show: 'Anzeigen',
+    clear: 'Zuruecksetzen',
+    trendLead:
+      'Historische NO2-Werte fuer Region {region}. Die Daten basieren auf verarbeiteten Sentinel-5P-Produkten.',
+    date: 'Datum',
+    trendHint:
+      'Das Diagramm zeigt durchschnittliche NO2-Werte im Zeitverlauf. Fehlende Werte bedeuten, dass fuer dieses Zeitintervall keine gueltigen Pixel vorhanden waren.',
+    noDataForDateTitle: 'Keine Daten fuer das ausgewaehlte Datum',
+    noDataForDateText:
+      'Fuer das ausgewaehlte Datumsintervall gibt es keine historischen NO2-Messungen. Waehlen Sie ein anderes Intervall oder setzen Sie die Auswahl zurueck, um zu verfuegbaren Daten zurueckzukehren.',
+    noHistoryTitle: 'Keine historischen Messungen',
+    trendUnavailableTitle: 'Trend ist noch nicht verfuegbar',
+    noHistoryText: 'Fuer die ausgewaehlte Region gibt es derzeit keine historischen NO2-Messungen.',
+    trendNeedsTwo:
+      'Fuer die Trendanzeige sind mindestens zwei Messungen erforderlich; derzeit ist eine Messung verfuegbar{date}.',
+    loadingErrorTitle: 'Fehler beim Laden',
+    adminTitle: 'Status der Datenverarbeitung',
+    adminSubtitle: 'Neuester Verarbeitungsdatensatz fuer eine schnelle Pruefung des Datenflusses.',
+    processingStatusLoadError: 'Der Verarbeitungsstatus konnte nicht aus der API geladen werden.',
+    processingHistoryLoadError: 'Die Verarbeitungshistorie konnte nicht aus der API geladen werden.',
+    latestProcessing: 'Neueste Verarbeitung',
+    latestProcessingRun: 'Neuester Processing Run',
+    latestProduct: 'Neuestes Sentinel-5P-Produkt',
+    latestSuccessfulUpdate: 'Neueste erfolgreiche Aktualisierung',
+    product: 'Produkt',
+    script: 'Skript',
+    scriptVersion: 'Skriptversion',
+    startedAt: 'Beginn',
+    finishedAt: 'Ende',
+    error: 'Fehler',
+    processingHistory: 'Verarbeitungshistorie',
+    previousRuns: 'Fruehere Processing Runs',
+    latestCount: 'Neueste {count}',
+    loadingProcessingStatus: 'Verarbeitungsstatus wird geladen...',
+    loadingProcessingHistory: 'Verarbeitungshistorie wird geladen...',
+    processingStatusErrorTitle: 'Fehler beim Laden des Verarbeitungsstatus',
+    processingHistoryErrorTitle: 'Fehler beim Laden der Verarbeitungshistorie',
+    noProcessingRecordsTitle: 'Keine Verarbeitungsdatensaetze',
+    noProcessingRecordsText: 'In der Datenbank gibt es derzeit keine Verarbeitungsdatensaetze.',
+    noProcessingHistoryTitle: 'Keine Verarbeitungshistorie',
+    noProcessingHistoryText: 'In der Datenbank gibt es derzeit keine Processing-Run-Datensaetze.',
+    validRegions: 'Gueltige Regionen',
+    success: 'Erfolgreich',
+    running: 'Laeuft',
+    failed: 'Fehler',
+    latestRunSuccess: 'Die neueste Verarbeitung war erfolgreich',
+    latestRunRunning: 'Die Verarbeitung laeuft derzeit',
+    latestRunFailed: 'Die neueste Verarbeitung war nicht erfolgreich',
+    latestRunUnknown: 'Der Status der neuesten Verarbeitung ist unbekannt',
+  },
 }
 
 const LanguageContext = createContext(null)
@@ -384,18 +581,21 @@ const LanguageContext = createContext(null)
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => {
     if (typeof window === 'undefined') return DEFAULT_LANGUAGE
-    return window.localStorage.getItem(STORAGE_KEY) || DEFAULT_LANGUAGE
+    const storedLanguage = window.localStorage.getItem(STORAGE_KEY)
+    return translations[storedLanguage] ? storedLanguage : DEFAULT_LANGUAGE
   })
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, language)
-      document.documentElement.lang = language
+      const safeLanguage = translations[language] ? language : DEFAULT_LANGUAGE
+      window.localStorage.setItem(STORAGE_KEY, safeLanguage)
+      document.documentElement.lang = safeLanguage
     }
   }, [language])
 
   const value = useMemo(() => {
-    const dictionary = translations[language] || translations[DEFAULT_LANGUAGE]
+    const safeLanguage = translations[language] ? language : DEFAULT_LANGUAGE
+    const dictionary = translations[safeLanguage]
 
     function t(key, params = {}) {
       const template = dictionary[key] || translations[DEFAULT_LANGUAGE][key] || key
@@ -405,7 +605,7 @@ export function LanguageProvider({ children }) {
       )
     }
 
-    return { language, setLanguage, t, locale: language === 'en' ? 'en-US' : 'sl-SI' }
+    return { language: safeLanguage, setLanguage, t, locale: locales[safeLanguage] }
   }, [language])
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>

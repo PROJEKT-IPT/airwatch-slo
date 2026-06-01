@@ -1,4 +1,4 @@
-import { useLanguage } from '../i18n'
+import { supportedLanguages, useLanguage } from '../i18n'
 
 function Sidebar({ activeView = 'dashboard', onViewChange }) {
   const { language, setLanguage, t } = useLanguage()
@@ -37,22 +37,17 @@ function Sidebar({ activeView = 'dashboard', onViewChange }) {
       </div>
 
       <div className="language-switcher" aria-label={t('languageToggleLabel')}>
-        <button
-          type="button"
-          className={language === 'sl' ? 'language-option language-option-active' : 'language-option'}
-          aria-pressed={language === 'sl'}
-          onClick={() => setLanguage('sl')}
-        >
-          SL
-        </button>
-        <button
-          type="button"
-          className={language === 'en' ? 'language-option language-option-active' : 'language-option'}
-          aria-pressed={language === 'en'}
-          onClick={() => setLanguage('en')}
-        >
-          EN
-        </button>
+        {supportedLanguages.map(option => (
+          <button
+            key={option.code}
+            type="button"
+            className={language === option.code ? 'language-option language-option-active' : 'language-option'}
+            aria-pressed={language === option.code}
+            onClick={() => setLanguage(option.code)}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
 
       <nav className="sidebar-nav" aria-label={t('navMain')}>

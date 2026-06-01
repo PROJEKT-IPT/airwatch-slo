@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
 import App from '../../src/App'
 import {
@@ -27,6 +28,7 @@ describe('App navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     window.location.hash = ''
+    window.localStorage.clear()
 
     getRegionalLatestMeasurements.mockResolvedValue([
       {
@@ -115,5 +117,37 @@ describe('App navigation', () => {
     expect(screen.getByRole('button', { name: 'Zgodovinski trend' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Primerjava regij' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Podatki & izvoz' })).toBeEnabled()
+  })
+
+  it.each([
+    {
+      button: 'EN',
+      heading: /NO2 overview/i,
+      trend: 'Historical trend',
+      comparison: 'Region comparison',
+      exportCsv: 'Export CSV',
+      htmlLang: 'en',
+    },
+    {
+      button: 'DE',
+      heading: /NO2-Uebersicht/i,
+      trend: 'Historischer Trend',
+      comparison: 'Regionenvergleich',
+      exportCsv: 'CSV exportieren',
+      htmlLang: 'de',
+    },
+  ])('switches the main UI to $button', async ({ button, heading, trend, comparison, exportCsv, htmlLang }) => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    await screen.findByRole('heading', { name: /pregled no/i })
+    await user.click(screen.getByRole('button', { name: button }))
+
+    expect(await screen.findByRole('heading', { name: heading })).toBeVisible()
+    expect(screen.getByRole('button', { name: trend })).toBeEnabled()
+    expect(screen.getByRole('button', { name: comparison })).toBeEnabled()
+    expect(screen.getByRole('link', { name: exportCsv })).toBeInTheDocument()
+    expect(document.documentElement).toHaveAttribute('lang', htmlLang)
   })
 })

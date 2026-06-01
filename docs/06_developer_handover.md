@@ -48,12 +48,30 @@ npm run dev      # dev server na http://localhost:3000
 | Sklop | Ukaz | Pričakovano |
 |---|---|---|
 | Backend | `cd backend && pip install -r requirements-dev.txt && python -m pytest tests` | 7 passed |
-| Frontend (Vitest) | `cd frontend && npm test` | 3 passed |
+| Frontend (Vitest) | `cd frontend && npm test` | UI/API mock testi, brez baze |
 | Frontend E2E (Playwright) | `cd frontend && npx playwright install chromium && npm run test:e2e` | 1 passed |
 | Data pipeline | `python -m pip install -r data_pipeline/requirements-dev.txt && python -m pytest data_pipeline/tests` | pass |
 
 Backend in frontend testi mockajo bazo/API, zato ne potrebujejo PostgreSQL ali
 seed podatkov. Pipeline testi uporabljajo sintetične podatke.
+
+## Frontend jeziki
+
+UI podpira slovenscino, anglescino in nemscino. Slovenscina je privzeti jezik.
+
+| Datoteka | Vloga |
+|---|---|
+| `frontend/src/i18n.jsx` | Enotni vir za `supportedLanguages`, locale mapping in prevode. |
+| `frontend/src/components/Sidebar.jsx` | Renderira language switcher iz `supportedLanguages`; gumbov ne hardcodaj rocno. |
+| `frontend/tests/ui/app.test.jsx` | Preverja slovenski default in preklop v ned-default jezike. |
+
+Pravila za spremembe:
+
+- Nov ali spremenjen uporabniski tekst mora iti skozi `t(...)`.
+- Za vsak nov kljuc dodaj prevod za vse podprte jezike.
+- Nov jezik dodaj v `supportedLanguages`, `locales` in `translations` v `i18n.jsx`.
+- Pri spremembah navigacije, naslovov, gumbov ali statusov razsiri UI teste za
+  language switcher.
 
 ## CI
 
