@@ -1,6 +1,7 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
+import { LanguageProvider } from '../../src/i18n'
 import Dashboard from '../../src/pages/Dashboard'
 import {
   getRegionCsvExportUrl,
@@ -184,8 +185,16 @@ describe('Dashboard', () => {
     )
   })
 
+  function renderDashboard() {
+    return render(
+      <LanguageProvider>
+        <Dashboard />
+      </LanguageProvider>,
+    )
+  }
+
   it('defaults to the first valid region and renders its measurement details', async () => {
-    const { container } = render(<Dashboard />)
+    const { container } = renderDashboard()
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -207,7 +216,7 @@ describe('Dashboard', () => {
 
   it('updates the cards when the selected region changes', async () => {
     const user = userEvent.setup()
-    const { container } = render(<Dashboard />)
+    const { container } = renderDashboard()
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -233,7 +242,7 @@ describe('Dashboard', () => {
 
   it('selects a region from the regional map', async () => {
     const user = userEvent.setup()
-    const { container } = render(<Dashboard />)
+    const { container } = renderDashboard()
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -249,7 +258,7 @@ describe('Dashboard', () => {
 
   it('renders region comparison rows and selects a region from the comparison', async () => {
     const user = userEvent.setup()
-    const { container } = render(<Dashboard />)
+    const { container } = renderDashboard()
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -271,7 +280,7 @@ describe('Dashboard', () => {
   })
 
   it('renders comparison summary tiles with counts', async () => {
-    render(<Dashboard />)
+    renderDashboard()
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'NO₂ po statističnih regijah' })).toBeInTheDocument()
@@ -286,7 +295,7 @@ describe('Dashboard', () => {
   it('renders trend chart content when history is available', async () => {
     getRegionHistory.mockResolvedValue(regionHistoryWithMeasurements)
 
-    const { container } = render(<Dashboard />)
+    const { container } = renderDashboard()
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
@@ -301,7 +310,7 @@ describe('Dashboard', () => {
   it('shows the no-data message when trend history is empty', async () => {
     getRegionHistory.mockResolvedValue({ measurements: [] })
 
-    render(<Dashboard />)
+    renderDashboard()
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
@@ -311,7 +320,7 @@ describe('Dashboard', () => {
   })
 
   it('renders the map quality legend so colour is not the only status indicator', async () => {
-    const { container } = render(<Dashboard />)
+    const { container } = renderDashboard()
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -326,7 +335,7 @@ describe('Dashboard', () => {
 
   it('renders provenance details and no-data note for a no-valid-pixels region', async () => {
     const user = userEvent.setup()
-    const { container } = render(<Dashboard />)
+    const { container } = renderDashboard()
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')

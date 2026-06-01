@@ -15,9 +15,9 @@ const translations = {
     navTrend: 'Zgodovinski trend',
     navComparison: 'Primerjava regij',
     navDataExport: 'Podatki & izvoz',
-    dashboardTitle: 'Pregled NO2 po slovenskih statisticnih regijah',
+    dashboardTitle: 'Pregled NO₂ po slovenskih statističnih regijah',
     dashboardSubtitle:
-      'Zadnja razpolozljiva obdelana meritev NO2 iz satelitskih produktov Sentinel-5P. Prikaz ni v realnem casu.',
+      'Zadnja razpoložljiva obdelana meritev NO₂ iz satelitskih produktov Sentinel-5P. Prikaz ni v realnem času.',
     heroAria: 'Izbrana regija in zadnja meritev',
     analysis: 'Analiza',
     analysisLead:
@@ -31,13 +31,13 @@ const translations = {
     yesterday: 'vceraj',
     daysAgo: 'pred {count} dnevi',
     regionLoadError:
-      'Statisticnih regij ni bilo mogoce naloziti iz API-ja. Preverite, ali backend deluje in ali so podatki nalozeni v bazo.',
+      'Statističnih regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
     geometryLoadError:
-      'Geometrij statisticnih regij ni bilo mogoce naloziti iz API-ja. Preverite, ali backend deluje in ali so regionalne meje nalozene v bazo.',
+      'Geometrij statističnih regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so regionalne meje naložene v bazo.',
     comparisonLoadError:
-      'Primerjave regij ni bilo mogoce naloziti iz API-ja. Preverite, ali backend deluje in ali so podatki nalozeni v bazo.',
+      'Primerjave regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
     detailLoadError:
-      'Podrobnosti izbrane regije ni bilo mogoce naloziti iz API-ja. Preverite, ali backend deluje in ali so podatki nalozeni v bazo.',
+      'Podrobnosti izbrane regije ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
     selectedRegion: 'Izbrana regija',
     noRegionSelected: 'Ni izbrane regije',
     selectRegionForMeasurement:
@@ -66,7 +66,7 @@ const translations = {
       'Izbrane meritve trenutno ni mogoce prikazati kot zanesljive vrednosti, ker se obdelava ni uspesno zakljucila. Vrednosti zato niso prikazane.',
     no2UnavailableTitle: 'Vrednost NO2 ni na voljo',
     no2UnavailableText: 'Za izbrano regijo ni dovolj veljavnih podatkov za izracun regionalne NO2 vrednosti.',
-    regionLabel: 'Statisticna regija',
+    regionLabel: 'Statistična regija',
     loadingRegions: 'Nalaganje regij...',
     chooseRegion: 'Izberite regijo',
     noValidPixelsSuffix: 'ni veljavnih pikslov',
@@ -85,7 +85,7 @@ const translations = {
     mapErrorTitle: 'Regij ni mogoce prikazati',
     noGeometriesTitle: 'Geometrije regij trenutno niso na voljo',
     noGeometriesText: 'Regionalne meje morda se niso bile nalozene v bazo.',
-    interactiveMapAria: 'Interaktivni Leaflet zemljevid slovenskih statisticnih regij',
+    interactiveMapAria: 'Interaktivni Leaflet zemljevid slovenskih statističnih regij',
     mapControlsAria: 'Izbira regije na zemljevidu',
     selectMapRegion: 'Izberi regijo na zemljevidu {region}',
     mapLegendAria: 'Pomen barv na zemljevidu',
@@ -94,14 +94,14 @@ const translations = {
     mapHint:
       'Klik na regijo izbere isto regijo kot spustni seznam. Barva prikazuje status kakovosti zadnje razpolozljive meritve.',
     selected: 'Izbrano',
-    comparisonTitle: 'NO2 po statisticnih regijah',
+    comparisonTitle: 'NO₂ po statističnih regijah',
     noRegions: 'Ni regij',
     withValue: '{valid}/{total} z vrednostjo',
     comparisonUnavailable:
       'Regijski podatki trenutno niso na voljo. Primerjava bo prikazana, ko bodo meritve nalozene iz API-ja.',
     comparisonSummaryAria: 'Povzetek primerjave regij',
-    highestValue: 'Najvisja vrednost',
-    lowestValue: 'Najnizja vrednost',
+    highestValue: 'Najvišja vrednost',
+    lowestValue: 'Najnižja vrednost',
     withoutValidPixels: 'Brez veljavnih pikslov',
     comparisonListAria: 'Primerjava zadnjih meritev',
     selectRegion: 'Izberi regijo {region}',
@@ -132,9 +132,9 @@ const translations = {
     provenanceDefault:
       'Podatek je sledljiv do izvornega Sentinel-5P produkta; cas meritve se nanasa na satelitski prelet, ID obdelave pa na interni processing run zapis.',
     historyKicker: 'Zgodovina meritev',
-    trendTitle: 'Zgodovinski trend NO2',
+    trendTitle: 'Zgodovinski trend NO₂',
     historyLoadError:
-      'Zgodovine meritev ni bilo mogoce naloziti iz API-ja. Preverite, ali backend deluje in ali so podatki nalozeni v bazo.',
+      'Zgodovine meritev ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
     startDateUnavailable: 'Izbran zacetni datum nima razpolozljivih podatkov.',
     endDateUnavailable: 'Izbran koncni datum nima razpolozljivih podatkov.',
     startBeforeEnd: 'Zacetni datum mora biti pred ali enak koncnemu datumu.',
@@ -148,13 +148,13 @@ const translations = {
       'Prikaz zgodovinskih vrednosti NO2 za regijo {region}. Podatki temeljijo na obdelanih Sentinel-5P produktih.',
     date: 'Datum',
     trendHint:
-      'Graf prikazuje povprecne vrednosti NO2 po casu. Manjkajoce vrednosti pomenijo, da za dolocen casovni interval ni bilo veljavnih pikslov.',
+      'Graf prikazuje povprečne vrednosti NO₂ po času. Manjkajoče vrednosti pomenijo, da za določen časovni interval ni bilo veljavnih pikslov.',
     noDataForDateTitle: 'Ni podatkov za izbrani datum',
     noDataForDateText:
       'Za izbrani datumski interval ni zgodovinskih meritev NO2. Izberite drug interval ali pocistite izbor, da se vrnete na razpolozljive podatke.',
     noHistoryTitle: 'Ni zgodovinskih meritev',
     trendUnavailableTitle: 'Trend se ni na voljo',
-    noHistoryText: 'Za izbrano regijo trenutno ni zgodovinskih meritev NO2.',
+    noHistoryText: 'Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.',
     trendNeedsTwo:
       'Za prikaz trenda sta potrebni vsaj dve meritvi; trenutno je na voljo ena meritev{date}.',
     loadingErrorTitle: 'Napaka pri nalaganju',
