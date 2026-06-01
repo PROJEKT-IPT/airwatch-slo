@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import Sidebar from './components/Sidebar'
+import { LanguageProvider } from './i18n'
 import AdminProcessingStatusPage from './pages/AdminProcessingStatusPage'
 import Dashboard from './pages/Dashboard'
 
@@ -27,10 +28,12 @@ function App() {
   }, [])
 
   return (
-    <div className="dashboard-shell">
-      <Sidebar activeView={activeView} onViewChange={setActiveView} />
-      {activeView === 'admin' ? <AdminProcessingStatusPage /> : <Dashboard />}
-    </div>
+    <LanguageProvider>
+      <div className="dashboard-shell">
+        <Sidebar activeView={activeView} onViewChange={setActiveView} />
+        {activeView === 'admin' ? <AdminProcessingStatusPage /> : <Dashboard />}
+      </div>
+    </LanguageProvider>
   )
 }
 

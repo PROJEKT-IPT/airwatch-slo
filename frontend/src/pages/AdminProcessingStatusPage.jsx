@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 
 import { getProcessingHistory, getProcessingStatus } from '../api/airwatchApi'
+import { useLanguage } from '../i18n'
 
 const HISTORY_LIMIT = 20
 
 function AdminProcessingStatusPage() {
+  const { t, locale } = useLanguage()
   const [status, setStatus] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -26,22 +28,20 @@ function AdminProcessingStatusPage() {
         getProcessingHistory({ limit: HISTORY_LIMIT }),
       ])
 
-      if (!isMounted) {
-        return
-      }
+      if (!isMounted) return
 
       if (statusResult.status === 'fulfilled') {
         setStatus(statusResult.value)
       } else {
         setStatus(null)
-        setError('Statusa obdelave ni bilo mogoče naložiti iz API-ja.')
+        setError(t('processingStatusLoadError'))
       }
 
       if (historyResult.status === 'fulfilled') {
         setHistory(historyResult.value || [])
       } else {
         setHistory([])
-        setHistoryError('Zgodovine obdelav ni bilo mogoče naložiti iz API-ja.')
+        setHistoryError(t('processingHistoryLoadError'))
       }
 
       setIsLoading(false)
@@ -49,119 +49,113 @@ function AdminProcessingStatusPage() {
     }
 
     loadProcessingData()
-
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [t])
 
-  const statusInfo = getRunStatusInfo(status?.run_status)
-  const latestRunAt = status ? formatDateTime(getRunTimestamp(status)) : 'Ni podatka'
-  const lastSuccessfulAt = status ? formatDateTime(status.last_successful_at) : 'Ni podatka'
-  const lastSuccessfulProduct = status?.last_successful_product_name || 'Ni podatka'
+  const statusInfo = getRunStatusInfo(status?.run_status, t)
+  const latestRunAt = status ? formatDateTime(getRunTimestamp(status), t, locale) : t('noData')
+  const lastSuccessfulAt = status ? formatDateTime(status.last_successful_at, t, locale) : t('noData')
+  const lastSuccessfulProduct = status?.last_successful_product_name || t('noData')
 
   return (
-      <main className="dashboard-main admin-main">
-        <header className="dashboard-header">
-          <div>
-            <p className="eyebrow">Admin/debug</p>
-            <h1>Status obdelave podatkov</h1>
-            <p className="dashboard-subtitle">
-              Zadnji zapis obdelave za hitro preverjanje podatkovnega toka.
-            </p>
+    <main className="dashboard-main admin-main">
+      <header className="dashboard-header">
+        <div>
+          <p className="eyebrow">Admin/debug</p>
+          <h1>{t('adminTitle')}</h1>
+          <p className="dashboard-subtitle">{t('adminSubtitle')}</p>
+        </div>
+        {status ? (
+          <div className={`header-status processing-header-status ${statusInfo.className}`}>
+            <span className="status-dot" />
+            <span>{statusInfo.label}</span>
           </div>
-          {status ? (
-            <div className={`header-status processing-header-status ${statusInfo.className}`}>
-              <span className="status-dot" />
-              <span>{statusInfo.label}</span>
-            </div>
-          ) : null}
-        </header>
+        ) : null}
+      </header>
 
-        <section className="admin-status-grid">
-          <article className="card processing-status-card">
-            {isLoading ? (
-              <LoadingState text="Nalagam status obdelave ..." />
-            ) : error ? (
-              <ErrorState title="Napaka pri nalaganju statusa" text={error} />
-            ) : !status ? (
-              <EmptyState />
-            ) : (
-              <>
-                <div className="card-heading">
-                  <div>
-                    <p className="section-kicker">Zadnja obdelava</p>
-                    <h2>{statusInfo.title}</h2>
-                  </div>
-                  <span className={`quality-badge ${statusInfo.className}`}>
-                    {statusInfo.label}
-                  </span>
+      <section className="admin-status-grid">
+        <article className="card processing-status-card">
+          {isLoading ? (
+            <LoadingState text={t('loadingProcessingStatus')} />
+          ) : error ? (
+            <ErrorState title={t('processingStatusErrorTitle')} text={error} />
+          ) : !status ? (
+            <EmptyState title={t('noProcessingRecordsTitle')} text={t('noProcessingRecordsText')} />
+          ) : (
+            <>
+              <div className="card-heading">
+                <div>
+                  <p className="section-kicker">{t('latestProcessing')}</p>
+                  <h2>{statusInfo.title}</h2>
                 </div>
-
-                <div className="admin-summary-grid">
-                  <div className="info-tile">
-                    <span>Zadnji processing run</span>
-                    <strong>{latestRunAt}</strong>
-                    <em>Run ID: {status.id_processing_run}</em>
-                  </div>
-                  <div className="info-tile">
-                    <span>Zadnji Sentinel-5P produkt</span>
-                    <strong>{status.source_product_name}</strong>
-                    <em>Status: {status.run_status}</em>
-                  </div>
-                  <div className="info-tile">
-                    <span>Zadnja uspešna posodobitev</span>
-                    <strong>{lastSuccessfulAt}</strong>
-                    <em>Produkt: {lastSuccessfulProduct}</em>
-                  </div>
-                </div>
-
-                <dl className="details-list">
-                  <DetailRow label="Run ID" value={status.id_processing_run} />
-                  <DetailRow label="Status" value={status.run_status} />
-                  <DetailRow label="Skripta" value={status.script_name} />
-                  <DetailRow label="Verzija skripte" value={status.script_version || 'Ni podatka'} />
-                  <DetailRow label="QA prag" value={formatNumber(status.qa_threshold)} />
-                  <DetailRow label="Začetek" value={formatDateTime(status.started_at)} />
-                  <DetailRow label="Konec" value={formatDateTime(status.finished_at)} />
-                  <DetailRow label="Produkt" value={status.source_product_name} />
-                  <DetailRow label="Zadnja uspešna posodobitev" value={lastSuccessfulAt} />
-                  {status.error_message ? (
-                    <DetailRow label="Napaka" value={status.error_message} />
-                  ) : null}
-                </dl>
-              </>
-            )}
-          </article>
-          <article className="card processing-history-card">
-            <div className="card-heading">
-              <div>
-                <p className="section-kicker">Zgodovina obdelav</p>
-                <h2>Pretekli processing runi</h2>
+                <span className={`quality-badge ${statusInfo.className}`}>
+                  {statusInfo.label}
+                </span>
               </div>
-              <span className="history-count">Zadnjih {HISTORY_LIMIT}</span>
-            </div>
 
-            {isHistoryLoading ? (
-              <LoadingState text="Nalagam zgodovino obdelav ..." />
-            ) : historyError ? (
-              <ErrorState title="Napaka pri nalaganju zgodovine" text={historyError} />
-            ) : history.length === 0 ? (
-              <HistoryEmptyState />
-            ) : (
-              <ProcessingHistoryList items={history} />
-            )}
-          </article>
-        </section>
-      </main>
+              <div className="admin-summary-grid">
+                <InfoTile label={t('latestProcessingRun')} value={latestRunAt} detail={`Run ID: ${status.id_processing_run}`} />
+                <InfoTile label={t('latestProduct')} value={status.source_product_name} detail={`${t('status')}: ${status.run_status}`} />
+                <InfoTile label={t('latestSuccessfulUpdate')} value={lastSuccessfulAt} detail={`${t('product')}: ${lastSuccessfulProduct}`} />
+              </div>
+
+              <dl className="details-list">
+                <DetailRow label="Run ID" value={status.id_processing_run} t={t} />
+                <DetailRow label={t('status')} value={status.run_status} t={t} />
+                <DetailRow label={t('script')} value={status.script_name} t={t} />
+                <DetailRow label={t('scriptVersion')} value={status.script_version || t('noData')} t={t} />
+                <DetailRow label={t('qaThreshold')} value={formatNumber(status.qa_threshold, t, locale)} t={t} />
+                <DetailRow label={t('startedAt')} value={formatDateTime(status.started_at, t, locale)} t={t} />
+                <DetailRow label={t('finishedAt')} value={formatDateTime(status.finished_at, t, locale)} t={t} />
+                <DetailRow label={t('product')} value={status.source_product_name} t={t} />
+                <DetailRow label={t('latestSuccessfulUpdate')} value={lastSuccessfulAt} t={t} />
+                {status.error_message ? <DetailRow label={t('error')} value={status.error_message} t={t} /> : null}
+              </dl>
+            </>
+          )}
+        </article>
+
+        <article className="card processing-history-card">
+          <div className="card-heading">
+            <div>
+              <p className="section-kicker">{t('processingHistory')}</p>
+              <h2>{t('previousRuns')}</h2>
+            </div>
+            <span className="history-count">{t('latestCount', { count: HISTORY_LIMIT })}</span>
+          </div>
+
+          {isHistoryLoading ? (
+            <LoadingState text={t('loadingProcessingHistory')} />
+          ) : historyError ? (
+            <ErrorState title={t('processingHistoryErrorTitle')} text={historyError} />
+          ) : history.length === 0 ? (
+            <EmptyState title={t('noProcessingHistoryTitle')} text={t('noProcessingHistoryText')} />
+          ) : (
+            <ProcessingHistoryList items={history} t={t} locale={locale} />
+          )}
+        </article>
+      </section>
+    </main>
   )
 }
 
-function DetailRow({ label, value }) {
+function InfoTile({ label, value, detail }) {
+  return (
+    <div className="info-tile">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <em>{detail}</em>
+    </div>
+  )
+}
+
+function DetailRow({ label, value, t }) {
   return (
     <div className="detail-row">
       <dt>{label}</dt>
-      <dd>{value ?? 'Ni podatka'}</dd>
+      <dd>{value ?? t('noData')}</dd>
     </div>
   )
 }
@@ -186,41 +180,32 @@ function ErrorState({ title, text }) {
   )
 }
 
-function EmptyState() {
+function EmptyState({ title, text }) {
   return (
     <div className="state-block">
-      <h2>Ni zapisov obdelave</h2>
-      <p>V bazi trenutno ni nobenega zapisa obdelave.</p>
+      <h2>{title}</h2>
+      <p>{text}</p>
     </div>
   )
 }
 
-function HistoryEmptyState() {
-  return (
-    <div className="state-block">
-      <h2>Ni zgodovine obdelav</h2>
-      <p>V bazi trenutno ni nobenega processing run zapisa.</p>
-    </div>
-  )
-}
-
-function ProcessingHistoryList({ items }) {
+function ProcessingHistoryList({ items, t, locale }) {
   return (
     <div className="processing-history-list" role="list">
       {items.map(item => {
-        const statusInfo = getRunStatusInfo(item.run_status)
+        const statusInfo = getRunStatusInfo(item.run_status, t)
 
         return (
           <div className="history-row" role="listitem" key={item.id_processing_run}>
             <div className="history-main">
               <span className="history-product">{item.source_product_name}</span>
               <span className="history-meta">
-                Run {item.id_processing_run} - {formatRunWindow(item)}
+                Run {item.id_processing_run} - {formatRunWindow(item, t, locale)}
               </span>
             </div>
             <div className="history-metric">
-              <span className="history-label">Veljavne regije</span>
-              <strong>{formatNumber(item.valid_region_count)}</strong>
+              <span className="history-label">{t('validRegions')}</span>
+              <strong>{formatNumber(item.valid_region_count, t, locale)}</strong>
             </div>
             <span className={`quality-badge ${statusInfo.className}`}>{statusInfo.label}</span>
           </div>
@@ -230,87 +215,53 @@ function ProcessingHistoryList({ items }) {
   )
 }
 
-function getRunStatusInfo(status) {
+function getRunStatusInfo(status, t) {
   if (status === 'success') {
-    return {
-      label: 'Uspešno',
-      title: 'Zadnja obdelava je bila uspešna',
-      className: 'quality-valid',
-    }
+    return { label: t('success'), title: t('latestRunSuccess'), className: 'quality-valid' }
   }
 
   if (status === 'running') {
-    return {
-      label: 'V teku',
-      title: 'Obdelava je trenutno v teku',
-      className: 'quality-empty',
-    }
+    return { label: t('running'), title: t('latestRunRunning'), className: 'quality-empty' }
   }
 
   if (status === 'failed' || status === 'error') {
-    return {
-      label: 'Napaka',
-      title: 'Zadnja obdelava ni bila uspešna',
-      className: 'quality-error',
-    }
+    return { label: t('failed'), title: t('latestRunFailed'), className: 'quality-error' }
   }
 
-  return {
-    label: status || 'Neznano',
-    title: 'Status zadnje obdelave ni znan',
-    className: 'quality-empty',
-  }
+  return { label: status || t('unknown'), title: t('latestRunUnknown'), className: 'quality-empty' }
 }
 
-function formatNumber(value) {
-  if (value === null || value === undefined || value === '') {
-    return 'Ni podatka'
-  }
+function formatNumber(value, t, locale) {
+  if (value === null || value === undefined || value === '') return t('noData')
 
   const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return String(value)
 
-  if (!Number.isFinite(numberValue)) {
-    return String(value)
-  }
-
-  return numberValue.toLocaleString('sl-SI', {
-    maximumSignificantDigits: 6,
-  })
+  return numberValue.toLocaleString(locale, { maximumSignificantDigits: 6 })
 }
 
-function formatDateTime(value) {
-  if (!value) {
-    return 'Ni podatka'
-  }
+function formatDateTime(value, t, locale) {
+  if (!value) return t('noData')
 
   const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
 
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('sl-SI', {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date)
 }
 
 function getRunTimestamp(status) {
-  if (!status) {
-    return null
-  }
-
+  if (!status) return null
   return status.finished_at || status.started_at || null
 }
 
-function formatRunWindow(run) {
-  const startedAt = formatDateTime(run.started_at)
-  const finishedAt = formatDateTime(run.finished_at)
+function formatRunWindow(run, t, locale) {
+  const startedAt = formatDateTime(run.started_at, t, locale)
+  const finishedAt = formatDateTime(run.finished_at, t, locale)
 
-  if (!run.finished_at) {
-    return startedAt
-  }
-
+  if (!run.finished_at) return startedAt
   return `${startedAt} - ${finishedAt}`
 }
 

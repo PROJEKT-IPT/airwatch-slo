@@ -14,8 +14,10 @@ import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
 import RegionalMap from '../components/RegionalMap'
 import TrendChart from '../components/TrendChart'
+import { useLanguage } from '../i18n'
 
 function Dashboard() {
+  const { t, locale } = useLanguage()
   const [regionSummaries, setRegionSummaries] = useState([])
   const [regionGeometries, setRegionGeometries] = useState([])
   const [regionComparison, setRegionComparison] = useState([])
@@ -39,10 +41,7 @@ function Dashboard() {
 
       try {
         const summaries = await getRegionalLatestMeasurements()
-
-        if (!isMounted) {
-          return
-        }
+        if (!isMounted) return
 
         const safeSummaries = Array.isArray(summaries) ? summaries : []
         setRegionSummaries(safeSummaries)
@@ -51,28 +50,20 @@ function Dashboard() {
         const defaultRegion = firstValid?.region_code || safeSummaries[0]?.region_code || ''
         setSelectedRegionCode(defaultRegion)
       } catch (error) {
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setRegionSummaries([])
         setSelectedRegionCode('')
-        setRegionsError(
-          'Statističnih regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
-        )
+        setRegionsError(t('regionLoadError'))
       } finally {
-        if (isMounted) {
-          setIsLoadingRegions(false)
-        }
+        if (isMounted) setIsLoadingRegions(false)
       }
     }
 
     loadRegionSummaries()
-
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     let isMounted = true
@@ -83,34 +74,22 @@ function Dashboard() {
 
       try {
         const geometries = await getRegionGeometries()
-
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setRegionGeometries(Array.isArray(geometries) ? geometries : [])
       } catch (error) {
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setRegionGeometries([])
-        setGeometriesError(
-          'Geometrij statističnih regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so regionalne meje naložene v bazo.',
-        )
+        setGeometriesError(t('geometryLoadError'))
       } finally {
-        if (isMounted) {
-          setIsLoadingGeometries(false)
-        }
+        if (isMounted) setIsLoadingGeometries(false)
       }
     }
 
     loadRegionGeometries()
-
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     let isMounted = true
@@ -129,34 +108,22 @@ function Dashboard() {
 
       try {
         const comparison = await getRegionComparison(regionCodes)
-
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setRegionComparison(Array.isArray(comparison) ? comparison : [])
       } catch (error) {
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setRegionComparison([])
-        setComparisonError(
-          'Primerjave regij ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
-        )
+        setComparisonError(t('comparisonLoadError'))
       } finally {
-        if (isMounted) {
-          setIsLoadingComparison(false)
-        }
+        if (isMounted) setIsLoadingComparison(false)
       }
     }
 
     loadRegionComparison()
-
     return () => {
       isMounted = false
     }
-  }, [regionSummaries])
+  }, [regionSummaries, t])
 
   useEffect(() => {
     let isMounted = true
@@ -174,39 +141,25 @@ function Dashboard() {
 
       try {
         const detail = await getRegionDetails(selectedRegionCode)
-
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setRegionDetail(detail)
       } catch (error) {
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setRegionDetail(null)
-        setDetailError(
-          'Podrobnosti izbrane regije ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
-        )
+        setDetailError(t('detailLoadError'))
       } finally {
-        if (isMounted) {
-          setIsLoadingDetail(false)
-        }
+        if (isMounted) setIsLoadingDetail(false)
       }
     }
 
     loadRegionDetail()
-
     return () => {
       isMounted = false
     }
-  }, [selectedRegionCode])
+  }, [selectedRegionCode, t])
 
   const measurement = useMemo(() => {
-    if (!regionDetail || !regionDetail.latest_measurement) {
-      return null
-    }
+    if (!regionDetail || !regionDetail.latest_measurement) return null
 
     return {
       region_code: regionDetail.region_code,
@@ -237,109 +190,97 @@ function Dashboard() {
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
   return (
-      <main className="dashboard-main">
-        <header className="dashboard-header">
-          <div>
-            <p className="eyebrow">AirWatch SLO</p>
-            <h1>Pregled NO₂ po slovenskih statističnih regijah</h1>
-            <p className="dashboard-subtitle">
-              Zadnja razpoložljiva obdelana meritev NO₂ iz satelitskih produktov
-              Sentinel-5P. Prikaz ni v realnem času.
-            </p>
+    <main className="dashboard-main">
+      <header className="dashboard-header">
+        <div>
+          <p className="eyebrow">AirWatch SLO</p>
+          <h1>{t('dashboardTitle')}</h1>
+          <p className="dashboard-subtitle">{t('dashboardSubtitle')}</p>
+        </div>
+        <div className="header-status-group">
+          <div className="header-status">
+            <span className="status-dot" />
+            <span>Copernicus Sentinel-5P</span>
           </div>
-          <div className="header-status-group">
-            <div className="header-status">
-              <span className="status-dot" />
-              <span>Copernicus Sentinel-5P</span>
-            </div>
-            <FreshnessBadge latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} />
-          </div>
-        </header>
+          <FreshnessBadge latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
+        </div>
+      </header>
 
-        <section className="dashboard-hero" aria-label="Izbrana regija in zadnja meritev">
-          <div className="hero-primary">
-            <RegionSelect
-              regions={regionSummaries}
-              selectedRegionCode={selectedRegionCode}
-              onRegionChange={setSelectedRegionCode}
-              isLoading={isLoadingRegions}
-              error={regionsError}
-            />
-
-            <LatestMeasurementCard
-              measurement={measurement}
-              selectedRegion={selectedSummary}
-              isLoading={isLoadingDetail}
-              error={detailError}
-              hasRegion={Boolean(selectedRegionCode)}
-            />
-          </div>
-
-          <RegionalMap
+      <section className="dashboard-hero" aria-label={t('heroAria')}>
+        <div className="hero-primary">
+          <RegionSelect
             regions={regionSummaries}
-            geometries={regionGeometries}
+            selectedRegionCode={selectedRegionCode}
+            onRegionChange={setSelectedRegionCode}
+            isLoading={isLoadingRegions}
+            error={regionsError}
+          />
+
+          <LatestMeasurementCard
+            measurement={measurement}
+            selectedRegion={selectedSummary}
+            isLoading={isLoadingDetail}
+            error={detailError}
+            hasRegion={Boolean(selectedRegionCode)}
+          />
+        </div>
+
+        <RegionalMap
+          regions={regionSummaries}
+          geometries={regionGeometries}
+          selectedRegionCode={selectedRegionCode}
+          onRegionSelect={setSelectedRegionCode}
+          isLoading={isLoadingRegions || isLoadingGeometries}
+          error={regionsError || geometriesError}
+        />
+      </section>
+
+      <section className="dashboard-section" aria-label={t('analysis')}>
+        <div className="section-head">
+          <h2 className="section-title">{t('analysis')}</h2>
+          <p className="section-lead">{t('analysisLead')}</p>
+        </div>
+        <div className="section-grid section-grid--analysis">
+          <TrendChart regionCode={selectedRegionCode} regionName={displayRegionName} />
+
+          <RegionComparisonCard
+            regions={regionComparison}
             selectedRegionCode={selectedRegionCode}
             onRegionSelect={setSelectedRegionCode}
-            isLoading={isLoadingRegions || isLoadingGeometries}
-            error={regionsError || geometriesError}
+            isLoading={isLoadingComparison}
+            error={comparisonError}
           />
-        </section>
+        </div>
+      </section>
 
-        <section className="dashboard-section" aria-label="Analiza">
-          <div className="section-head">
-            <h2 className="section-title">Analiza</h2>
-            <p className="section-lead">
-              Zgodovinski trend izbrane regije in primerjava regij po zadnji
-              razpoložljivi vrednosti NO₂.
-            </p>
-          </div>
-          <div className="section-grid section-grid--analysis">
-            <TrendChart
-              regionCode={selectedRegionCode}
-              regionName={displayRegionName}
-            />
+      <section className="dashboard-section" aria-label={t('dataMethodology')}>
+        <div className="section-head">
+          <h2 className="section-title">{t('dataMethodology')}</h2>
+          <p className="section-lead">{t('dataMethodologyLead')}</p>
+        </div>
+        <div className="section-grid section-grid--details">
+          <RegionDetailsCard
+            measurement={measurement}
+            selectedRegion={selectedSummary}
+            isLoading={isLoadingDetail}
+            error={detailError}
+            hasRegion={Boolean(selectedRegionCode)}
+            csvExportUrl={csvExportUrl}
+          />
 
-            <RegionComparisonCard
-              regions={regionComparison}
-              selectedRegionCode={selectedRegionCode}
-              onRegionSelect={setSelectedRegionCode}
-              isLoading={isLoadingComparison}
-              error={comparisonError}
-            />
-          </div>
-        </section>
-
-        <section className="dashboard-section" aria-label="Podatki in metodologija">
-          <div className="section-head">
-            <h2 className="section-title">Podatki in metodologija</h2>
-            <p className="section-lead">
-              Podrobnosti meritve, izvor in sledljivost podatka ter kako brati
-              rezultat.
-            </p>
-          </div>
-          <div className="section-grid section-grid--details">
-            <RegionDetailsCard
-              measurement={measurement}
-              selectedRegion={selectedSummary}
-              isLoading={isLoadingDetail}
-              error={detailError}
-              hasRegion={Boolean(selectedRegionCode)}
-              csvExportUrl={csvExportUrl}
-            />
-
-            <MethodologyCard />
-          </div>
-        </section>
-      </main>
+          <MethodologyCard />
+        </div>
+      </section>
+    </main>
   )
 }
 
-function FreshnessBadge({ latestRefreshAt, isLoading }) {
+function FreshnessBadge({ latestRefreshAt, isLoading, t, locale }) {
   if (isLoading) {
     return (
       <div className="freshness-badge freshness-badge--loading" aria-live="polite">
-        <span className="freshness-badge-label">Zadnja meritev</span>
-        <span className="freshness-badge-value">Nalaganje…</span>
+        <span className="freshness-badge-label">{t('latestMeasurement')}</span>
+        <span className="freshness-badge-value">{t('loading')}</span>
       </div>
     )
   }
@@ -347,46 +288,39 @@ function FreshnessBadge({ latestRefreshAt, isLoading }) {
   if (!latestRefreshAt) {
     return (
       <div className="freshness-badge freshness-badge--missing">
-        <span className="freshness-badge-label">Zadnja meritev</span>
-        <span className="freshness-badge-value">Ni podatka</span>
+        <span className="freshness-badge-label">{t('latestMeasurement')}</span>
+        <span className="freshness-badge-value">{t('noData')}</span>
       </div>
     )
   }
 
   const ageDays = Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
-  // OFFL products are published a few days to ~a week after the overpass, so a
-  // few days old is normal; only flag a genuine backlog (>= 8 days) as stale.
   const stale = ageDays >= 8
   const className = stale ? 'freshness-badge freshness-badge--stale' : 'freshness-badge'
-  const absolute = formatDateTime(latestRefreshAt.toISOString())
+  const absolute = formatDateTime(latestRefreshAt.toISOString(), t, locale)
 
   return (
     <div className={className} title={absolute}>
-      <span className="freshness-badge-label">Zadnja meritev</span>
-      <span className="freshness-badge-value">{formatRelativeAgeDays(ageDays)}</span>
+      <span className="freshness-badge-label">{t('latestMeasurement')}</span>
+      <span className="freshness-badge-value">{formatRelativeAgeDays(ageDays, t)}</span>
       <em className="freshness-badge-absolute">{absolute}</em>
     </div>
   )
 }
 
-function formatRelativeAgeDays(ageDays) {
-  if (ageDays <= 0) return 'danes'
-  if (ageDays === 1) return 'včeraj'
-  return `pred ${ageDays} dnevi`
+function formatRelativeAgeDays(ageDays, t) {
+  if (ageDays <= 0) return t('today')
+  if (ageDays === 1) return t('yesterday')
+  return t('daysAgo', { count: ageDays })
 }
 
-function formatDateTime(value) {
-  if (!value) {
-    return 'Ni podatka'
-  }
+function formatDateTime(value, t, locale) {
+  if (!value) return t('noData')
 
   const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
 
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('sl-SI', {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date)

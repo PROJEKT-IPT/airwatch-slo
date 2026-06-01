@@ -2,6 +2,8 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useRef } from 'react'
 
+import { useLanguage } from '../i18n'
+
 function RegionalMap({
   regions,
   geometries,
@@ -10,6 +12,7 @@ function RegionalMap({
   isLoading,
   error,
 }) {
+  const { t } = useLanguage()
   const mapElementRef = useRef(null)
   const mapRef = useRef(null)
   const baseLayerRef = useRef(null)
@@ -17,13 +20,16 @@ function RegionalMap({
   const selectedRegionRef = useRef(selectedRegionCode)
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const selectedRegion = mapRegions.find(region => region.region_code === selectedRegionCode)
+  const qualityLegend = [
+    { status: 'valid', label: t('validMeasurement') },
+    { status: 'no_valid_pixels', label: t('noValidPixels') },
+    { status: 'processing_error', label: t('processingErrorLegend') },
+  ]
 
   useEffect(() => {
     selectedRegionRef.current = selectedRegionCode
 
-    if (!geoJsonLayerRef.current) {
-      return
-    }
+    if (!geoJsonLayerRef.current) return
 
     geoJsonLayerRef.current.eachLayer(layer => {
       layer.setStyle(getRegionStyle(layer.feature?.properties, selectedRegionCode))
@@ -122,28 +128,28 @@ function RegionalMap({
     <section className="card map-card">
       <div className="card-heading">
         <div>
-          <p className="section-kicker">Prostorski pregled</p>
-          <h2>Zemljevid statističnih regij</h2>
+          <p className="section-kicker">{t('spatialOverview')}</p>
+          <h2>{t('mapTitle')}</h2>
         </div>
         <span className="map-tag">Leaflet</span>
       </div>
 
-      <div className="regional-map" aria-label="Zemljevid slovenskih statističnih regij">
+      <div className="regional-map" aria-label={t('mapAria')}>
         {isLoading ? (
           <div className="map-state" role="status" aria-live="polite">
             <div className="loading-line loading-line-title" />
             <div className="loading-line" />
-            <p>Nalaganje prostorskega pregleda regij ...</p>
+            <p>{t('loadingMap')}</p>
           </div>
         ) : error ? (
           <div className="map-state map-state-error" role="alert">
-            <h3>Regij ni mogoče prikazati</h3>
+            <h3>{t('mapErrorTitle')}</h3>
             <p>{error}</p>
           </div>
         ) : mapRegions.length === 0 ? (
           <div className="map-state">
-            <h3>Geometrije regij trenutno niso na voljo</h3>
-            <p>Regionalne meje morda še niso bile naložene v bazo.</p>
+            <h3>{t('noGeometriesTitle')}</h3>
+            <p>{t('noGeometriesText')}</p>
           </div>
         ) : (
           <>
@@ -151,9 +157,9 @@ function RegionalMap({
               ref={mapElementRef}
               className="regional-leaflet-map"
               role="application"
-              aria-label="Interaktivni Leaflet zemljevid slovenskih statističnih regij"
+              aria-label={t('interactiveMapAria')}
             />
-            <div className="map-region-controls" aria-label="Izbira regije na zemljevidu">
+            <div className="map-region-controls" aria-label={t('mapControlsAria')}>
               {mapRegions.map(region => (
                 <button
                   key={region.region_code}
@@ -161,7 +167,7 @@ function RegionalMap({
                   aria-pressed={region.region_code === selectedRegionCode}
                   onClick={() => onRegionSelect(region.region_code)}
                 >
-                  {`Izberi regijo na zemljevidu ${region.region_name}`}
+                  {t('selectMapRegion', { region: region.region_name })}
                 </button>
               ))}
             </div>
@@ -170,8 +176,8 @@ function RegionalMap({
       </div>
 
       {!isLoading && !error && mapRegions.length > 0 ? (
-        <ul className="map-legend" aria-label="Pomen barv na zemljevidu">
-          {QUALITY_LEGEND.map(item => (
+        <ul className="map-legend" aria-label={t('mapLegendAria')}>
+          {qualityLegend.map(item => (
             <li key={item.status} className="map-legend-item">
               <span
                 className="map-legend-swatch"
@@ -185,13 +191,10 @@ function RegionalMap({
       ) : null}
 
       <div className="map-footer">
-        <p className="map-hint">
-          Klik na regijo izbere isto regijo kot spustni seznam. Barva prikazuje status kakovosti
-          zadnje razpoložljive meritve.
-        </p>
+        <p className="map-hint">{t('mapHint')}</p>
         {selectedRegion ? (
           <p className="map-selected-region" aria-live="polite">
-            <span>Izbrano</span>
+            <span>{t('selected')}</span>
             <strong>{selectedRegion.region_name}</strong>
             <em>{selectedRegion.region_code}</em>
           </p>
@@ -228,9 +231,7 @@ function buildFeatureCollection(regions) {
 }
 
 function hasGeometry(geometry) {
-  if (!geometry) {
-    return false
-  }
+  if (!geometry) return false
 
   if (geometry.type === 'Polygon') {
     return (geometry.coordinates || []).some(ring => ring.length >= 3)
@@ -259,25 +260,10 @@ function getRegionStyle(properties, selectedRegionCode) {
   }
 }
 
-const QUALITY_LEGEND = [
-  { status: 'valid', label: 'Veljavna meritev' },
-  { status: 'no_valid_pixels', label: 'Ni veljavnih pikslov' },
-  { status: 'processing_error', label: 'Napaka obdelave' },
-]
-
 function qualityFillColor(status) {
-  if (status === 'valid') {
-    return '#8ed2a4'
-  }
-
-  if (status === 'no_valid_pixels') {
-    return '#cfd6dc'
-  }
-
-  if (status === 'processing_error') {
-    return '#f0a58b'
-  }
-
+  if (status === 'valid') return '#8ed2a4'
+  if (status === 'no_valid_pixels') return '#cfd6dc'
+  if (status === 'processing_error') return '#f0a58b'
   return '#9fa9ba'
 }
 

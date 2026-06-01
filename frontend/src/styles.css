@@ -92,6 +92,35 @@ select {
   gap: 8px;
 }
 
+.language-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 18px 0 22px;
+  padding: 4px;
+  border: 1px solid rgba(245, 246, 243, 0.14);
+  border-radius: 8px;
+  background: rgba(245, 246, 243, 0.06);
+}
+
+.language-option {
+  min-height: 34px;
+  border: 0;
+  border-radius: 6px;
+  color: rgba(245, 246, 243, 0.72);
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.language-option:hover,
+.language-option-active {
+  color: var(--plate-white);
+  background: rgba(245, 246, 243, 0.14);
+}
+
 .nav-item {
   width: 100%;
   padding: 11px 12px;

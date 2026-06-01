@@ -1,3 +1,5 @@
+import { useLanguage } from '../i18n'
+
 function RegionComparisonCard({
   regions,
   selectedRegionCode,
@@ -5,6 +7,7 @@ function RegionComparisonCard({
   isLoading,
   error,
 }) {
+  const { t, locale } = useLanguage()
   const rows = buildComparisonRows(regions)
   const validRows = rows.filter(row => row.hasValue)
   const maxValue = validRows.reduce(
@@ -16,37 +19,34 @@ function RegionComparisonCard({
     <section className="card comparison-card" id="comparison-section" aria-labelledby="region-comparison-title">
       <div className="card-heading">
         <div>
-          <p className="section-kicker">Primerjava regij</p>
-          <h2 id="region-comparison-title">NO₂ po statističnih regijah</h2>
+          <p className="section-kicker">{t('navComparison')}</p>
+          <h2 id="region-comparison-title">{t('comparisonTitle')}</h2>
         </div>
-        <span className="comparison-count">{formatCount(validRows.length, rows.length)}</span>
+        <span className="comparison-count">{formatCount(validRows.length, rows.length, t)}</span>
       </div>
 
       {isLoading ? (
-        <ComparisonLoadingState />
+        <ComparisonLoadingState t={t} />
       ) : error ? (
         <div className="comparison-state state-error" role="alert">
           <p>{error}</p>
         </div>
       ) : rows.length === 0 ? (
         <div className="comparison-state">
-          <p>
-            Regijski podatki trenutno niso na voljo. Primerjava bo prikazana,
-            ko bodo meritve naložene iz API-ja.
-          </p>
+          <p>{t('comparisonUnavailable')}</p>
         </div>
       ) : (
         <>
-          <div className="comparison-summary" aria-label="Povzetek primerjave regij">
-            <SummaryTile label="Najvišja vrednost" value={formatRegionValue(validRows[0])} />
+          <div className="comparison-summary" aria-label={t('comparisonSummaryAria')}>
+            <SummaryTile label={t('highestValue')} value={formatRegionValue(validRows[0], t, locale)} />
             <SummaryTile
-              label="Najnižja vrednost"
-              value={formatRegionValue(validRows[validRows.length - 1])}
+              label={t('lowestValue')}
+              value={formatRegionValue(validRows[validRows.length - 1], t, locale)}
             />
-            <SummaryTile label="Brez veljavnih pikslov" value={formatNoDataCount(rows)} />
+            <SummaryTile label={t('withoutValidPixels')} value={formatNoDataCount(rows, locale)} />
           </div>
 
-          <div className="comparison-list" role="list" aria-label="Primerjava zadnjih meritev">
+          <div className="comparison-list" role="list" aria-label={t('comparisonListAria')}>
             {rows.map((row, index) => (
               <ComparisonRow
                 key={row.regionCode}
@@ -55,6 +55,8 @@ function RegionComparisonCard({
                 maxValue={maxValue}
                 isSelected={row.regionCode === selectedRegionCode}
                 onRegionSelect={onRegionSelect}
+                t={t}
+                locale={locale}
               />
             ))}
           </div>
@@ -64,9 +66,9 @@ function RegionComparisonCard({
   )
 }
 
-function ComparisonRow({ row, rank, maxValue, isSelected, onRegionSelect }) {
+function ComparisonRow({ row, rank, maxValue, isSelected, onRegionSelect, t, locale }) {
   const barWidth = row.hasValue && maxValue > 0 ? `${Math.max((row.valueMean / maxValue) * 100, 4)}%` : '0%'
-  const buttonLabel = `Izberi regijo ${row.regionName}`
+  const buttonLabel = t('selectRegion', { region: row.regionName })
 
   return (
     <button
@@ -87,13 +89,13 @@ function ComparisonRow({ row, rank, maxValue, isSelected, onRegionSelect }) {
       <span className="comparison-value">
         {row.hasValue ? (
           <>
-            <strong>{formatNo2Value(row.valueMean)}</strong>
-            <em>{row.unit || 'mol/m²'}</em>
+            <strong>{formatNo2Value(row.valueMean, t, locale)}</strong>
+            <em>{row.unit || 'mol/m2'}</em>
           </>
         ) : (
           <>
-            <strong>Ni podatka</strong>
-            <em>{formatQualityStatus(row.qualityStatus)}</em>
+            <strong>{t('noData')}</strong>
+            <em>{formatQualityStatus(row.qualityStatus, t)}</em>
           </>
         )}
       </span>
@@ -110,12 +112,12 @@ function SummaryTile({ label, value }) {
   )
 }
 
-function ComparisonLoadingState() {
+function ComparisonLoadingState({ t }) {
   return (
     <div className="comparison-state" role="status" aria-live="polite">
       <div className="loading-line loading-line-title" />
       <div className="loading-line" />
-      <p>Nalaganje primerjave regij ...</p>
+      <p>{t('loadingComparison')}</p>
     </div>
   )
 }
@@ -135,88 +137,44 @@ function buildComparisonRows(regions) {
         Number.isFinite(Number(region.value_mean)),
     }))
     .sort((left, right) => {
-      if (left.hasValue && right.hasValue) {
-        return right.valueMean - left.valueMean
-      }
-
+      if (left.hasValue && right.hasValue) return right.valueMean - left.valueMean
       if (left.hasValue) return -1
       if (right.hasValue) return 1
       return left.regionName.localeCompare(right.regionName, 'sl')
     })
 }
 
-function formatRegionValue(row) {
-  if (!row) {
-    return 'Ni podatka'
-  }
-
-  return `${row.regionName}: ${formatNo2Value(row.valueMean)}`
+function formatRegionValue(row, t, locale) {
+  if (!row) return t('noData')
+  return `${row.regionName}: ${formatNo2Value(row.valueMean, t, locale)}`
 }
 
-function formatNoDataCount(rows) {
+function formatNoDataCount(rows, locale) {
   const count = rows.filter(row => !row.hasValue).length
-  return count.toLocaleString('sl-SI')
+  return count.toLocaleString(locale)
 }
 
-function formatCount(validCount, totalCount) {
-  if (totalCount === 0) {
-    return 'Ni regij'
-  }
-
-  return `${validCount}/${totalCount} z vrednostjo`
+function formatCount(validCount, totalCount, t) {
+  if (totalCount === 0) return t('noRegions')
+  return t('withValue', { valid: validCount, total: totalCount })
 }
 
-function formatQualityStatus(status) {
-  if (status === 'no_valid_pixels') {
-    return 'Ni veljavnih pikslov'
-  }
-
-  if (status === 'processing_error') {
-    return 'Napaka obdelave'
-  }
-
-  return 'Ni veljavne vrednosti'
+function formatQualityStatus(status, t) {
+  if (status === 'no_valid_pixels') return t('noValidPixels')
+  if (status === 'processing_error') return t('processingError')
+  return t('noValidValue')
 }
 
-function formatNo2Value(value) {
-  if (value === null || value === undefined || value === '') {
-    return 'Ni podatka'
-  }
+function formatNo2Value(value, t, locale) {
+  if (value === null || value === undefined || value === '') return t('noData')
 
   const numberValue = Number(value)
-
-  if (!Number.isFinite(numberValue)) {
-    return String(value)
-  }
-
-  if (numberValue === 0) {
-    return '0'
-  }
+  if (!Number.isFinite(numberValue)) return String(value)
+  if (numberValue === 0) return '0'
 
   const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
   const mantissa = numberValue / 10 ** exponent
-  return `${mantissa.toFixed(2)} × 10${toSuperscript(exponent)}`
-}
-
-function toSuperscript(value) {
-  const map = {
-    '-': '⁻',
-    0: '⁰',
-    1: '¹',
-    2: '²',
-    3: '³',
-    4: '⁴',
-    5: '⁵',
-    6: '⁶',
-    7: '⁷',
-    8: '⁸',
-    9: '⁹',
-  }
-
-  return String(value)
-    .split('')
-    .map(character => map[character] || character)
-    .join('')
+  return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
 export default RegionComparisonCard

@@ -1,3 +1,5 @@
+import { useLanguage } from '../i18n'
+
 function RegionDetailsCard({
   measurement,
   selectedRegion,
@@ -6,19 +8,20 @@ function RegionDetailsCard({
   hasRegion,
   csvExportUrl,
 }) {
-  const regionName = measurement?.region_name || selectedRegion?.region_name || 'Izbrana regija'
+  const { t, locale } = useLanguage()
+  const regionName = measurement?.region_name || selectedRegion?.region_name || t('selectedRegion')
   const regionCode = measurement?.region_code || selectedRegion?.region_code || ''
-  const qualityStatus = getQualityStatus(measurement?.quality_status)
-  const missingDataState = measurement ? getMissingDataState(measurement) : null
+  const qualityStatus = getQualityStatus(measurement?.quality_status, t)
+  const missingDataState = measurement ? getMissingDataState(measurement, t) : null
   const isExportDisabled = !measurement || isLoading || Boolean(error) || !csvExportUrl
 
   return (
     <section className="card detail-card" id="details-section">
       <div className="card-heading">
         <div>
-          <p className="section-kicker">Podatki in izvor regije</p>
-          <h2>{hasRegion ? regionName : 'Regija ni izbrana'}</h2>
-          {regionCode ? <p className="muted-text region-code-line">Koda regije: {regionCode}</p> : null}
+          <p className="section-kicker">{t('detailsKicker')}</p>
+          <h2>{hasRegion ? regionName : t('regionNotSelected')}</h2>
+          {regionCode ? <p className="muted-text region-code-line">{t('regionCode')}: {regionCode}</p> : null}
         </div>
         <div className="detail-card-actions">
           {measurement ? (
@@ -26,159 +29,118 @@ function RegionDetailsCard({
               {qualityStatus.label}
             </span>
           ) : null}
-          {/*
-            The download is driven by the backend's
-            `Content-Disposition: attachment` header. We intentionally omit the
-            native `download` attribute: the export is cross-origin (frontend
-            domain != backend domain), so browsers ignore it anyway.
-          */}
           <a
             className={`export-button${isExportDisabled ? ' export-button-disabled' : ''}`}
             href={isExportDisabled ? undefined : csvExportUrl}
             aria-disabled={isExportDisabled}
             onClick={event => {
-              if (isExportDisabled) {
-                event.preventDefault()
-              }
+              if (isExportDisabled) event.preventDefault()
             }}
           >
-            Izvozi CSV
+            {t('exportCsv')}
           </a>
         </div>
       </div>
 
       {!hasRegion ? (
-        <p className="muted-text">Izberite statistično regijo za prikaz zadnje meritve NO₂.</p>
+        <p className="muted-text">{t('selectRegionForDetails')}</p>
       ) : isLoading ? (
         <div className="details-loading" role="status" aria-live="polite">
           <div className="loading-line loading-line-title" />
           <div className="loading-line" />
           <div className="loading-line" />
-          <p className="muted-text">Nalaganje podatkov za izbrano regijo ...</p>
+          <p className="muted-text">{t('loadingRegionData')}</p>
         </div>
       ) : error ? (
         <div className="details-error" role="alert">
-          <h3>Podatkov ni mogoče naložiti</h3>
+          <h3>{t('detailsLoadErrorTitle')}</h3>
           <p className="error-text">{error}</p>
         </div>
       ) : !measurement ? (
         <div className="details-empty" role="status" aria-live="polite">
-          <h3>Ni podatkov za izbrano regijo</h3>
-          <p className="muted-text">
-            Za izbrano regijo trenutno ni shranjene zadnje meritve NO₂.
-          </p>
+          <h3>{t('noRegionDataTitle')}</h3>
+          <p className="muted-text">{t('noRegionDataText')}</p>
         </div>
       ) : missingDataState ? (
         <div className="details-empty" role="status" aria-live="polite">
           <h3>{missingDataState.title}</h3>
           <p className="muted-text">{missingDataState.text}</p>
-          <dl className="details-list">
-            <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
-            <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
-            <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
-            <DetailRow label="Začetek meritve" value={formatDateTime(measurement.measurement_start_time)} />
-            <DetailRow label="Konec meritve" value={formatDateTime(measurement.measurement_end_time)} />
-            <DetailRow label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
-            <DetailRow label="Izvor podatkov" value="Sentinel-5P / Copernicus" />
-            <DetailRow
-              label="Vir produkta"
-              value={measurement.source_product_name || 'Ni podatka'}
-            />
-            <DetailRow label="ID produkta" value={measurement.source_product_id || 'Ni podatka'} />
-          </dl>
-          <p className="provenance-note">{getProvenanceNote(measurement)}</p>
+          <MeasurementDetails measurement={measurement} t={t} locale={locale} includeValue={false} />
+          <p className="provenance-note">{getProvenanceNote(measurement, t)}</p>
         </div>
       ) : (
         <>
-          <dl className="details-list">
-            <DetailRow label="Zadnja NO₂ vrednost" value={formatNo2Value(measurement.value_mean)} />
-            <DetailRow
-              label="Min / max NO₂"
-              value={`${formatNo2Value(measurement.value_min)} / ${formatNo2Value(measurement.value_max)}`}
-            />
-            <DetailRow label="Enota" value={measurement.unit || 'Ni podatka'} />
-            <DetailRow label="Veljavnih pikslov" value={formatInteger(measurement.pixel_count_valid)} />
-            <DetailRow label="QA prag" value={formatNumber(measurement.qa_threshold)} />
-            <DetailRow label="Status kakovosti" value={formatQualityStatus(measurement.quality_status)} />
-            <DetailRow label="Začetek meritve" value={formatDateTime(measurement.measurement_start_time)} />
-            <DetailRow label="Konec meritve" value={formatDateTime(measurement.measurement_end_time)} />
-            <DetailRow label="ID obdelave" value={formatInteger(measurement.processing_run_id)} />
-            <DetailRow label="Izvor podatkov" value="Sentinel-5P / Copernicus" />
-            <DetailRow
-              label="Vir produkta"
-              value={measurement.source_product_name || 'Ni podatka'}
-            />
-            <DetailRow label="ID produkta" value={measurement.source_product_id || 'Ni podatka'} />
-          </dl>
-          <p className="provenance-note">{getProvenanceNote(measurement)}</p>
+          <MeasurementDetails measurement={measurement} t={t} locale={locale} includeValue />
+          <p className="provenance-note">{getProvenanceNote(measurement, t)}</p>
         </>
       )}
     </section>
   )
 }
 
-function DetailRow({ label, value }) {
+function MeasurementDetails({ measurement, t, locale, includeValue }) {
+  return (
+    <dl className="details-list">
+      {includeValue ? (
+        <>
+          <DetailRow label={t('latestNo2Value')} value={formatNo2Value(measurement.value_mean, t, locale)} t={t} />
+          <DetailRow
+            label={t('minMaxNo2')}
+            value={`${formatNo2Value(measurement.value_min, t, locale)} / ${formatNo2Value(measurement.value_max, t, locale)}`}
+            t={t}
+          />
+          <DetailRow label={t('unit')} value={measurement.unit || t('noData')} t={t} />
+        </>
+      ) : null}
+      <DetailRow label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
+      <DetailRow label={t('qaThreshold')} value={formatNumber(measurement.qa_threshold, t, locale)} t={t} />
+      <DetailRow label={t('qualityStatus')} value={formatQualityStatus(measurement.quality_status, t)} t={t} />
+      <DetailRow label={t('measurementStart')} value={formatDateTime(measurement.measurement_start_time, t, locale)} t={t} />
+      <DetailRow label={t('measurementEnd')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
+      <DetailRow label={t('processingRunId')} value={formatInteger(measurement.processing_run_id, t, locale)} t={t} />
+      <DetailRow label={t('dataSource')} value="Sentinel-5P / Copernicus" t={t} />
+      <DetailRow label={t('productSource')} value={measurement.source_product_name || t('noData')} t={t} />
+      <DetailRow label={t('productId')} value={measurement.source_product_id || t('noData')} t={t} />
+    </dl>
+  )
+}
+
+function DetailRow({ label, value, t }) {
   return (
     <div className="detail-row">
       <dt>{label}</dt>
-      <dd>{value ?? 'Ni podatka'}</dd>
+      <dd>{value ?? t('noData')}</dd>
     </div>
   )
 }
 
-function formatQualityStatus(status) {
-  if (status === 'valid') {
-    return 'Veljavno'
-  }
-  if (status === 'no_valid_pixels') {
-    return 'Ni veljavnih pikslov'
-  }
-  if (status === 'processing_error') {
-    return 'Napaka obdelave'
-  }
-  return 'Neznano'
+function formatQualityStatus(status, t) {
+  if (status === 'valid') return t('valid')
+  if (status === 'no_valid_pixels') return t('noValidPixels')
+  if (status === 'processing_error') return t('processingError')
+  return t('unknown')
 }
 
-function getQualityStatus(status) {
-  if (status === 'valid') {
-    return { label: 'Veljavno', className: 'quality-valid' }
-  }
-  if (status === 'no_valid_pixels') {
-    return { label: 'Ni podatkov', className: 'quality-empty' }
-  }
-  if (status === 'processing_error') {
-    return { label: 'Napaka obdelave', className: 'quality-error' }
-  }
-  return { label: 'Neznano', className: 'quality-empty' }
+function getQualityStatus(status, t) {
+  if (status === 'valid') return { label: t('valid'), className: 'quality-valid' }
+  if (status === 'no_valid_pixels') return { label: t('noDataStatus'), className: 'quality-empty' }
+  if (status === 'processing_error') return { label: t('processingError'), className: 'quality-error' }
+  return { label: t('unknown'), className: 'quality-empty' }
 }
 
-function getProvenanceNote(measurement) {
+function getProvenanceNote(measurement, t) {
+  if (measurement.quality_status === 'no_valid_pixels') return t('provenanceNoPixels')
+  if (measurement.quality_status === 'processing_error') return t('provenanceProcessingError')
+  return t('provenanceDefault')
+}
+
+function getMissingDataState(measurement, t) {
   if (measurement.quality_status === 'no_valid_pixels') {
-    return 'Sentinel-5P produkt je bil obdelan, vendar regionalna NO₂ vrednost ni bila izračunana, ker ni bilo dovolj veljavnih pikslov po kakovostnem filtru. Zgornji podatki ohranjajo sledljivost do izvornega produkta in zapisa obdelave.'
+    return { title: t('noValidDataTitle'), text: t('no2UnavailableText') }
   }
 
   if (measurement.quality_status === 'processing_error') {
-    return 'Obdelava izbrane meritve ni bila uspešna, zato zanesljiva regionalna NO₂ vrednost ni bila zapisana. Zgornji podatki ohranjajo sledljivost do izvornega produkta in zapisa obdelave.'
-  }
-
-  return 'Podatek je sledljiv do izvornega Sentinel-5P produkta; čas meritve se nanaša na satelitski prelet, ID obdelave pa na interni processing run zapis.'
-}
-
-function getMissingDataState(measurement) {
-  if (measurement.quality_status === 'no_valid_pixels') {
-    return {
-      title: 'Ni veljavnih podatkov za izbrano regijo',
-      text:
-        'Za izbrani Sentinel-5P produkt v tej regiji ni bilo dovolj veljavnih NO₂ pikslov po kakovostnem filtru. Vrednosti zato ne prikazujemo kot regionalno meritev.',
-    }
-  }
-
-  if (measurement.quality_status === 'processing_error') {
-    return {
-      title: 'Napaka pri obdelavi meritve',
-      text:
-        'Podatkovni tok je za to meritev vrnil napako, zato rezultat ni primeren za prikaz kot zanesljiva vrednost. Vrednosti zato niso prikazane.',
-    }
+    return { title: t('measurementProcessingErrorTitle'), text: t('measurementProcessingErrorText') }
   }
 
   if (
@@ -186,101 +148,49 @@ function getMissingDataState(measurement) {
     measurement.value_mean === null ||
     measurement.value_mean === undefined
   ) {
-    return {
-      title: 'NO₂ vrednost ni na voljo',
-      text:
-        'Za izbrano regijo ni dovolj veljavnih podatkov za izračun zadnje regionalne vrednosti.',
-    }
+    return { title: t('no2UnavailableTitle'), text: t('no2UnavailableText') }
   }
 
   return null
 }
 
-function formatNo2Value(value) {
-  if (value === null || value === undefined || value === '') {
-    return 'Ni podatka'
-  }
+function formatNo2Value(value, t, locale) {
+  if (value === null || value === undefined || value === '') return t('noData')
 
   const numberValue = Number(value)
-
-  if (!Number.isFinite(numberValue)) {
-    return String(value)
-  }
-
-  if (numberValue === 0) {
-    return '0'
-  }
+  if (!Number.isFinite(numberValue)) return String(value)
+  if (numberValue === 0) return '0'
 
   const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
   const mantissa = numberValue / 10 ** exponent
-  return `${mantissa.toFixed(2)} × 10${toSuperscript(exponent)}`
+  return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
-function toSuperscript(value) {
-  const map = {
-    '-': '⁻',
-    0: '⁰',
-    1: '¹',
-    2: '²',
-    3: '³',
-    4: '⁴',
-    5: '⁵',
-    6: '⁶',
-    7: '⁷',
-    8: '⁸',
-    9: '⁹',
-  }
-
-  return String(value)
-    .split('')
-    .map(character => map[character] || character)
-    .join('')
-}
-
-function formatNumber(value) {
-  if (value === null || value === undefined || value === '') {
-    return 'Ni podatka'
-  }
+function formatNumber(value, t, locale) {
+  if (value === null || value === undefined || value === '') return t('noData')
 
   const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return String(value)
 
-  if (!Number.isFinite(numberValue)) {
-    return String(value)
-  }
-
-  return numberValue.toLocaleString('sl-SI', {
-    maximumSignificantDigits: 6,
-  })
+  return numberValue.toLocaleString(locale, { maximumSignificantDigits: 6 })
 }
 
-function formatInteger(value) {
-  if (value === null || value === undefined || value === '') {
-    return 'Ni podatka'
-  }
+function formatInteger(value, t, locale) {
+  if (value === null || value === undefined || value === '') return t('noData')
 
   const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) return String(value)
 
-  if (!Number.isFinite(numberValue)) {
-    return String(value)
-  }
-
-  return numberValue.toLocaleString('sl-SI', {
-    maximumFractionDigits: 0,
-  })
+  return numberValue.toLocaleString(locale, { maximumFractionDigits: 0 })
 }
 
-function formatDateTime(value) {
-  if (!value) {
-    return 'Ni podatka'
-  }
+function formatDateTime(value, t, locale) {
+  if (!value) return t('noData')
 
   const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
 
-  if (Number.isNaN(date.getTime())) {
-    return value
-  }
-
-  return new Intl.DateTimeFormat('sl-SI', {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(date)

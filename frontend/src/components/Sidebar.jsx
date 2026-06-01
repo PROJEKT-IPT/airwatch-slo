@@ -1,11 +1,14 @@
-const navigationItems = [
-  { id: 'dashboard', label: 'Pregled' },
-  { label: 'Zgodovinski trend', target: 'trend-section' },
-  { label: 'Primerjava regij', target: 'comparison-section' },
-  { label: 'Podatki & izvoz', target: 'details-section' },
-]
+import { useLanguage } from '../i18n'
 
 function Sidebar({ activeView = 'dashboard', onViewChange }) {
+  const { language, setLanguage, t } = useLanguage()
+  const navigationItems = [
+    { id: 'dashboard', label: t('navOverview') },
+    { label: t('navTrend'), target: 'trend-section' },
+    { label: t('navComparison'), target: 'comparison-section' },
+    { label: t('navDataExport'), target: 'details-section' },
+  ]
+
   function handleClick(item) {
     if (item.id) {
       onViewChange?.(item.id)
@@ -29,11 +32,30 @@ function Sidebar({ activeView = 'dashboard', onViewChange }) {
         <div className="brand-mark">AW</div>
         <div>
           <h1>AirWatch SLO</h1>
-          <p>Satelitsko spremljanje kakovosti zraka nad Slovenijo</p>
+          <p>{t('brandSubtitle')}</p>
         </div>
       </div>
 
-      <nav className="sidebar-nav" aria-label="Glavna navigacija">
+      <div className="language-switcher" aria-label={t('languageToggleLabel')}>
+        <button
+          type="button"
+          className={language === 'sl' ? 'language-option language-option-active' : 'language-option'}
+          aria-pressed={language === 'sl'}
+          onClick={() => setLanguage('sl')}
+        >
+          SL
+        </button>
+        <button
+          type="button"
+          className={language === 'en' ? 'language-option language-option-active' : 'language-option'}
+          aria-pressed={language === 'en'}
+          onClick={() => setLanguage('en')}
+        >
+          EN
+        </button>
+      </div>
+
+      <nav className="sidebar-nav" aria-label={t('navMain')}>
         {navigationItems.map(item => (
           <button
             key={item.label}

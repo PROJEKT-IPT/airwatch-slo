@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+
 import { getRegionHistory } from '../api/airwatchApi'
+import { useLanguage } from '../i18n'
 
 function TrendChart({ regionCode, regionName }) {
+  const { t, locale } = useLanguage()
   const [history, setHistory] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
@@ -39,35 +42,23 @@ function TrendChart({ regionCode, regionName }) {
           endDate: appliedRange.end || undefined,
         })
 
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setHistory(data)
       } catch (err) {
-        if (!isMounted) {
-          return
-        }
-
+        if (!isMounted) return
         setHistory(null)
-        setError(
-          'Zgodovine meritev ni bilo mogoče naložiti iz API-ja. Preverite, ali backend deluje in ali so podatki naloženi v bazo.',
-        )
+        setError(t('historyLoadError'))
       } finally {
-        if (isMounted) {
-          setIsLoading(false)
-        }
+        if (isMounted) setIsLoading(false)
       }
     }
 
     loadHistory()
-
     return () => {
       isMounted = false
     }
-  }, [regionCode, appliedRange])
+  }, [regionCode, appliedRange, t])
 
-  // Fetch full history (no date filter) to derive available dates for selectors
   useEffect(() => {
     let isMounted = true
 
@@ -87,15 +78,14 @@ function TrendChart({ regionCode, regionName }) {
         const full = await getRegionHistory(regionCode)
         if (!isMounted) return
         const dates = (full?.measurements || [])
-          .map((m) => {
+          .map((measurement) => {
             try {
-              return new Date(m.measurement_end_time).toISOString().slice(0, 10)
-            } catch (e) {
+              return new Date(measurement.measurement_end_time).toISOString().slice(0, 10)
+            } catch (error) {
               return null
             }
           })
           .filter(Boolean)
-        // unique and sorted ascending
         const unique = Array.from(new Set(dates)).sort()
         setAvailableDates(unique)
 
@@ -112,7 +102,6 @@ function TrendChart({ regionCode, regionName }) {
     }
 
     loadAvailableDates()
-
     return () => {
       isMounted = false
     }
@@ -120,28 +109,27 @@ function TrendChart({ regionCode, regionName }) {
 
   function applyRange() {
     setDateError('')
-    const s = startDate ? startDate : null
-    const e = endDate ? endDate : null
+    const start = startDate ? startDate : null
+    const end = endDate ? endDate : null
 
-    // Validate selections are in availableDates if provided
-    if (s && availableDates.length > 0 && !availableDates.includes(s)) {
-      setDateError('Izbran začetni datum nima razpoložljivih podatkov.')
+    if (start && availableDates.length > 0 && !availableDates.includes(start)) {
+      setDateError(t('startDateUnavailable'))
       return
     }
-    if (e && availableDates.length > 0 && !availableDates.includes(e)) {
-      setDateError('Izbran končni datum nima razpoložljivih podatkov.')
-      return
-    }
-
-    // Ensure start <= end when both present
-    if (s && e && s > e) {
-      setDateError('Začetni datum mora biti pred ali enak končnemu datumu.')
+    if (end && availableDates.length > 0 && !availableDates.includes(end)) {
+      setDateError(t('endDateUnavailable'))
       return
     }
 
-    const normalizedStart = s ? toUtcStartOfDay(s) : null
-    const normalizedEnd = e ? toUtcEndOfDay(e) : null
-    setAppliedRange({ start: normalizedStart, end: normalizedEnd })
+    if (start && end && start > end) {
+      setDateError(t('startBeforeEnd'))
+      return
+    }
+
+    setAppliedRange({
+      start: start ? toUtcStartOfDay(start) : null,
+      end: end ? toUtcEndOfDay(end) : null,
+    })
   }
 
   function clearRange() {
@@ -160,47 +148,47 @@ function TrendChart({ regionCode, regionName }) {
     return (
       <div className="trend-filter-row">
         <label className="trend-filter-item">
-          <span>Od</span>
+          <span>{t('from')}</span>
           {availableDates.length > 0 ? (
-            <select value={startDate} onChange={(e) => setStartDate(e.target.value)}>
-              <option value="">Vsi datumi</option>
-              {availableDates.map((d) => (
-                <option key={d} value={d} disabled={Boolean(endDate && d === endDate)}>
-                  {d}
+            <select value={startDate} onChange={(event) => setStartDate(event.target.value)}>
+              <option value="">{t('allDates')}</option>
+              {availableDates.map((date) => (
+                <option key={date} value={date} disabled={Boolean(endDate && date === endDate)}>
+                  {date}
                 </option>
               ))}
             </select>
           ) : (
             <select disabled>
-              <option>Ni razpoložljivih datumov</option>
+              <option>{t('noAvailableDates')}</option>
             </select>
           )}
         </label>
 
         <label className="trend-filter-item">
-          <span>Do</span>
+          <span>{t('to')}</span>
           {availableDates.length > 0 ? (
-            <select value={endDate} onChange={(e) => setEndDate(e.target.value)}>
-              <option value="">Vsi datumi</option>
-              {availableDates.map((d) => (
-                <option key={d} value={d} disabled={Boolean(startDate && d === startDate)}>
-                  {d}
+            <select value={endDate} onChange={(event) => setEndDate(event.target.value)}>
+              <option value="">{t('allDates')}</option>
+              {availableDates.map((date) => (
+                <option key={date} value={date} disabled={Boolean(startDate && date === startDate)}>
+                  {date}
                 </option>
               ))}
             </select>
           ) : (
             <select disabled>
-              <option>Ni razpoložljivih datumov</option>
+              <option>{t('noAvailableDates')}</option>
             </select>
           )}
         </label>
 
         <div className="trend-filter-actions">
           <button type="button" onClick={applyRange} className="btn btn-primary">
-            Prikaži
+            {t('show')}
           </button>
           <button type="button" onClick={clearRange} className="btn btn-secondary">
-            Počisti
+            {t('clear')}
           </button>
         </div>
       </div>
@@ -209,23 +197,23 @@ function TrendChart({ regionCode, regionName }) {
 
   const measurements = Array.isArray(history?.measurements) ? history.measurements : []
   const chartData = measurements
-    .map((m) => ({
-      date: new Date(m.measurement_end_time).toLocaleDateString('sl-SI', {
+    .map((measurement) => ({
+      date: new Date(measurement.measurement_end_time).toLocaleDateString(locale, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
       }),
-      value: m.value_mean,
-      fullDate: m.measurement_end_time,
+      value: measurement.value_mean,
+      fullDate: measurement.measurement_end_time,
     }))
-    .sort((a, b) => new Date(a.fullDate) - new Date(b.fullDate))
+    .sort((left, right) => new Date(left.fullDate) - new Date(right.fullDate))
   const hasMeasurements = chartData.length > 0
 
   if (isLoading) {
     return (
       <section className="card trend-chart-card" id="trend-section">
-        <p className="section-kicker">Zgodovina meritev</p>
-        <h2>Zgodovinski trend NO₂</h2>
+        <p className="section-kicker">{t('historyKicker')}</p>
+        <h2>{t('trendTitle')}</h2>
         <div className="state-block">
           <div className="loading-line loading-line-title" />
           <div className="loading-line" />
@@ -237,10 +225,10 @@ function TrendChart({ regionCode, regionName }) {
   if (error) {
     return (
       <section className="card trend-chart-card" id="trend-section">
-        <p className="section-kicker">Zgodovina meritev</p>
-        <h2>Zgodovinski trend NO₂</h2>
+        <p className="section-kicker">{t('historyKicker')}</p>
+        <h2>{t('trendTitle')}</h2>
         <div className="state-block state-error">
-          <h2>Napaka pri nalaganju</h2>
+          <h2>{t('loadingErrorTitle')}</h2>
           <p>{error}</p>
         </div>
       </section>
@@ -248,99 +236,87 @@ function TrendChart({ regionCode, regionName }) {
   }
 
   const displayExponent = getNo2DisplayExponent(chartData)
-  const axisLabel = `NO₂\u00A0(×10${toSuperscript(displayExponent)} mol/m²)`
+  const axisLabel = `NO2 (x10^${displayExponent} mol/m2)`
   const yDomain = getZoomedNo2Domain(chartData)
-  // A trend needs at least two measurements over time. With one (or none) we
-  // show an honest message instead of an axis-only chart with a single dot.
   const availablePointCount = Math.max(availableDates.length, chartData.length)
   const canShowTrend = availablePointCount >= 2
   const singleDateLabel = chartData[0]?.date || availableDates[0] || ''
+  const displayedRegion = regionName || history?.region_name || t('selectedRegion')
 
   return (
     <section className="card trend-chart-card" id="trend-section">
-      <p className="section-kicker">Zgodovina meritev</p>
-      <h2>Zgodovinski trend NO₂</h2>
+      <p className="section-kicker">{t('historyKicker')}</p>
+      <h2>{t('trendTitle')}</h2>
       {canShowTrend ? (
         <>
           {renderDateSelectors()}
           {dateError ? <div className="field-message-error">{dateError}</div> : null}
-          <p className="muted-text">
-            Prikaz zgodovinskih vrednosti NO₂ za regijo {regionName || history?.region_name}. Podatki
-            temeljijo na obdelanih Sentinel-5P produktih.
-          </p>
+          <p className="muted-text">{t('trendLead', { region: displayedRegion })}</p>
           {hasMeasurements ? (
-        <>
-          <div className="trend-chart-container">
-            <div className="trend-chart-axis-label" aria-hidden="true">
-              {axisLabel}
-            </div>
-            <div className="trend-chart-plot">
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(47, 58, 85, 0.14)" />
-                  <XAxis
-                    dataKey="date"
-                    stroke="#6e6f73"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={{ stroke: 'rgba(47, 58, 85, 0.14)' }}
-                  />
-                  <YAxis
-                    stroke="#6e6f73"
-                    fontSize={12}
-                    tickLine={false}
-                    axisLine={{ stroke: 'rgba(47, 58, 85, 0.14)' }}
-                    domain={yDomain}
-                    tickFormatter={(value) => formatScaledNo2Tick(value, displayExponent)}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid rgba(47, 58, 85, 0.14)',
-                      borderRadius: '8px',
-                      color: '#202533',
-                    }}
-                    cursor={false}
-                    formatter={(value) => [formatScaledNo2Value(value, displayExponent), 'NO₂\u00A0(mol/m²)']}
-                    labelFormatter={(label) => `Datum: ${label}`}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#2f3a55"
-                    strokeWidth={2}
-                    dot={{ fill: '#2f3a55', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
-                    connectNulls={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <p className="map-hint">
-            Graf prikazuje povprečne vrednosti NO₂ po času. Manjkajoče vrednosti pomenijo, da za
-            določen časovni interval ni bilo veljavnih pikslov.
-          </p>
-        </>
+            <>
+              <div className="trend-chart-container">
+                <div className="trend-chart-axis-label" aria-hidden="true">
+                  {axisLabel}
+                </div>
+                <div className="trend-chart-plot">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(47, 58, 85, 0.14)" />
+                      <XAxis
+                        dataKey="date"
+                        stroke="#6e6f73"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={{ stroke: 'rgba(47, 58, 85, 0.14)' }}
+                      />
+                      <YAxis
+                        stroke="#6e6f73"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={{ stroke: 'rgba(47, 58, 85, 0.14)' }}
+                        domain={yDomain}
+                        tickFormatter={(value) => formatScaledNo2Tick(value, displayExponent, locale)}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#ffffff',
+                          border: '1px solid rgba(47, 58, 85, 0.14)',
+                          borderRadius: '8px',
+                          color: '#202533',
+                        }}
+                        cursor={false}
+                        formatter={(value) => [formatScaledNo2Value(value, displayExponent, t, locale), 'NO2 (mol/m2)']}
+                        labelFormatter={(label) => `${t('date')}: ${label}`}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#2f3a55"
+                        strokeWidth={2}
+                        dot={{ fill: '#2f3a55', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
+                        connectNulls={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <p className="map-hint">{t('trendHint')}</p>
+            </>
           ) : (
             <div className="state-block">
-              <h2>Ni podatkov za izbrani datum</h2>
-              <p>
-                Za izbrani datumski interval ni zgodovinskih meritev NO₂. Izberite drug interval ali
-                počistite izbor, da se vrnete na razpoložljive podatke.
-              </p>
+              <h2>{t('noDataForDateTitle')}</h2>
+              <p>{t('noDataForDateText')}</p>
             </div>
           )}
         </>
       ) : (
         <div className="state-block">
-          <h2>{availablePointCount === 0 ? 'Ni zgodovinskih meritev' : 'Trend še ni na voljo'}</h2>
+          <h2>{availablePointCount === 0 ? t('noHistoryTitle') : t('trendUnavailableTitle')}</h2>
           <p>
             {availablePointCount === 0
-              ? 'Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.'
-              : `Za prikaz trenda sta potrebni vsaj dve meritvi; trenutno je na voljo ena meritev${
-                  singleDateLabel ? ` (${singleDateLabel})` : ''
-                }.`}
+              ? t('noHistoryText')
+              : t('trendNeedsTwo', { date: singleDateLabel ? ` (${singleDateLabel})` : '' })}
           </p>
         </div>
       )}
@@ -355,15 +331,10 @@ function getNo2DisplayExponent(data) {
     .map((point) => Number(point.value))
     .filter((value) => Number.isFinite(value) && value !== 0)
 
-  if (values.length === 0) {
-    return -5
-  }
+  if (values.length === 0) return -5
 
   const maxAbsValue = Math.max(...values.map((value) => Math.abs(value)))
-
-  if (maxAbsValue <= 0) {
-    return -5
-  }
+  if (maxAbsValue <= 0) return -5
 
   return Math.floor(Math.log10(maxAbsValue))
 }
@@ -373,9 +344,7 @@ function getZoomedNo2Domain(data) {
     .map((point) => Number(point.value))
     .filter((value) => Number.isFinite(value))
 
-  if (values.length === 0) {
-    return ['auto', 'auto']
-  }
+  if (values.length === 0) return ['auto', 'auto']
 
   const minValue = Math.min(...values)
   const maxValue = Math.max(...values)
@@ -391,61 +360,23 @@ function getZoomedNo2Domain(data) {
   return [Math.max(0, minValue - padding), maxValue + padding]
 }
 
-function formatScaledNo2Tick(value, exponent) {
+function formatScaledNo2Tick(value, exponent, locale) {
   const numberValue = Number(value)
-
-  if (!Number.isFinite(numberValue)) {
-    return ''
-  }
+  if (!Number.isFinite(numberValue)) return ''
 
   const scaledValue = numberValue / 10 ** exponent
-
-  return scaledValue.toLocaleString('sl-SI', {
-    maximumFractionDigits: 1,
-  })
+  return scaledValue.toLocaleString(locale, { maximumFractionDigits: 1 })
 }
 
-function formatScaledNo2Value(value, exponent) {
-  if (value === null || value === undefined || value === '') {
-    return 'Ni podatka'
-  }
+function formatScaledNo2Value(value, exponent, t, locale) {
+  if (value === null || value === undefined || value === '') return t('noData')
 
   const numberValue = Number(value)
-
-  if (!Number.isFinite(numberValue)) {
-    return String(value)
-  }
-
-  if (numberValue === 0) {
-    return '0'
-  }
+  if (!Number.isFinite(numberValue)) return String(value)
+  if (numberValue === 0) return '0'
 
   const scaledValue = numberValue / 10 ** exponent
-
-  return `${scaledValue.toLocaleString('sl-SI', {
-    maximumFractionDigits: 2,
-  })} × 10${toSuperscript(exponent)}`
-}
-
-function toSuperscript(value) {
-  const map = {
-    '-': '⁻',
-    0: '⁰',
-    1: '¹',
-    2: '²',
-    3: '³',
-    4: '⁴',
-    5: '⁵',
-    6: '⁶',
-    7: '⁷',
-    8: '⁸',
-    9: '⁹',
-  }
-
-  return String(value)
-    .split('')
-    .map((character) => map[character] || character)
-    .join('')
+  return `${scaledValue.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
 function toUtcStartOfDay(dateString) {
