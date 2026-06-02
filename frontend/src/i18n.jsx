@@ -29,6 +29,12 @@ const translations = {
     navDataExport: 'Podatki & izvoz',
     navMap: 'Karta regij',
     navMethodology: 'Metodologija',
+    navAbout: 'O aplikaciji',
+    aboutLead: 'O aplikaciji in viru podatkov.',
+    aboutText1:
+      'AirWatch SLO prikazuje zadnjo razpoložljivo obdelano meritev NO₂ po 12 slovenskih statističnih regijah na podlagi satelitskih podatkov Copernicus Sentinel-5P (TROPOMI).',
+    aboutText2:
+      'Vrednosti so regionalne satelitske ocene – niso meritve v realnem času in ne meritve na ravni ulice. Manjkajoče vrednosti pomenijo, da za regijo ni bilo dovolj veljavnih pikslov.',
     mapViewLead: 'Klik na regijo jo izbere. Barva prikazuje status kakovosti zadnje meritve.',
     trendViewLead: 'Zgodovinski potek NO₂ za izbrano regijo. Po potrebi omejite časovno obdobje.',
     comparisonViewLead: 'Primerjava zadnjih razpoložljivih vrednosti NO₂ med regijami.',
@@ -223,6 +229,12 @@ const translations = {
     navDataExport: 'Data & export',
     navMap: 'Region map',
     navMethodology: 'Methodology',
+    navAbout: 'About',
+    aboutLead: 'About the application and its data source.',
+    aboutText1:
+      'AirWatch SLO shows the latest available processed NO₂ measurement for the 12 Slovenian statistical regions, based on Copernicus Sentinel-5P (TROPOMI) satellite data.',
+    aboutText2:
+      'Values are regional satellite estimates — not real-time and not street-level. Missing values mean a region did not have enough valid pixels.',
     mapViewLead: 'Click a region to select it. Color shows the quality status of the latest measurement.',
     trendViewLead: 'Historical NO2 over time for the selected region. Narrow the period if needed.',
     comparisonViewLead: 'Comparison of the latest available NO2 values across regions.',
@@ -415,6 +427,12 @@ const translations = {
     navDataExport: 'Daten & Export',
     navMap: 'Regionenkarte',
     navMethodology: 'Methodik',
+    navAbout: 'Über die App',
+    aboutLead: 'Über die Anwendung und ihre Datenquelle.',
+    aboutText1:
+      'AirWatch SLO zeigt die neueste verfuegbare verarbeitete NO₂-Messung fuer die 12 slowenischen statistischen Regionen auf Basis von Copernicus Sentinel-5P (TROPOMI) Satellitendaten.',
+    aboutText2:
+      'Die Werte sind regionale Satellitenschaetzungen – nicht in Echtzeit und nicht auf Strassenebene. Fehlende Werte bedeuten, dass eine Region nicht genug gueltige Pixel hatte.',
     mapViewLead: 'Klicken Sie auf eine Region, um sie auszuwaehlen. Die Farbe zeigt den Qualitaetsstatus der neuesten Messung.',
     trendViewLead: 'Historischer NO2-Verlauf fuer die ausgewaehlte Region. Schraenken Sie bei Bedarf den Zeitraum ein.',
     comparisonViewLead: 'Vergleich der neuesten verfuegbaren NO2-Werte zwischen Regionen.',

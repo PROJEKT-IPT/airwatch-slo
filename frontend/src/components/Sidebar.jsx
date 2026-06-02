@@ -1,58 +1,160 @@
+import { Fragment } from 'react'
+
 import { supportedLanguages, useLanguage } from '../i18n'
 
-function Sidebar({ activeView = 'dashboard', onViewChange }) {
+function Icon({ name }) {
+  const props = {
+    width: 20,
+    height: 20,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  }
+  switch (name) {
+    case 'overview':
+      return (
+        <svg {...props}>
+          <path d="M3 10.5 12 3l9 7.5" />
+          <path d="M5 9.5V21h14V9.5" />
+          <path d="M9.5 21v-6h5v6" />
+        </svg>
+      )
+    case 'trend':
+      return (
+        <svg {...props}>
+          <path d="M3 17l5-5 4 3 6-7" />
+          <circle cx="3" cy="17" r="1" />
+          <circle cx="8" cy="12" r="1" />
+          <circle cx="12" cy="15" r="1" />
+          <circle cx="18" cy="8" r="1" />
+        </svg>
+      )
+    case 'comparison':
+      return (
+        <svg {...props}>
+          <path d="M5 20V10" />
+          <path d="M12 20V4" />
+          <path d="M19 20v-7" />
+        </svg>
+      )
+    case 'data':
+      return (
+        <svg {...props}>
+          <path d="M12 3v12" />
+          <path d="M8 11l4 4 4-4" />
+          <path d="M4 21h16" />
+        </svg>
+      )
+    case 'methodology':
+      return (
+        <svg {...props}>
+          <path d="M3 5.5A2.5 2.5 0 0 1 5.5 3H11v16H5.5A2.5 2.5 0 0 0 3 21.5z" />
+          <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H13v16h5.5A2.5 2.5 0 0 1 21 21.5z" />
+        </svg>
+      )
+    case 'globe':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18" />
+          <path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" />
+        </svg>
+      )
+    case 'about':
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 11v5" />
+          <path d="M12 8h.01" />
+        </svg>
+      )
+    default:
+      return null
+  }
+}
+
+function Sidebar({ activeView = 'overview', onViewChange }) {
   const { language, setLanguage, t } = useLanguage()
+
   // Each item switches the main content area to a focused view (no scrolling).
   const navigationItems = [
-    { id: 'overview', label: t('navOverview') },
-    { id: 'trend', label: t('navTrend') },
-    { id: 'comparison', label: t('navComparison') },
-    { id: 'data', label: t('navDataExport') },
-    { id: 'methodology', label: t('navMethodology') },
+    { id: 'overview', icon: 'overview', label: t('navOverview') },
+    { id: 'trend', icon: 'trend', label: t('navTrend') },
+    { id: 'comparison', icon: 'comparison', label: t('navComparison') },
+    { id: 'data', icon: 'data', label: t('navDataExport') },
+    { id: 'methodology', icon: 'methodology', label: t('navMethodology') },
   ]
 
-  function handleClick(item) {
-    onViewChange?.(item.id)
+  function navClass(id) {
+    return `nav-item ${id === activeView ? 'nav-item-active' : ''}`
   }
 
   return (
     <aside className="sidebar">
       <div className="brand-block">
         <div className="brand-mark">AW</div>
-        <div>
+        <div className="brand-text">
           <h1>AirWatch SLO</h1>
           <p>{t('brandSubtitle')}</p>
         </div>
       </div>
 
-      <div className="language-switcher" aria-label={t('languageToggleLabel')}>
-        {supportedLanguages.map(option => (
-          <button
-            key={option.code}
-            type="button"
-            className={language === option.code ? 'language-option language-option-active' : 'language-option'}
-            aria-pressed={language === option.code}
-            onClick={() => setLanguage(option.code)}
-          >
-            {option.label}
-          </button>
+      <div className="sidebar-divider" />
+
+      <div className="language-switcher" role="group" aria-label={t('languageToggleLabel')}>
+        <span className="language-globe" aria-hidden="true">
+          <Icon name="globe" />
+        </span>
+        {supportedLanguages.map((option, index) => (
+          <Fragment key={option.code}>
+            {index > 0 ? <span className="language-sep" aria-hidden="true">·</span> : null}
+            <button
+              type="button"
+              className={language === option.code ? 'language-option language-option-active' : 'language-option'}
+              aria-pressed={language === option.code}
+              onClick={() => setLanguage(option.code)}
+            >
+              {option.label}
+            </button>
+          </Fragment>
         ))}
       </div>
 
       <nav className="sidebar-nav" aria-label={t('navMain')}>
         {navigationItems.map(item => (
           <button
-            key={item.label}
+            key={item.id}
             type="button"
-            className={`nav-item ${item.id && item.id === activeView ? 'nav-item-active' : ''}`}
-            disabled={item.disabled}
-            aria-current={item.id && item.id === activeView ? 'page' : undefined}
-            onClick={() => handleClick(item)}
+            className={navClass(item.id)}
+            aria-current={item.id === activeView ? 'page' : undefined}
+            onClick={() => onViewChange?.(item.id)}
           >
-            <span>{item.label}</span>
+            <span className="nav-icon">
+              <Icon name={item.icon} />
+            </span>
+            <span className="nav-label">{item.label}</span>
           </button>
         ))}
       </nav>
+
+      <div className="sidebar-footer">
+        <div className="sidebar-divider" />
+        <button
+          type="button"
+          className={`nav-item nav-footer-item ${activeView === 'about' ? 'nav-item-active' : ''}`}
+          aria-current={activeView === 'about' ? 'page' : undefined}
+          onClick={() => onViewChange?.('about')}
+        >
+          <span className="nav-icon">
+            <Icon name="about" />
+          </span>
+          <span className="nav-label">{t('navAbout')}</span>
+        </button>
+      </div>
     </aside>
   )
 }

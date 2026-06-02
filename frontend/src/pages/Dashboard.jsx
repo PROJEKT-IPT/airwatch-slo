@@ -205,6 +205,7 @@ function Dashboard({ activeView = 'overview' }) {
     comparison: { title: t('navComparison'), lead: t('comparisonViewLead') },
     data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
     methodology: { title: t('navMethodology'), lead: t('methodologyViewLead') },
+    about: { title: t('navAbout'), lead: t('aboutLead') },
   }
   const meta = viewMeta[activeView] || viewMeta.overview
 
@@ -299,6 +300,17 @@ function Dashboard({ activeView = 'overview' }) {
       {activeView === 'methodology' && (
         <section className="dashboard-view" aria-label={t('navMethodology')}>
           <MethodologyCard />
+        </section>
+      )}
+
+      {activeView === 'about' && (
+        <section className="dashboard-view" aria-label={t('navAbout')}>
+          <section className="card">
+            <p className="section-kicker">{t('navAbout')}</p>
+            <h2>AirWatch SLO</h2>
+            <p className="muted-text">{t('aboutText1')}</p>
+            <p className="muted-text">{t('aboutText2')}</p>
+          </section>
         </section>
       )}
     </main>
