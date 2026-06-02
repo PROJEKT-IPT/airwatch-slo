@@ -131,7 +131,7 @@ Lokalne okoljske spremenljivke (root `.env`, iz `.env.example`): `POSTGRES_DB`,
 `POSTGRES_USER`, `POSTGRES_PASSWORD`, `DATABASE_HOST`, `DATABASE_PORT`,
 `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`, `CORS_ORIGINS`,
 `VITE_API_URL`. (Frontend pri `npm run dev` uporabi `frontend/.env.development`
-→ lokalni backend.)
+→ lokalni backend; lokalni Docker build nastavi `VITE_API_URL=http://localhost:8000`.)
 
 ```bash
 docker compose up -d --build      # zgradi in zaženi vse

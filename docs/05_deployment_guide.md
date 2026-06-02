@@ -20,7 +20,7 @@ cp .env.example .env
 | `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | inicializacija PostgreSQL |
 | `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD` | povezava backenda na bazo |
 | `CORS_ORIGINS` | dovoljeni frontend izvori (vejicno ločeni) |
-| `VITE_API_URL` | backend URL za frontend (prazno = privzeto) |
+| `VITE_API_URL` | backend URL za frontend (prazno = privzeto; lokalni Docker build nastavi `http://localhost:8000`) |
 | `COPERNICUS_USERNAME`, `COPERNICUS_PASSWORD` | le za pipeline prenose |
 
 ## Lokalni zagon (Docker Compose)
@@ -35,7 +35,7 @@ Storitve in vrata (iz `docker-compose.yml`):
 |---|---|---|
 | `db` | `postgis/postgis:15-3.3` | `5433:5432` |
 | `backend` | `./backend` (FastAPI/uvicorn) | `8000:8000` |
-| `frontend` | `./frontend` | `3000:3000` |
+| `frontend` | `./frontend` (Vite preview) | `3000:4173` |
 
 > **Vrata baze.** Compose mapira bazo na host vrata **5433** (da se izogne
 > lokalnemu PostgreSQL na 5432). Znotraj Docker omrežja backend dosega bazo na
@@ -102,9 +102,9 @@ Projekt na Railway sestoji iz treh storitev:
   uporabi backend URL iz `frontend/src/api/airwatchApi.js`
   (`https://airwatch-slo-production.up.railway.app`).
 
-> Frontend pri lokalnem Docker zagonu uporablja nginx proxy (`frontend/nginx.conf`,
-> `/api/` → `backend:8000`). Na Railway frontend kliče backend neposredno prek
-> polnega URL-ja, zato je pomembno, da je `CORS_ORIGINS` na backendu pravilno
+> Frontend pri lokalnem Docker zagonu se zgradi z `VITE_API_URL=http://localhost:8000`,
+> zato brskalnik kliče lokalni backend neposredno. Na Railway frontend kliče backend
+> prek polnega URL-ja, zato je pomembno, da je `CORS_ORIGINS` na backendu pravilno
 > nastavljen.
 
 ### Vnos podatkov v produkcijsko bazo
