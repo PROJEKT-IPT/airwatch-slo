@@ -856,6 +856,45 @@ select {
   margin-top: 12px;
 }
 
+/* Satellite explainer view: hero card with key facts + clean section grid */
+.satellite-view .card h2 {
+  margin: 0 0 10px;
+}
+
+.satellite-intro {
+  max-width: 78ch;
+  font-size: 1rem;
+}
+
+.satellite-facts {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.satellite-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.satellite-chips {
+  margin: 16px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.satellite-chips .region-chip {
+  font-size: 0.86rem;
+}
+
+.satellite-focus {
+  margin-top: 14px;
+}
+
 .admin-status-grid {
   display: grid;
   grid-template-columns: minmax(0, 760px);
@@ -1902,8 +1941,13 @@ html.a11y-high-contrast .test-region-badge {
 
   .overview-grid,
   .section-grid--analysis,
-  .section-grid--details {
+  .section-grid--details,
+  .satellite-grid {
     grid-template-columns: 1fr;
+  }
+
+  .satellite-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .provenance-grid {
@@ -1936,7 +1980,8 @@ html.a11y-high-contrast .test-region-badge {
   .metadata-strip,
   .metric-meta-grid,
   .provenance-grid,
-  .comparison-summary {
+  .comparison-summary,
+  .satellite-facts {
     grid-template-columns: 1fr;
   }
 

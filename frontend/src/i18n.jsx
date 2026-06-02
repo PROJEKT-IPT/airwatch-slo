@@ -43,6 +43,33 @@ const translations = {
     trendViewLead: 'Zgodovinski potek NO₂ za izbrano regijo. Po potrebi omejite časovno obdobje.',
     comparisonViewLead: 'Primerjava zadnjih razpoložljivih vrednosti NO₂ med regijami.',
     methodologyViewLead: 'Kaj pomenijo podatki Sentinel-5P, kakovostni filter in omejitve.',
+    navSatellite: 'Satelit',
+    satelliteViewLead: 'Kratka in razumljiva predstavitev satelita, ki je vir naših podatkov o NO₂.',
+    satWhatTitle: 'Kaj je naš satelit?',
+    satIntro:
+      'AirWatch SLO ne upravlja lastnega satelita – podatke črpa iz evropskega satelita Sentinel-5P (program Copernicus, ESA/EU). Ta z instrumentom TROPOMI iz vesolja meri onesnaževala v ozračju, med njimi tudi dušikov dioksid (NO₂), ki ga prikazujemo po slovenskih statističnih regijah.',
+    satFactInstrumentLabel: 'Instrument',
+    satFactInstrumentValue: 'TROPOMI',
+    satFactLaunchLabel: 'Izstrelitev',
+    satFactLaunchValue: 'Oktober 2017',
+    satFactOrbitLabel: 'Višina orbite',
+    satFactOrbitValue: '≈ 824 km',
+    satFactResolutionLabel: 'Prostorska ločljivost',
+    satFactResolutionValue: '≈ 3,5 × 5,5 km',
+    satWhereTitle: 'Kje se nahaja in kako kroži',
+    satWhereText:
+      'Sentinel-5P kroži okoli Zemlje v sončno-sinhroni orbiti na višini približno 824 km. Čez isto območje preleti enkrat dnevno, vedno ob približno enakem lokalnem času (okoli 13:30), zato so dnevni posnetki med seboj primerljivi. V enem dnevu prečka celoten planet in tako zajame tudi vso Slovenijo.',
+    satDataTitle: 'Kakšne podatke zajema',
+    satDataText:
+      'Instrument TROPOMI meri sončno svetlobo, ki se odbije skozi ozračje, in iz nje izračuna količine več plinov in onesnaževal v zraku:',
+    satDataFocus:
+      'V tej aplikaciji prikazujemo samo dušikov dioksid (NO₂) – plin, ki nastaja predvsem pri prometu in kurjenju goriv.',
+    satAerosolsClouds: 'aerosoli in oblaki',
+    satProcessTitle: 'Kako podatki pridejo do prikaza',
+    satProcessText:
+      'Surove satelitske produkte (Sentinel-5P L2) prevzamemo, filtriramo po kakovosti in povprečimo po posamezni statistični regiji. Za vsako regijo prikažemo zadnjo razpoložljivo obdelano meritev.',
+    satNotRealTime:
+      'Prikaz ni v realnem času in ni meritev na ravni ulice. En piksel pokriva več kilometrov, prikazane vrednosti pa so regionalne satelitske ocene.',
     dashboardTitle: 'Pregled NO₂ po slovenskih statističnih regijah',
     dashboardSubtitle:
       'Zadnja razpoložljiva obdelana meritev NO₂ iz satelitskih produktov Sentinel-5P. Prikaz ni v realnem času.',
@@ -266,6 +293,33 @@ const translations = {
     trendViewLead: 'Historical NO2 over time for the selected region. Narrow the period if needed.',
     comparisonViewLead: 'Comparison of the latest available NO2 values across regions.',
     methodologyViewLead: 'What the Sentinel-5P data means, the quality filter, and limitations.',
+    navSatellite: 'Satellite',
+    satelliteViewLead: 'A short, clear introduction to the satellite behind our NO₂ data.',
+    satWhatTitle: 'What is our satellite?',
+    satIntro:
+      'AirWatch SLO does not operate its own satellite – it draws its data from the European Sentinel-5P satellite (the Copernicus programme, ESA/EU). Using the TROPOMI instrument, it measures pollutants in the atmosphere from space, including nitrogen dioxide (NO₂), which we display across Slovenia’s statistical regions.',
+    satFactInstrumentLabel: 'Instrument',
+    satFactInstrumentValue: 'TROPOMI',
+    satFactLaunchLabel: 'Launch',
+    satFactLaunchValue: 'October 2017',
+    satFactOrbitLabel: 'Orbit altitude',
+    satFactOrbitValue: '≈ 824 km',
+    satFactResolutionLabel: 'Spatial resolution',
+    satFactResolutionValue: '≈ 3.5 × 5.5 km',
+    satWhereTitle: 'Where it is and how it orbits',
+    satWhereText:
+      'Sentinel-5P circles the Earth in a sun-synchronous orbit at an altitude of about 824 km. It passes over the same area once a day at roughly the same local time (around 13:30), which keeps daily snapshots comparable. In a single day it crosses the whole planet and so also covers all of Slovenia.',
+    satDataTitle: 'What data it captures',
+    satDataText:
+      'The TROPOMI instrument measures sunlight reflected through the atmosphere and derives the amounts of several gases and air pollutants:',
+    satDataFocus:
+      'In this app we show only nitrogen dioxide (NO₂) – a gas produced mainly by road traffic and fuel combustion.',
+    satAerosolsClouds: 'aerosols and clouds',
+    satProcessTitle: 'How the data reaches the display',
+    satProcessText:
+      'We ingest the raw satellite products (Sentinel-5P L2), filter them by quality and average them per statistical region. For each region we show the latest available processed measurement.',
+    satNotRealTime:
+      'The display is not real-time and not street-level. A single pixel covers several kilometres, and the values shown are regional satellite estimates.',
     dashboardTitle: 'NO2 overview by Slovenian statistical regions',
     dashboardSubtitle:
       'Latest available processed NO2 measurement from Sentinel-5P satellite products. This is not a real-time view.',
@@ -487,6 +541,33 @@ const translations = {
     trendViewLead: 'Historischer NO2-Verlauf fuer die ausgewaehlte Region. Schraenken Sie bei Bedarf den Zeitraum ein.',
     comparisonViewLead: 'Vergleich der neuesten verfuegbaren NO2-Werte zwischen Regionen.',
     methodologyViewLead: 'Was die Sentinel-5P-Daten bedeuten, der Qualitaetsfilter und Einschraenkungen.',
+    navSatellite: 'Satellit',
+    satelliteViewLead: 'Eine kurze, verstaendliche Vorstellung des Satelliten hinter unseren NO₂-Daten.',
+    satWhatTitle: 'Was ist unser Satellit?',
+    satIntro:
+      'AirWatch SLO betreibt keinen eigenen Satelliten – die Daten stammen vom europaeischen Satelliten Sentinel-5P (Programm Copernicus, ESA/EU). Mit dem Instrument TROPOMI misst er aus dem Weltraum Schadstoffe in der Atmosphaere, darunter Stickstoffdioxid (NO₂), das wir fuer die statistischen Regionen Sloweniens darstellen.',
+    satFactInstrumentLabel: 'Instrument',
+    satFactInstrumentValue: 'TROPOMI',
+    satFactLaunchLabel: 'Start',
+    satFactLaunchValue: 'Oktober 2017',
+    satFactOrbitLabel: 'Bahnhoehe',
+    satFactOrbitValue: '≈ 824 km',
+    satFactResolutionLabel: 'Raeumliche Aufloesung',
+    satFactResolutionValue: '≈ 3,5 × 5,5 km',
+    satWhereTitle: 'Wo er sich befindet und wie er kreist',
+    satWhereText:
+      'Sentinel-5P umkreist die Erde in einer sonnensynchronen Umlaufbahn in etwa 824 km Hoehe. Er ueberfliegt dasselbe Gebiet einmal taeglich zur ungefaehr gleichen Ortszeit (gegen 13:30 Uhr), wodurch taegliche Aufnahmen vergleichbar bleiben. An einem Tag ueberquert er den gesamten Planeten und erfasst so auch ganz Slowenien.',
+    satDataTitle: 'Welche Daten er erfasst',
+    satDataText:
+      'Das Instrument TROPOMI misst das durch die Atmosphaere reflektierte Sonnenlicht und leitet daraus die Mengen mehrerer Gase und Luftschadstoffe ab:',
+    satDataFocus:
+      'In dieser App zeigen wir nur Stickstoffdioxid (NO₂) – ein Gas, das vor allem durch Verkehr und Brennstoffverbrennung entsteht.',
+    satAerosolsClouds: 'Aerosole und Wolken',
+    satProcessTitle: 'Wie die Daten zur Anzeige gelangen',
+    satProcessText:
+      'Wir uebernehmen die rohen Satellitenprodukte (Sentinel-5P L2), filtern sie nach Qualitaet und mitteln sie pro statistischer Region. Fuer jede Region zeigen wir die letzte verfuegbare aufbereitete Messung.',
+    satNotRealTime:
+      'Die Anzeige erfolgt nicht in Echtzeit und nicht auf Strassenebene. Ein einzelner Pixel deckt mehrere Kilometer ab, und die angezeigten Werte sind regionale Satellitenschaetzungen.',
     dashboardTitle: 'NO2-Uebersicht nach slowenischen statistischen Regionen',
     dashboardSubtitle:
       'Neueste verfuegbare verarbeitete NO2-Messung aus Sentinel-5P-Satellitenprodukten. Dies ist keine Echtzeitansicht.',

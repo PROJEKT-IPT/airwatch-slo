@@ -13,6 +13,7 @@ import RegionComparisonCard from '../components/RegionComparisonCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
 import RegionSelect from '../components/RegionSelect'
 import RegionalMap from '../components/RegionalMap'
+import SatelliteCard from '../components/SatelliteCard'
 import TrendChart from '../components/TrendChart'
 import { useLanguage } from '../i18n'
 
@@ -198,6 +199,7 @@ function Dashboard({ activeView = 'overview' }) {
     comparison: { title: t('navComparison'), lead: t('comparisonViewLead') },
     data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
     methodology: { title: t('navMethodology'), lead: t('methodologyViewLead') },
+    satellite: { title: t('navSatellite'), lead: t('satelliteViewLead') },
     about: { title: t('navAbout'), lead: t('aboutLead') },
   }
   const meta = viewMeta[activeView] || viewMeta.overview
@@ -291,6 +293,8 @@ function Dashboard({ activeView = 'overview' }) {
           <MethodologyCard />
         </section>
       )}
+
+      {activeView === 'satellite' && <SatelliteCard />}
 
       {activeView === 'about' && (
         <section className="dashboard-view" aria-label={t('navAbout')}>
