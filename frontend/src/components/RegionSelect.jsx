@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useLanguage } from '../i18n'
 
@@ -22,27 +22,13 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
   const { t, locale } = useLanguage()
   const hasRegions = regions.length > 0
   const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
   const containerRef = useRef(null)
-  const searchRef = useRef(null)
 
   const selected = regions.find(region => region.region_code === selectedRegionCode) || null
 
-  const filtered = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase()
-    if (!needle) return regions
-    return regions.filter(region => {
-      const name = (region.region_name || '').toLocaleLowerCase()
-      const code = (region.region_code || '').toLocaleLowerCase()
-      return name.includes(needle) || code.includes(needle)
-    })
-  }, [regions, query])
-
-  // Close on outside click or Esc; reset the search each time it opens.
+  // Close on outside click or Esc.
   useEffect(() => {
     if (!open) return undefined
-    setQuery('')
-    const focusTimer = setTimeout(() => searchRef.current?.focus(), 0)
 
     function onPointerDown(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) setOpen(false)
@@ -53,7 +39,6 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
     document.addEventListener('mousedown', onPointerDown)
     document.addEventListener('keydown', onKeyDown)
     return () => {
-      clearTimeout(focusTimer)
       document.removeEventListener('mousedown', onPointerDown)
       document.removeEventListener('keydown', onKeyDown)
     }
@@ -100,20 +85,11 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
       {open ? (
         <div className="region-picker-popover" id="rp-popover" role="dialog" aria-label={t('pickerTitle')}>
           <p className="rp-title">{t('pickerTitle')}</p>
-          <input
-            ref={searchRef}
-            type="text"
-            className="rp-search"
-            placeholder={t('searchPlaceholder')}
-            value={query}
-            onChange={event => setQuery(event.target.value)}
-            aria-label={t('searchPlaceholder')}
-          />
-          {filtered.length === 0 ? (
-            <p className="rp-empty">{t('noRegionsFound')}</p>
+          {regions.length === 0 ? (
+            <p className="rp-empty">{t('regionsUnavailable')}</p>
           ) : (
             <ul className="rp-list" role="listbox" aria-label={t('regionLabel')}>
-              {filtered.map(region => {
+              {regions.map(region => {
                 const value = region.quality_status === 'valid' ? formatNo2Value(region.value_mean, locale) : ''
                 const isSelected = region.region_code === selectedRegionCode
                 return (

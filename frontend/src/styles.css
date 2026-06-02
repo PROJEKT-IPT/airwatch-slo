@@ -601,17 +601,6 @@ select {
   font-size: 0.9rem;
 }
 
-.rp-search {
-  width: 100%;
-  min-height: 38px;
-  padding: 0 12px;
-  border: 1px solid rgba(47, 58, 85, 0.18);
-  border-radius: 8px;
-  background: var(--plate-white);
-  color: var(--blueberry-skin);
-  font: inherit;
-}
-
 .rp-list {
   margin: 0;
   padding: 0;
@@ -675,8 +664,7 @@ select {
 }
 
 .region-picker-trigger:focus-visible,
-.rp-option:focus-visible,
-.rp-search:focus-visible {
+.rp-option:focus-visible {
   outline: 2px solid var(--berry-bloom);
   outline-offset: 2px;
 }
