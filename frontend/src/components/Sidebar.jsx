@@ -82,15 +82,6 @@ function Icon({ name }) {
           <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H13v16h5.5A2.5 2.5 0 0 1 21 21.5z" />
         </svg>
       )
-    case 'satellite':
-      return (
-        <svg {...props}>
-          <path d="M5 11l3-3 4 4-3 3a2.8 2.8 0 0 1-4-4z" />
-          <path d="M9 7l2.5-2.5a2 2 0 0 1 2.8 0L16 6.2a2 2 0 0 1 0 2.8L13.5 11.5" />
-          <path d="M14 14a4 4 0 0 0 0-4" />
-          <path d="M16.5 16.5a7 7 0 0 0 0-7" />
-        </svg>
-      )
     case 'about':
       return (
         <svg {...props}>
@@ -140,8 +131,8 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
   return (
     <aside className="sidebar">
       <div className="brand-block">
-        <div className="brand-mark" aria-hidden="true">
-          <Icon name="satellite" />
+        <div className="brand-mark">
+          <img src="/logo_airwatch.png" alt="AirWatch SLO" width="46" height="46" />
         </div>
         <div className="brand-text">
           <h1>AirWatch SLO</h1>
