@@ -6,6 +6,7 @@ function LatestMeasurementCard({
   isLoading,
   error,
   hasRegion,
+  rank = null,
 }) {
   const { t, locale } = useLanguage()
 
@@ -66,13 +67,10 @@ function LatestMeasurementCard({
 
           <div className="metric-meta-grid">
             <InfoTile label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
-            <InfoTile label={t('qaThreshold')} value={formatNumber(measurement.qa_threshold, t, locale)} t={t} />
             <InfoTile label={t('measurementTime')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
             <InfoTile
-              label={t('productSource')}
-              value={formatProductLabel(measurement.source_product_name, t)}
-              detail={measurement.source_product_name}
-              wide
+              label={t('rankLabel')}
+              value={rank ? `#${rank.rank} / ${rank.total}` : t('noData')}
               t={t}
             />
           </div>
@@ -127,7 +125,6 @@ function UnavailableMeasurementState({ title, text, measurement, t, locale }) {
       <p>{text}</p>
       <div className="metric-meta-grid">
         <InfoTile label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
-        <InfoTile label={t('qaThreshold')} value={formatNumber(measurement.qa_threshold, t, locale)} t={t} />
         <InfoTile label={t('measurementTime')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
         <InfoTile label={t('status')} value={formatQualityStatus(measurement.quality_status, t)} t={t} />
       </div>
@@ -169,12 +166,6 @@ function formatQualityStatus(status, t) {
   return t('unknown')
 }
 
-function formatProductLabel(sourceProductName, t) {
-  if (!sourceProductName) return t('noData')
-  if (sourceProductName.includes('S5P') && sourceProductName.includes('NO2')) return 'Sentinel-5P OFFL L2 NO2'
-  return sourceProductName
-}
-
 function formatNo2Value(value, t, locale) {
   if (value === null || value === undefined || value === '') return t('noData')
 
@@ -185,15 +176,6 @@ function formatNo2Value(value, t, locale) {
   const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
   const mantissa = numberValue / 10 ** exponent
   return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
-}
-
-function formatNumber(value, t, locale) {
-  if (value === null || value === undefined || value === '') return t('noData')
-
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return String(value)
-
-  return numberValue.toLocaleString(locale, { maximumSignificantDigits: 6 })
 }
 
 function formatInteger(value, t, locale) {

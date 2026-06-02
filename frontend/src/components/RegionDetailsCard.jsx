@@ -99,19 +99,32 @@ function MeasurementDetails({ measurement, t, locale, includeValue }) {
       <DetailRow label={t('measurementEnd')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
       <DetailRow label={t('processingRunId')} value={formatInteger(measurement.processing_run_id, t, locale)} t={t} />
       <DetailRow label={t('dataSource')} value="Sentinel-5P / Copernicus" t={t} />
-      <DetailRow label={t('productSource')} value={measurement.source_product_name || t('noData')} t={t} />
+      <DetailRow
+        label={t('productSource')}
+        value={shortenProduct(measurement.source_product_name, t)}
+        title={measurement.source_product_name}
+        t={t}
+      />
       <DetailRow label={t('productId')} value={measurement.source_product_id || t('noData')} t={t} />
     </dl>
   )
 }
 
-function DetailRow({ label, value, t }) {
+function DetailRow({ label, value, title, t }) {
   return (
     <div className="detail-row">
       <dt>{label}</dt>
-      <dd>{value ?? t('noData')}</dd>
+      <dd title={title || undefined}>{value ?? t('noData')}</dd>
     </div>
   )
+}
+
+// Long Sentinel-5P .nc filenames break the layout; show a friendly label and
+// keep the full name available on hover (title attribute).
+function shortenProduct(name, t) {
+  if (!name) return t('noData')
+  if (name.includes('S5P') && name.includes('NO2')) return 'Sentinel-5P OFFL L2 NO2'
+  return name
 }
 
 function formatQualityStatus(status, t) {

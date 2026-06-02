@@ -40,7 +40,7 @@ select {
 .dashboard-shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 232px minmax(0, 1fr);
   background: var(--plate-white);
 }
 
@@ -94,23 +94,23 @@ select {
 
 .language-switcher {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin: 18px 0 22px;
-  padding: 4px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 14px 0 18px;
+  padding: 3px;
   border: 1px solid rgba(245, 246, 243, 0.14);
   border-radius: 8px;
   background: rgba(245, 246, 243, 0.06);
 }
 
 .language-option {
-  min-height: 34px;
+  min-height: 28px;
   border: 0;
   border-radius: 6px;
   color: rgba(245, 246, 243, 0.72);
   background: transparent;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
 }
@@ -425,10 +425,22 @@ select {
   align-items: start;
 }
 
-/* Region map gets more height when it is the focused view */
-.map-view .regional-leaflet-map {
-  height: 460px;
-  min-height: 460px;
+/* Map-first overview: large central map + compact summary panel */
+.overview {
+  display: grid;
+  gap: 18px;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.overview-grid .regional-leaflet-map {
+  height: 480px;
+  min-height: 480px;
 }
 
 /* Editorial sections with a clear heading and lead-in */
@@ -1323,7 +1335,7 @@ select {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .dashboard-hero,
+  .overview-grid,
   .section-grid--analysis,
   .section-grid--details {
     grid-template-columns: 1fr;

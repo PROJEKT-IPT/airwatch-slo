@@ -189,9 +189,18 @@ function Dashboard({ activeView = 'overview' }) {
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
+  // Relative rank of the selected region among regions with a valid value.
+  const rankInfo = useMemo(() => {
+    const valid = regionSummaries.filter(
+      region => region.quality_status === 'valid' && Number.isFinite(Number(region.value_mean)),
+    )
+    const sorted = [...valid].sort((left, right) => Number(right.value_mean) - Number(left.value_mean))
+    const index = sorted.findIndex(region => region.region_code === selectedRegionCode)
+    return index >= 0 ? { rank: index + 1, total: sorted.length } : null
+  }, [regionSummaries, selectedRegionCode])
+
   const viewMeta = {
     overview: { title: t('dashboardTitle'), lead: t('dashboardSubtitle') },
-    map: { title: t('navMap'), lead: t('mapViewLead') },
     trend: { title: t('navTrend'), lead: t('trendViewLead') },
     comparison: { title: t('navComparison'), lead: t('comparisonViewLead') },
     data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
@@ -238,24 +247,19 @@ function Dashboard({ activeView = 'overview' }) {
       </header>
 
       {activeView === 'overview' && (
-        <section className="dashboard-hero" aria-label={t('heroAria')}>
-          <div className="hero-primary">
-            {regionSelect}
+        <section className="overview" aria-label={t('heroAria')}>
+          {regionSelect}
+          <div className="overview-grid">
+            {regionalMap}
             <LatestMeasurementCard
               measurement={measurement}
               selectedRegion={selectedSummary}
               isLoading={isLoadingDetail}
               error={detailError}
               hasRegion={Boolean(selectedRegionCode)}
+              rank={rankInfo}
             />
           </div>
-          {regionalMap}
-        </section>
-      )}
-
-      {activeView === 'map' && (
-        <section className="dashboard-view map-view" aria-label={t('mapAria')}>
-          {regionalMap}
         </section>
       )}
 

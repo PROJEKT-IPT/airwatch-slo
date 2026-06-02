@@ -5,7 +5,6 @@ function Sidebar({ activeView = 'dashboard', onViewChange }) {
   // Each item switches the main content area to a focused view (no scrolling).
   const navigationItems = [
     { id: 'overview', label: t('navOverview') },
-    { id: 'map', label: t('navMap') },
     { id: 'trend', label: t('navTrend') },
     { id: 'comparison', label: t('navComparison') },
     { id: 'data', label: t('navDataExport') },
