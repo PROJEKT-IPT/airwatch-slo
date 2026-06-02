@@ -180,18 +180,6 @@ function Dashboard({ activeView = 'overview' }) {
   )
   const csvExportUrl = selectedRegionCode ? getRegionCsvExportUrl(selectedRegionCode) : ''
 
-  const latestRefreshAt = useMemo(() => {
-    let newest = null
-    for (const item of regionSummaries) {
-      const ts = item?.measurement_end_time
-      if (!ts) continue
-      const date = new Date(ts)
-      if (Number.isNaN(date.getTime())) continue
-      if (!newest || date > newest) newest = date
-    }
-    return newest
-  }, [regionSummaries])
-
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
   // Relative rank of the selected region among regions with a valid value.
@@ -243,7 +231,6 @@ function Dashboard({ activeView = 'overview' }) {
           <h1>{meta.title}</h1>
           <p className="dashboard-subtitle">{meta.lead}</p>
         </div>
-        <SourceCard latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
       </header>
 
       {activeView === 'overview' && (
@@ -319,70 +306,6 @@ function Dashboard({ activeView = 'overview' }) {
   )
 }
 
-// Compact info card (top-right of the header): data source + latest
-// measurement time + freshness + a subtle not-real-time note.
-function SourceCard({ latestRefreshAt, isLoading, t, locale }) {
-  const ageDays = latestRefreshAt
-    ? Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
-    : null
-  const stale = ageDays !== null && ageDays >= 8
-  const absolute = latestRefreshAt ? formatDateTime(latestRefreshAt.toISOString(), t, locale) : null
-
-  return (
-    <aside className={`source-card${stale ? ' source-card--stale' : ''}`}>
-      <div className="source-field">
-        <span className="source-label">
-          <SourceIcon name="signal" />
-          {t('dataSource')}
-        </span>
-        <strong className="source-value">Copernicus Sentinel-5P</strong>
-      </div>
-      <div className="source-field">
-        <span className="source-label">
-          <SourceIcon name="clock" />
-          {t('latestMeasurement')}
-        </span>
-        <strong className="source-value">
-          {isLoading ? t('loading') : absolute || t('noData')}
-          {ageDays !== null ? <em className="source-age"> · {formatRelativeAgeDays(ageDays, t)}</em> : null}
-        </strong>
-      </div>
-      <p className="source-note">{t('notRealTimeNote')}</p>
-    </aside>
-  )
-}
-
-// Small inline icons used in the source/freshness card label rows.
-function SourceIcon({ name }) {
-  const props = {
-    className: 'source-icon',
-    width: 14,
-    height: 14,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 2,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-    'aria-hidden': true,
-  }
-  if (name === 'clock') {
-    return (
-      <svg {...props}>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 2" />
-      </svg>
-    )
-  }
-  return (
-    <svg {...props}>
-      <circle cx="12" cy="12" r="2" />
-      <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7" />
-      <path d="M6 6a8 8 0 0 0 0 12M18 6a8 8 0 0 1 0 12" />
-    </svg>
-  )
-}
-
 function qualityChip(status, t) {
   if (status === 'valid') return { label: t('valid'), className: 'quality-valid' }
   if (status === 'no_valid_pixels') return { label: t('noValidPixels'), className: 'quality-empty' }
@@ -412,24 +335,6 @@ function RegionChips({ selectedRegion, measurement, locale, t }) {
       ) : null}
     </div>
   )
-}
-
-function formatRelativeAgeDays(ageDays, t) {
-  if (ageDays <= 0) return t('today')
-  if (ageDays === 1) return t('yesterday')
-  return t('daysAgo', { count: ageDays })
-}
-
-function formatDateTime(value, t, locale) {
-  if (!value) return t('noData')
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
 }
 
 export default Dashboard
