@@ -228,15 +228,125 @@ select {
 .dashboard-header h1 {
   margin: 0;
   color: var(--blueberry-skin);
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  line-height: 1;
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  line-height: 1.15;
   letter-spacing: 0;
 }
 
 .dashboard-subtitle {
-  margin: 12px 0 0;
+  margin: 8px 0 0;
+  max-width: 60ch;
   color: var(--stem-grey);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Compact source / freshness info card (top-right of the header) */
+.source-card {
+  flex: 0 0 auto;
+  min-width: 230px;
+  max-width: 300px;
+  display: grid;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(47, 58, 85, 0.04);
+}
+
+.source-card--stale {
+  border-color: #d8a55a;
+  background: rgba(247, 220, 168, 0.28);
+}
+
+.source-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.source-row .status-dot {
+  margin-top: 6px;
+}
+
+.source-field {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.source-label {
+  color: var(--berry-bloom);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.source-value {
+  color: var(--blueberry-skin);
+  font-size: 0.92rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.source-age {
+  color: var(--stem-grey);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.source-note {
+  margin: 2px 0 0;
+  color: var(--stem-grey);
+  font-size: 0.74rem;
+}
+
+/* Region control bar: picker (main action) + supporting chips */
+.region-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  margin-bottom: 18px;
+}
+
+.region-bar .region-picker {
+  flex: 0 1 360px;
+}
+
+.region-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.region-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(92, 107, 138, 0.1);
+  color: var(--blueberry-skin);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.region-chip.quality-valid {
+  color: var(--success-text);
+  background: var(--success-bg);
+}
+
+.region-chip.quality-empty {
+  color: var(--neutral-text);
+  background: var(--neutral-bg);
+}
+
+.region-chip.quality-error {
+  color: var(--error-text);
+  background: var(--error-bg);
 }
 
 .header-status {

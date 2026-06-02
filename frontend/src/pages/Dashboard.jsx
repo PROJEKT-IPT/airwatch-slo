@@ -238,18 +238,15 @@ function Dashboard({ activeView = 'overview' }) {
           <h1>{meta.title}</h1>
           <p className="dashboard-subtitle">{meta.lead}</p>
         </div>
-        <div className="header-status-group">
-          <div className="header-status">
-            <span className="status-dot" />
-            <span>Copernicus Sentinel-5P</span>
-          </div>
-          <FreshnessBadge latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
-        </div>
+        <SourceCard latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
       </header>
 
       {activeView === 'overview' && (
         <section className="overview" aria-label={t('heroAria')}>
-          {regionSelect}
+          <div className="region-bar">
+            {regionSelect}
+            <RegionChips selectedRegion={selectedSummary} measurement={measurement} locale={locale} t={t} />
+          </div>
           <div className="overview-grid">
             {regionalMap}
             <LatestMeasurementCard
@@ -317,35 +314,65 @@ function Dashboard({ activeView = 'overview' }) {
   )
 }
 
-function FreshnessBadge({ latestRefreshAt, isLoading, t, locale }) {
-  if (isLoading) {
-    return (
-      <div className="freshness-badge freshness-badge--loading" aria-live="polite">
-        <span className="freshness-badge-label">{t('latestMeasurement')}</span>
-        <span className="freshness-badge-value">{t('loading')}</span>
-      </div>
-    )
-  }
-
-  if (!latestRefreshAt) {
-    return (
-      <div className="freshness-badge freshness-badge--missing">
-        <span className="freshness-badge-label">{t('latestMeasurement')}</span>
-        <span className="freshness-badge-value">{t('noData')}</span>
-      </div>
-    )
-  }
-
-  const ageDays = Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
-  const stale = ageDays >= 8
-  const className = stale ? 'freshness-badge freshness-badge--stale' : 'freshness-badge'
-  const absolute = formatDateTime(latestRefreshAt.toISOString(), t, locale)
+// Compact info card (top-right of the header): data source + latest
+// measurement time + freshness + a subtle not-real-time note.
+function SourceCard({ latestRefreshAt, isLoading, t, locale }) {
+  const ageDays = latestRefreshAt
+    ? Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
+    : null
+  const stale = ageDays !== null && ageDays >= 8
+  const absolute = latestRefreshAt ? formatDateTime(latestRefreshAt.toISOString(), t, locale) : null
 
   return (
-    <div className={className} title={absolute}>
-      <span className="freshness-badge-label">{t('latestMeasurement')}</span>
-      <span className="freshness-badge-value">{formatRelativeAgeDays(ageDays, t)}</span>
-      <em className="freshness-badge-absolute">{absolute}</em>
+    <aside className={`source-card${stale ? ' source-card--stale' : ''}`}>
+      <div className="source-row">
+        <span className="status-dot" aria-hidden="true" />
+        <div className="source-field">
+          <span className="source-label">{t('dataSource')}</span>
+          <strong className="source-value">Copernicus Sentinel-5P</strong>
+        </div>
+      </div>
+      <div className="source-row">
+        <div className="source-field">
+          <span className="source-label">{t('latestMeasurement')}</span>
+          <strong className="source-value">
+            {isLoading ? t('loading') : absolute || t('noData')}
+            {ageDays !== null ? <em className="source-age"> · {formatRelativeAgeDays(ageDays, t)}</em> : null}
+          </strong>
+        </div>
+      </div>
+      <p className="source-note">{t('notRealTimeNote')}</p>
+    </aside>
+  )
+}
+
+function qualityChip(status, t) {
+  if (status === 'valid') return { label: t('valid'), className: 'quality-valid' }
+  if (status === 'no_valid_pixels') return { label: t('noValidPixels'), className: 'quality-empty' }
+  if (status === 'processing_error') return { label: t('processingError'), className: 'quality-error' }
+  return { label: t('unknown'), className: 'quality-empty' }
+}
+
+// Small supporting chips next to the region picker for the selected region.
+function RegionChips({ selectedRegion, measurement, locale, t }) {
+  const code = selectedRegion?.region_code || measurement?.region_code
+  if (!code) return null
+
+  const status = selectedRegion?.quality_status ?? measurement?.quality_status
+  const pixels = selectedRegion?.pixel_count_valid ?? measurement?.pixel_count_valid
+  const qa = measurement?.qa_threshold
+  const statusInfo = status ? qualityChip(status, t) : null
+
+  return (
+    <div className="region-chips">
+      <span className="region-chip">{code}</span>
+      {statusInfo ? <span className={`region-chip ${statusInfo.className}`}>{statusInfo.label}</span> : null}
+      {Number.isFinite(Number(pixels)) ? (
+        <span className="region-chip">{Number(pixels).toLocaleString(locale)} px</span>
+      ) : null}
+      {qa !== null && qa !== undefined ? (
+        <span className="region-chip">QA {Number(qa).toLocaleString(locale, { maximumFractionDigits: 2 })}</span>
+      ) : null}
     </div>
   )
 }
