@@ -330,24 +330,56 @@ function SourceCard({ latestRefreshAt, isLoading, t, locale }) {
 
   return (
     <aside className={`source-card${stale ? ' source-card--stale' : ''}`}>
-      <div className="source-row">
-        <span className="status-dot" aria-hidden="true" />
-        <div className="source-field">
-          <span className="source-label">{t('dataSource')}</span>
-          <strong className="source-value">Copernicus Sentinel-5P</strong>
-        </div>
+      <div className="source-field">
+        <span className="source-label">
+          <SourceIcon name="signal" />
+          {t('dataSource')}
+        </span>
+        <strong className="source-value">Copernicus Sentinel-5P</strong>
       </div>
-      <div className="source-row">
-        <div className="source-field">
-          <span className="source-label">{t('latestMeasurement')}</span>
-          <strong className="source-value">
-            {isLoading ? t('loading') : absolute || t('noData')}
-            {ageDays !== null ? <em className="source-age"> · {formatRelativeAgeDays(ageDays, t)}</em> : null}
-          </strong>
-        </div>
+      <div className="source-field">
+        <span className="source-label">
+          <SourceIcon name="clock" />
+          {t('latestMeasurement')}
+        </span>
+        <strong className="source-value">
+          {isLoading ? t('loading') : absolute || t('noData')}
+          {ageDays !== null ? <em className="source-age"> · {formatRelativeAgeDays(ageDays, t)}</em> : null}
+        </strong>
       </div>
       <p className="source-note">{t('notRealTimeNote')}</p>
     </aside>
+  )
+}
+
+// Small inline icons used in the source/freshness card label rows.
+function SourceIcon({ name }) {
+  const props = {
+    className: 'source-icon',
+    width: 14,
+    height: 14,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  }
+  if (name === 'clock') {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...props}>
+      <circle cx="12" cy="12" r="2" />
+      <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M6 6a8 8 0 0 0 0 12M18 6a8 8 0 0 1 0 12" />
+    </svg>
   )
 }
 

@@ -82,12 +82,13 @@ function Icon({ name }) {
           <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H13v16h5.5A2.5 2.5 0 0 1 21 21.5z" />
         </svg>
       )
-    case 'globe':
+    case 'satellite':
       return (
         <svg {...props}>
-          <circle cx="12" cy="12" r="9" />
-          <path d="M3 12h18" />
-          <path d="M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" />
+          <path d="M5 11l3-3 4 4-3 3a2.8 2.8 0 0 1-4-4z" />
+          <path d="M9 7l2.5-2.5a2 2 0 0 1 2.8 0L16 6.2a2 2 0 0 1 0 2.8L13.5 11.5" />
+          <path d="M14 14a4 4 0 0 0 0-4" />
+          <path d="M16.5 16.5a7 7 0 0 0 0-7" />
         </svg>
       )
     case 'about':
@@ -139,7 +140,9 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
   return (
     <aside className="sidebar">
       <div className="brand-block">
-        <div className="brand-mark">AW</div>
+        <div className="brand-mark" aria-hidden="true">
+          <Icon name="satellite" />
+        </div>
         <div className="brand-text">
           <h1>AirWatch SLO</h1>
           <p>{t('brandSubtitle')}</p>
@@ -149,9 +152,6 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
       <div className="sidebar-divider" />
 
       <div className="language-switcher" role="group" aria-label={t('languageToggleLabel')}>
-        <span className="language-globe" aria-hidden="true">
-          <Icon name="globe" />
-        </span>
         {supportedLanguages.map((option, index) => (
           <Fragment key={option.code}>
             {index > 0 ? <span className="language-sep" aria-hidden="true">·</span> : null}

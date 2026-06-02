@@ -61,7 +61,7 @@ function LatestMeasurementCard({
       ) : (
         <>
           <div className="metric-value-block">
-            <span className="metric-value">{formatNo2Value(measurement.value_mean, t, locale)}</span>
+            <No2Value value={measurement.value_mean} t={t} locale={locale} />
             <span className="metric-unit">{measurement.unit || 'mol/m2'}</span>
           </div>
 
@@ -71,6 +71,11 @@ function LatestMeasurementCard({
             <InfoTile
               label={t('rankLabel')}
               value={rank ? `#${rank.rank} / ${rank.total}` : t('noData')}
+              t={t}
+            />
+            <InfoTile
+              label={t('qaThreshold')}
+              value={formatQaThreshold(measurement.qa_threshold, t, locale)}
               t={t}
             />
           </div>
@@ -166,16 +171,40 @@ function formatQualityStatus(status, t) {
   return t('unknown')
 }
 
-function formatNo2Value(value, t, locale) {
+// Renders the headline NO₂ value with a real superscript exponent
+// (e.g. 2,7 × 10⁻⁵) instead of an inline "x 10^-5" string.
+function No2Value({ value, t, locale }) {
+  if (value === null || value === undefined || value === '') {
+    return <span className="metric-value">{t('noData')}</span>
+  }
+
+  const numberValue = Number(value)
+  if (!Number.isFinite(numberValue)) {
+    return <span className="metric-value">{String(value)}</span>
+  }
+  if (numberValue === 0) {
+    return <span className="metric-value">0</span>
+  }
+
+  const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
+  const mantissa = numberValue / 10 ** exponent
+
+  return (
+    <span className="metric-value">
+      {mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })}
+      <span className="metric-value-sci"> × 10</span>
+      <sup className="metric-value-exp">{exponent}</sup>
+    </span>
+  )
+}
+
+function formatQaThreshold(value, t, locale) {
   if (value === null || value === undefined || value === '') return t('noData')
 
   const numberValue = Number(value)
   if (!Number.isFinite(numberValue)) return String(value)
-  if (numberValue === 0) return '0'
 
-  const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
-  const mantissa = numberValue / 10 ** exponent
-  return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
+  return numberValue.toLocaleString(locale, { maximumFractionDigits: 2 })
 }
 
 function formatInteger(value, t, locale) {
