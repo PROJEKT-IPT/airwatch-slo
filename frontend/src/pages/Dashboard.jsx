@@ -181,6 +181,19 @@ function Dashboard({ activeView = 'overview' }) {
   )
   const csvExportUrl = selectedRegionCode ? getRegionCsvExportUrl(selectedRegionCode) : ''
 
+  // Newest processed measurement time across regions (drives the freshness line).
+  const latestRefreshAt = useMemo(() => {
+    let newest = null
+    for (const item of regionSummaries) {
+      const ts = item?.measurement_end_time
+      if (!ts) continue
+      const date = new Date(ts)
+      if (Number.isNaN(date.getTime())) continue
+      if (!newest || date > newest) newest = date
+    }
+    return newest
+  }, [regionSummaries])
+
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
   // Relative rank of the selected region among regions with a valid value.
@@ -237,10 +250,18 @@ function Dashboard({ activeView = 'overview' }) {
 
       {activeView === 'overview' && (
         <section className="overview" aria-label={t('heroAria')}>
-          <div className="region-bar">
-            {regionSelect}
-            <RegionChips selectedRegion={selectedSummary} measurement={measurement} locale={locale} t={t} />
-          </div>
+          <aside className="context-panel">
+            <RegionSelect
+              regions={regionSummaries}
+              selectedRegionCode={selectedRegionCode}
+              onRegionChange={setSelectedRegionCode}
+              isLoading={isLoadingRegions}
+              error={regionsError}
+              embedded
+            />
+            <div className="context-divider" />
+            <SourceInfo latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
+          </aside>
           <div className="overview-grid">
             {regionalMap}
             <LatestMeasurementCard
@@ -310,35 +331,85 @@ function Dashboard({ activeView = 'overview' }) {
   )
 }
 
-function qualityChip(status, t) {
-  if (status === 'valid') return { label: t('valid'), className: 'quality-valid' }
-  if (status === 'no_valid_pixels') return { label: t('noValidPixels'), className: 'quality-empty' }
-  if (status === 'processing_error') return { label: t('processingError'), className: 'quality-error' }
-  return { label: t('unknown'), className: 'quality-empty' }
-}
-
-// Small supporting chips next to the region picker for the selected region.
-function RegionChips({ selectedRegion, measurement, locale, t }) {
-  const code = selectedRegion?.region_code || measurement?.region_code
-  if (!code) return null
-
-  const status = selectedRegion?.quality_status ?? measurement?.quality_status
-  const pixels = selectedRegion?.pixel_count_valid ?? measurement?.pixel_count_valid
-  const qa = measurement?.qa_threshold
-  const statusInfo = status ? qualityChip(status, t) : null
+// Data source + latest-measurement freshness, shown below the region picker
+// in the overview context panel. Informational, not a warning.
+function SourceInfo({ latestRefreshAt, isLoading, t, locale }) {
+  const ageDays = latestRefreshAt
+    ? Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
+    : null
+  const absolute = latestRefreshAt ? formatDateTime(latestRefreshAt.toISOString(), t, locale) : null
 
   return (
-    <div className="region-chips">
-      <span className="region-chip">{code}</span>
-      {statusInfo ? <span className={`region-chip ${statusInfo.className}`}>{statusInfo.label}</span> : null}
-      {Number.isFinite(Number(pixels)) ? (
-        <span className="region-chip">{Number(pixels).toLocaleString(locale)} px</span>
-      ) : null}
-      {qa !== null && qa !== undefined ? (
-        <span className="region-chip">QA {Number(qa).toLocaleString(locale, { maximumFractionDigits: 2 })}</span>
-      ) : null}
+    <div className="source-info">
+      <div className="source-field">
+        <span className="source-label">
+          <SourceIcon name="signal" />
+          {t('dataSource')}
+        </span>
+        <strong className="source-value">Copernicus Sentinel-5P</strong>
+      </div>
+      <div className="source-field">
+        <span className="source-label">
+          <SourceIcon name="clock" />
+          {t('latestMeasurement')}
+        </span>
+        <strong className="source-value">
+          {isLoading ? t('loading') : absolute || t('noData')}
+          {ageDays !== null ? <em className="source-age"> · {formatRelativeAgeDays(ageDays, t)}</em> : null}
+        </strong>
+      </div>
+      <p className="source-note">{t('notRealTimeNote')}</p>
     </div>
   )
+}
+
+// Small inline icons used in the source/freshness label rows.
+function SourceIcon({ name }) {
+  const props = {
+    className: 'source-icon',
+    width: 14,
+    height: 14,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    'aria-hidden': true,
+  }
+  if (name === 'clock') {
+    return (
+      <svg {...props}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3 2" />
+      </svg>
+    )
+  }
+  return (
+    <svg {...props}>
+      <circle cx="12" cy="12" r="2" />
+      <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7" />
+      <path d="M6 6a8 8 0 0 0 0 12M18 6a8 8 0 0 1 0 12" />
+    </svg>
+  )
+}
+
+function formatRelativeAgeDays(ageDays, t) {
+  if (ageDays <= 0) return t('today')
+  if (ageDays === 1) return t('yesterday')
+  return t('daysAgo', { count: ageDays })
+}
+
+function formatDateTime(value, t, locale) {
+  if (!value) return t('noData')
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 export default Dashboard

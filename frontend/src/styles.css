@@ -322,23 +322,84 @@ select {
   line-height: 1.5;
 }
 
-/* Region control bar: picker (main action) + supporting chips */
-.region-bar {
+/* Overview context panel: region picker + data-source / freshness info */
+.context-panel {
+  width: 100%;
+  max-width: 420px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 1px 2px rgba(29, 61, 41, 0.04);
+  display: grid;
+  gap: 14px;
+}
+
+.context-divider {
+  height: 1px;
+  background: var(--line);
+}
+
+.source-info {
+  display: grid;
+  gap: 10px;
+}
+
+.source-field {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.source-label {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 14px 18px;
-  margin-bottom: 18px;
+  gap: 6px;
+  color: var(--berry-bloom);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.region-bar .region-picker {
-  flex: 0 1 360px;
+.source-icon {
+  flex: 0 0 auto;
+  color: var(--accent-green);
 }
 
-.region-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.source-value {
+  color: var(--blueberry-skin);
+  font-size: 0.92rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.source-age {
+  color: var(--stem-grey);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.source-note {
+  margin: 0;
+  color: var(--stem-grey);
+  font-size: 0.74rem;
+}
+
+/* Region picker rendered without its own card chrome (inside context panel).
+   Higher specificity than the shared .region-picker card rule so the reset
+   wins regardless of source order. */
+.region-picker.region-picker--embedded {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.region-picker.region-picker--embedded .region-picker-popover {
+  left: 0;
+  right: 0;
 }
 
 .region-chip {
@@ -1633,6 +1694,7 @@ select {
 }
 
 html.a11y-high-contrast .card,
+html.a11y-high-contrast .context-panel,
 html.a11y-high-contrast .region-select,
 html.a11y-high-contrast .region-picker,
 html.a11y-high-contrast .metadata-strip,
