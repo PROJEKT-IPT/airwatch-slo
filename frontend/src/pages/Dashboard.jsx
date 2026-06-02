@@ -250,18 +250,6 @@ function Dashboard({ activeView = 'overview' }) {
 
       {activeView === 'overview' && (
         <section className="overview" aria-label={t('heroAria')}>
-          <aside className="context-panel">
-            <RegionSelect
-              regions={regionSummaries}
-              selectedRegionCode={selectedRegionCode}
-              onRegionChange={setSelectedRegionCode}
-              isLoading={isLoadingRegions}
-              error={regionsError}
-              embedded
-            />
-            <div className="context-divider" />
-            <SourceInfo latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
-          </aside>
           <div className="overview-grid">
             {regionalMap}
             <LatestMeasurementCard
@@ -271,6 +259,19 @@ function Dashboard({ activeView = 'overview' }) {
               error={detailError}
               hasRegion={Boolean(selectedRegionCode)}
               rank={rankInfo}
+              regionSelect={
+                <RegionSelect
+                  regions={regionSummaries}
+                  selectedRegionCode={selectedRegionCode}
+                  onRegionChange={setSelectedRegionCode}
+                  isLoading={isLoadingRegions}
+                  error={regionsError}
+                  embedded
+                />
+              }
+              sourceInfo={
+                <SourceInfo latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
+              }
             />
           </div>
         </section>

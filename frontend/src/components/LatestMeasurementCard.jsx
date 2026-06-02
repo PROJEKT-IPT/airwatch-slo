@@ -7,80 +7,85 @@ function LatestMeasurementCard({
   error,
   hasRegion,
   rank = null,
+  regionSelect = null,
+  sourceInfo = null,
 }) {
   const { t, locale } = useLanguage()
 
-  if (!hasRegion) {
+  function renderBody() {
+    if (!hasRegion) {
+      return <EmptyState title={t('noRegionSelected')} text={t('selectRegionForMeasurement')} />
+    }
+    if (isLoading) {
+      return <LoadingState title={t('loadingLatestMeasurement')} />
+    }
+    if (error) {
+      return <ErrorState title={t('measurementLoadErrorTitle')} text={error} />
+    }
+    if (!measurement) {
+      return <EmptyState title={t('noStoredMeasurementTitle')} text={t('noStoredMeasurementText')} />
+    }
+
+    const status = getQualityStatus(measurement.quality_status, t)
+    const missingDataState = getMissingDataState(measurement, t)
+    const regionName = measurement.region_name || selectedRegion?.region_name || t('selectedRegion')
+
     return (
-      <article className="card metric-card">
-        <EmptyState title={t('noRegionSelected')} text={t('selectRegionForMeasurement')} />
-      </article>
+      <>
+        <div className="card-heading">
+          <div>
+            <p className="section-kicker">{t('latestValidMeasurement')}</p>
+            <h2>{regionName}</h2>
+          </div>
+          <span className={`quality-badge ${status.className}`}>{status.label}</span>
+        </div>
+
+        {missingDataState ? (
+          <UnavailableMeasurementState title={missingDataState.title} text={missingDataState.text} measurement={measurement} t={t} locale={locale} />
+        ) : (
+          <>
+            <div className="metric-value-block">
+              <No2Value value={measurement.value_mean} t={t} locale={locale} />
+              <span className="metric-unit">{measurement.unit || 'mol/m2'}</span>
+            </div>
+
+            <div className="metric-meta-grid">
+              <InfoTile label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
+              <InfoTile label={t('measurementTime')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
+              <InfoTile
+                label={t('rankLabel')}
+                value={rank ? `#${rank.rank} / ${rank.total}` : t('noData')}
+                t={t}
+              />
+              <InfoTile
+                label={t('qaThreshold')}
+                value={formatQaThreshold(measurement.qa_threshold, t, locale)}
+                t={t}
+              />
+            </div>
+          </>
+        )}
+      </>
     )
   }
-
-  if (isLoading) {
-    return (
-      <article className="card metric-card">
-        <LoadingState title={t('loadingLatestMeasurement')} />
-      </article>
-    )
-  }
-
-  if (error) {
-    return (
-      <article className="card metric-card">
-        <ErrorState title={t('measurementLoadErrorTitle')} text={error} />
-      </article>
-    )
-  }
-
-  if (!measurement) {
-    return (
-      <article className="card metric-card">
-        <EmptyState title={t('noStoredMeasurementTitle')} text={t('noStoredMeasurementText')} />
-      </article>
-    )
-  }
-
-  const status = getQualityStatus(measurement.quality_status, t)
-  const missingDataState = getMissingDataState(measurement, t)
-  const regionName = measurement.region_name || selectedRegion?.region_name || t('selectedRegion')
 
   return (
     <article className="card metric-card">
-      <div className="card-heading">
-        <div>
-          <p className="section-kicker">{t('latestValidMeasurement')}</p>
-          <h2>{regionName}</h2>
-        </div>
-        <span className={`quality-badge ${status.className}`}>{status.label}</span>
-      </div>
-
-      {missingDataState ? (
-        <UnavailableMeasurementState title={missingDataState.title} text={missingDataState.text} measurement={measurement} t={t} locale={locale} />
-      ) : (
+      {regionSelect ? (
         <>
-          <div className="metric-value-block">
-            <No2Value value={measurement.value_mean} t={t} locale={locale} />
-            <span className="metric-unit">{measurement.unit || 'mol/m2'}</span>
-          </div>
-
-          <div className="metric-meta-grid">
-            <InfoTile label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
-            <InfoTile label={t('measurementTime')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
-            <InfoTile
-              label={t('rankLabel')}
-              value={rank ? `#${rank.rank} / ${rank.total}` : t('noData')}
-              t={t}
-            />
-            <InfoTile
-              label={t('qaThreshold')}
-              value={formatQaThreshold(measurement.qa_threshold, t, locale)}
-              t={t}
-            />
-          </div>
+          <div className="metric-card-picker">{regionSelect}</div>
+          <div className="context-divider" />
         </>
-      )}
+      ) : null}
+
+      <div className="metric-card-body">{renderBody()}</div>
+
+      {sourceInfo ? (
+        <>
+          <div className="context-divider" />
+          {sourceInfo}
+        </>
+      ) : null}
     </article>
   )
 }
