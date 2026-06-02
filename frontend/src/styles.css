@@ -444,7 +444,9 @@ select {
 
 .region-picker-popover {
   position: absolute;
-  z-index: 30;
+  /* Above Leaflet map panes/controls (which reach z-index ~1000), otherwise
+     the map paints over the popover's background. */
+  z-index: 1200;
   top: 100%;
   left: 16px;
   right: 16px;
