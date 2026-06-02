@@ -18,7 +18,7 @@ import TrendChart from '../components/TrendChart'
 import { useLanguage } from '../i18n'
 
 function Dashboard({ activeView = 'overview' }) {
-  const { t, locale } = useLanguage()
+  const { t } = useLanguage()
   const tRef = useRef(t)
   const [regionSummaries, setRegionSummaries] = useState([])
   const [regionGeometries, setRegionGeometries] = useState([])
@@ -181,30 +181,27 @@ function Dashboard({ activeView = 'overview' }) {
   )
   const csvExportUrl = selectedRegionCode ? getRegionCsvExportUrl(selectedRegionCode) : ''
 
-  // Newest processed measurement time across regions (drives the freshness line).
-  const latestRefreshAt = useMemo(() => {
-    let newest = null
-    for (const item of regionSummaries) {
-      const ts = item?.measurement_end_time
-      if (!ts) continue
-      const date = new Date(ts)
-      if (Number.isNaN(date.getTime())) continue
-      if (!newest || date > newest) newest = date
-    }
-    return newest
-  }, [regionSummaries])
-
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
-  // Relative rank of the selected region among regions with a valid value.
-  const rankInfo = useMemo(() => {
-    const valid = regionSummaries.filter(
-      region => region.quality_status === 'valid' && Number.isFinite(Number(region.value_mean)),
-    )
-    const sorted = [...valid].sort((left, right) => Number(right.value_mean) - Number(left.value_mean))
-    const index = sorted.findIndex(region => region.region_code === selectedRegionCode)
-    return index >= 0 ? { rank: index + 1, total: sorted.length } : null
-  }, [regionSummaries, selectedRegionCode])
+  // Relative NO₂ level of the selected region vs. the other valid regions
+  // (low / moderate / high), consistent with the map's relative coloring.
+  const concentrationLevel = useMemo(() => {
+    if (!measurement || measurement.quality_status !== 'valid') return null
+    const current = Number(measurement.value_mean)
+    if (!Number.isFinite(current)) return null
+
+    const values = regionSummaries
+      .filter(region => region.quality_status === 'valid' && Number.isFinite(Number(region.value_mean)))
+      .map(region => Number(region.value_mean))
+    if (values.length === 0) return null
+
+    const min = Math.min(...values)
+    const max = Math.max(...values)
+    const ratio = max === min ? 0.5 : (current - min) / (max - min)
+    if (ratio < 1 / 3) return 'low'
+    if (ratio < 2 / 3) return 'moderate'
+    return 'high'
+  }, [measurement, regionSummaries])
 
   const viewMeta = {
     overview: { title: t('dashboardTitle'), lead: t('dashboardSubtitle') },
@@ -254,11 +251,10 @@ function Dashboard({ activeView = 'overview' }) {
             {regionalMap}
             <LatestMeasurementCard
               measurement={measurement}
-              selectedRegion={selectedSummary}
               isLoading={isLoadingDetail}
               error={detailError}
               hasRegion={Boolean(selectedRegionCode)}
-              rank={rankInfo}
+              concentrationLevel={concentrationLevel}
               regionSelect={
                 <RegionSelect
                   regions={regionSummaries}
@@ -268,9 +264,6 @@ function Dashboard({ activeView = 'overview' }) {
                   error={regionsError}
                   embedded
                 />
-              }
-              sourceInfo={
-                <SourceInfo latestRefreshAt={latestRefreshAt} isLoading={isLoadingRegions} t={t} locale={locale} />
               }
             />
           </div>
@@ -330,87 +323,6 @@ function Dashboard({ activeView = 'overview' }) {
       )}
     </main>
   )
-}
-
-// Data source + latest-measurement freshness, shown below the region picker
-// in the overview context panel. Informational, not a warning.
-function SourceInfo({ latestRefreshAt, isLoading, t, locale }) {
-  const ageDays = latestRefreshAt
-    ? Math.floor((Date.now() - latestRefreshAt.getTime()) / (24 * 60 * 60 * 1000))
-    : null
-  const absolute = latestRefreshAt ? formatDateTime(latestRefreshAt.toISOString(), t, locale) : null
-
-  return (
-    <div className="source-info">
-      <div className="source-field">
-        <span className="source-label">
-          <SourceIcon name="signal" />
-          {t('dataSource')}
-        </span>
-        <strong className="source-value">Copernicus Sentinel-5P</strong>
-      </div>
-      <div className="source-field">
-        <span className="source-label">
-          <SourceIcon name="clock" />
-          {t('latestMeasurement')}
-        </span>
-        <strong className="source-value">
-          {isLoading ? t('loading') : absolute || t('noData')}
-          {ageDays !== null ? <em className="source-age"> · {formatRelativeAgeDays(ageDays, t)}</em> : null}
-        </strong>
-      </div>
-      <p className="source-note">{t('notRealTimeNote')}</p>
-    </div>
-  )
-}
-
-// Small inline icons used in the source/freshness label rows.
-function SourceIcon({ name }) {
-  const props = {
-    className: 'source-icon',
-    width: 14,
-    height: 14,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 2,
-    strokeLinecap: 'round',
-    strokeLinejoin: 'round',
-    'aria-hidden': true,
-  }
-  if (name === 'clock') {
-    return (
-      <svg {...props}>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M12 7v5l3 2" />
-      </svg>
-    )
-  }
-  return (
-    <svg {...props}>
-      <circle cx="12" cy="12" r="2" />
-      <path d="M8.5 8.5a5 5 0 0 0 0 7M15.5 8.5a5 5 0 0 1 0 7" />
-      <path d="M6 6a8 8 0 0 0 0 12M18 6a8 8 0 0 1 0 12" />
-    </svg>
-  )
-}
-
-function formatRelativeAgeDays(ageDays, t) {
-  if (ageDays <= 0) return t('today')
-  if (ageDays === 1) return t('yesterday')
-  return t('daysAgo', { count: ageDays })
-}
-
-function formatDateTime(value, t, locale) {
-  if (!value) return t('noData')
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
 }
 
 export default Dashboard

@@ -322,58 +322,12 @@ select {
   line-height: 1.5;
 }
 
-/* Overview metric card holds: region picker, the latest measurement, and the
-   data-source / freshness info, separated by thin dividers. */
+/* Overview metric card holds the region picker, the latest measurement and a
+   short note, separated by thin dividers. */
 .context-divider {
   height: 1px;
   margin: 16px 0;
   background: var(--line);
-}
-
-.source-info {
-  display: grid;
-  gap: 10px;
-}
-
-.source-field {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.source-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--berry-bloom);
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.source-icon {
-  flex: 0 0 auto;
-  color: var(--accent-green);
-}
-
-.source-value {
-  color: var(--blueberry-skin);
-  font-size: 0.92rem;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-
-.source-age {
-  color: var(--stem-grey);
-  font-style: normal;
-  font-weight: 600;
-}
-
-.source-note {
-  margin: 0;
-  color: var(--stem-grey);
-  font-size: 0.74rem;
 }
 
 /* Region picker rendered without its own card chrome (inside context panel).
@@ -1050,7 +1004,83 @@ select {
 }
 
 .metric-card {
-  min-height: 385px;
+  align-self: start;
+}
+
+/* Headline value + relative concentration level, split by a vertical rule */
+.metric-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  margin: 8px 0;
+}
+
+.metric-summary-row .metric-value-block {
+  margin: 0;
+}
+
+.metric-summary-row .metric-value {
+  font-size: clamp(2.1rem, 3.4vw, 3.2rem);
+}
+
+/* Relative level beside the value on wide cards, wrapping cleanly below it on
+   the narrower overview column. */
+.concentration-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.concentration-level strong {
+  color: var(--blueberry-skin);
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.conc-dot {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.conc-dot--low {
+  background: #48b36b;
+}
+
+.conc-dot--moderate {
+  background: #e0a83a;
+}
+
+.conc-dot--high {
+  background: #d95858;
+}
+
+/* Short provenance note with an info badge */
+.metric-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--stem-grey);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.metric-note-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(47, 110, 72, 0.12);
+  color: var(--success-text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-style: italic;
 }
 
 .card-heading {

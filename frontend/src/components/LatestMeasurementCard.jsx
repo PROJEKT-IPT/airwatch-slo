@@ -2,13 +2,11 @@ import { useLanguage } from '../i18n'
 
 function LatestMeasurementCard({
   measurement,
-  selectedRegion,
   isLoading,
   error,
   hasRegion,
-  rank = null,
+  concentrationLevel = null,
   regionSelect = null,
-  sourceInfo = null,
 }) {
   const { t, locale } = useLanguage()
 
@@ -26,45 +24,32 @@ function LatestMeasurementCard({
       return <EmptyState title={t('noStoredMeasurementTitle')} text={t('noStoredMeasurementText')} />
     }
 
-    const status = getQualityStatus(measurement.quality_status, t)
     const missingDataState = getMissingDataState(measurement, t)
-    const regionName = measurement.region_name || selectedRegion?.region_name || t('selectedRegion')
+    if (missingDataState) {
+      return (
+        <div className="measurement-unavailable" role="status" aria-live="polite">
+          <h3>{missingDataState.title}</h3>
+          <p>{missingDataState.text}</p>
+        </div>
+      )
+    }
 
     return (
       <>
-        <div className="card-heading">
-          <div>
-            <p className="section-kicker">{t('latestValidMeasurement')}</p>
-            <h2>{regionName}</h2>
+        <div className="metric-summary-row">
+          <div className="metric-value-block">
+            <No2Value value={measurement.value_mean} t={t} locale={locale} />
+            <span className="metric-unit">{measurement.unit || 'mol/m2'}</span>
           </div>
-          <span className={`quality-badge ${status.className}`}>{status.label}</span>
+          {concentrationLevel ? <ConcentrationBadge level={concentrationLevel} t={t} /> : null}
         </div>
 
-        {missingDataState ? (
-          <UnavailableMeasurementState title={missingDataState.title} text={missingDataState.text} measurement={measurement} t={t} locale={locale} />
-        ) : (
-          <>
-            <div className="metric-value-block">
-              <No2Value value={measurement.value_mean} t={t} locale={locale} />
-              <span className="metric-unit">{measurement.unit || 'mol/m2'}</span>
-            </div>
+        <div className="context-divider" />
 
-            <div className="metric-meta-grid">
-              <InfoTile label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
-              <InfoTile label={t('measurementTime')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
-              <InfoTile
-                label={t('rankLabel')}
-                value={rank ? `#${rank.rank} / ${rank.total}` : t('noData')}
-                t={t}
-              />
-              <InfoTile
-                label={t('qaThreshold')}
-                value={formatQaThreshold(measurement.qa_threshold, t, locale)}
-                t={t}
-              />
-            </div>
-          </>
-        )}
+        <p className="metric-note">
+          <span className="metric-note-icon" aria-hidden="true">i</span>
+          {t('measurementNote')}
+        </p>
       </>
     )
   }
@@ -79,23 +64,25 @@ function LatestMeasurementCard({
       ) : null}
 
       <div className="metric-card-body">{renderBody()}</div>
-
-      {sourceInfo ? (
-        <>
-          <div className="context-divider" />
-          {sourceInfo}
-        </>
-      ) : null}
     </article>
   )
 }
 
-function InfoTile({ label, value, detail = '', wide = false, t }) {
+const CONCENTRATION = {
+  low: { className: 'conc-dot--low', labelKey: 'concentrationLow' },
+  moderate: { className: 'conc-dot--moderate', labelKey: 'concentrationModerate' },
+  high: { className: 'conc-dot--high', labelKey: 'concentrationHigh' },
+}
+
+// Relative NO₂ level (vs. the other regions), shown beside the headline value.
+function ConcentrationBadge({ level, t }) {
+  const info = CONCENTRATION[level]
+  if (!info) return null
+
   return (
-    <div className={`info-tile ${wide ? 'info-tile-wide' : ''}`} title={detail || ''}>
-      <span>{label}</span>
-      <strong>{value ?? t('noData')}</strong>
-      {detail ? <em>{detail}</em> : null}
+    <div className="concentration-level">
+      <span className={`conc-dot ${info.className}`} aria-hidden="true" />
+      <strong>{t(info.labelKey)}</strong>
     </div>
   )
 }
@@ -128,20 +115,6 @@ function ErrorState({ title, text }) {
   )
 }
 
-function UnavailableMeasurementState({ title, text, measurement, t, locale }) {
-  return (
-    <div className="measurement-unavailable" role="status" aria-live="polite">
-      <h3>{title}</h3>
-      <p>{text}</p>
-      <div className="metric-meta-grid">
-        <InfoTile label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
-        <InfoTile label={t('measurementTime')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
-        <InfoTile label={t('status')} value={formatQualityStatus(measurement.quality_status, t)} t={t} />
-      </div>
-    </div>
-  )
-}
-
 function getMissingDataState(measurement, t) {
   if (measurement.quality_status === 'no_valid_pixels') {
     return { title: t('noValidDataTitle'), text: t('noValidDataText') }
@@ -160,20 +133,6 @@ function getMissingDataState(measurement, t) {
   }
 
   return null
-}
-
-function getQualityStatus(status, t) {
-  if (status === 'valid') return { label: t('valid'), className: 'quality-valid' }
-  if (status === 'no_valid_pixels') return { label: t('noDataStatus'), className: 'quality-empty' }
-  if (status === 'processing_error') return { label: t('processingError'), className: 'quality-error' }
-  return { label: t('unknown'), className: 'quality-empty' }
-}
-
-function formatQualityStatus(status, t) {
-  if (status === 'valid') return t('valid')
-  if (status === 'no_valid_pixels') return t('noValidPixels')
-  if (status === 'processing_error') return t('processingError')
-  return t('unknown')
 }
 
 // Renders the headline NO₂ value with a real superscript exponent
@@ -201,36 +160,6 @@ function No2Value({ value, t, locale }) {
       <sup className="metric-value-exp">{exponent}</sup>
     </span>
   )
-}
-
-function formatQaThreshold(value, t, locale) {
-  if (value === null || value === undefined || value === '') return t('noData')
-
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return String(value)
-
-  return numberValue.toLocaleString(locale, { maximumFractionDigits: 2 })
-}
-
-function formatInteger(value, t, locale) {
-  if (value === null || value === undefined || value === '') return t('noData')
-
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return String(value)
-
-  return numberValue.toLocaleString(locale, { maximumFractionDigits: 0 })
-}
-
-function formatDateTime(value, t, locale) {
-  if (!value) return t('noData')
-
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(date)
 }
 
 export default LatestMeasurementCard

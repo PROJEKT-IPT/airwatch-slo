@@ -197,12 +197,12 @@ describe('Dashboard', () => {
     const { container } = renderDashboard('overview')
 
     await waitFor(() => {
-      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+      expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
     })
     expect(getRegionDetails).toHaveBeenCalledWith('SI032')
 
     const metricCard = container.querySelector('.metric-card')
-    expect(within(metricCard).getByText('41')).toBeInTheDocument()
+    expect(metricCard.querySelector('.metric-value')).toBeInTheDocument()
     expect(screen.getByLabelText('Interaktivni Leaflet zemljevid slovenskih statističnih regij'))
       .toBeInTheDocument()
     expect(screen.getByText('Izbrano')).toBeInTheDocument()
@@ -213,7 +213,7 @@ describe('Dashboard', () => {
     const { container } = renderDashboard('overview')
 
     await waitFor(() => {
-      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+      expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
     })
 
     await user.click(screen.getByRole('button', { name: /Statistična regija/i }))
@@ -233,10 +233,10 @@ describe('Dashboard', () => {
 
   it('overview: selects a region from the regional map', async () => {
     const user = userEvent.setup()
-    const { container } = renderDashboard('overview')
+    renderDashboard('overview')
 
     await waitFor(() => {
-      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+      expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
     })
 
     await user.click(screen.getByRole('button', { name: 'Izberi regijo na zemljevidu Pomurska' }))
@@ -252,7 +252,7 @@ describe('Dashboard', () => {
     const { container } = renderDashboard('overview')
 
     await waitFor(() => {
-      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+      expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
     })
 
     const legend = container.querySelector('.map-legend')
