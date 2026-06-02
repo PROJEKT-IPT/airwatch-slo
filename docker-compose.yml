@@ -40,7 +40,10 @@ services:
         condition: service_healthy
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
     container_name: airwatch_frontend
     ports:
       # vite preview serves on 4173 inside the container (see frontend/Dockerfile)

@@ -117,7 +117,7 @@ HTTP-trigger (`POST /admin/refresh-latest`) so opisani v
 `docs/archive/` hrani podrobne in sprint-specifične zapise (runbook,
 agregacijska strategija/rezultati, validacija, izbira produktov, omejitve,
 testi, CI). Uporabni za poglobitev ali zgodovinski kontekst; aktualni povzetek
-je v dokumentih `01`–`06`.
+je v dokumentih `01`–`07`.
 
 Najkoristnejši v arhivu:
 

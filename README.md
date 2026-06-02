@@ -39,6 +39,8 @@ NO₂ meritve se vnesejo prek data pipeline-a – glej dokumentacijo spodaj.
 | [docs/04_api_documentation.md](docs/04_api_documentation.md) | API endpointi |
 | [docs/05_deployment_guide.md](docs/05_deployment_guide.md) | lokalni in Railway deploy |
 | [docs/06_developer_handover.md](docs/06_developer_handover.md) | predaja razvijalcu |
+| [docs/07_limitations_and_methodology.md](docs/07_limitations_and_methodology.md) | omejitve in metodologija interpretacije |
+| [docs/08_final_architecture_diagram.md](docs/08_final_architecture_diagram.md) | finalni arhitekturni diagram in kratka navodila za uporabnika |
 
 Podrobni in zgodovinski zapisi so v [docs/archive/](docs/archive/).
 Komponentni README-ji so v `backend/`, `frontend/`, `data_pipeline/` in `database/`.
