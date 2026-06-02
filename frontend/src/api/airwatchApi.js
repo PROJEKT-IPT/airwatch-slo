@@ -1,7 +1,9 @@
-const DEFAULT_API_URL = 'https://airwatch-slo-production.up.railway.app'
+const LOCAL_API_URL = 'http://localhost:8000'
+const PRODUCTION_API_URL = 'https://airwatch-slo-production.up.railway.app'
 
 function getApiBaseUrl() {
-  return (import.meta.env.VITE_API_URL || DEFAULT_API_URL).replace(/\/$/, '')
+  const defaultApiUrl = import.meta.env.DEV ? LOCAL_API_URL : PRODUCTION_API_URL
+  return (import.meta.env.VITE_API_URL || defaultApiUrl).replace(/\/$/, '')
 }
 
 async function fetchJsonOrNull(url, label) {

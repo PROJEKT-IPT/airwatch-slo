@@ -247,7 +247,8 @@ describe('Dashboard', () => {
     expect(screen.getByRole('button', { name: /Statistična regija/i })).toHaveTextContent('SI031')
   })
 
-  it('overview: renders the map quality legend so colour is not the only indicator', async () => {
+  it('overview: defaults to dynamic NO2 values and toggles to mean deviations', async () => {
+    const user = userEvent.setup()
     const { container } = renderDashboard('overview')
 
     await waitFor(() => {
@@ -256,9 +257,16 @@ describe('Dashboard', () => {
 
     const legend = container.querySelector('.map-legend')
     expect(legend).toBeInTheDocument()
-    expect(within(legend).getByText('Veljavna meritev')).toBeInTheDocument()
-    expect(within(legend).getByText('Ni veljavnih pikslov')).toBeInTheDocument()
-    expect(within(legend).getByText('Napaka obdelave')).toBeInTheDocument()
+    expect(within(legend).getByText('NO₂ vrednost')).toBeInTheDocument()
+    expect(within(legend).getByText('dinamični pragovi')).toBeInTheDocument()
+    expect(within(legend).getByText('µmol/m²')).toBeInTheDocument()
+    expect(within(legend).getByText('Ni veljavne vrednosti')).toBeInTheDocument()
+
+    await user.click(within(legend).getByRole('button', { name: 'Prikaži odstopanja' }))
+
+    expect(within(legend).getByText('Δ NO₂ od srednje vrednosti')).toBeInTheDocument()
+    expect(within(legend).getByText('srednja vrednost: 31.0 µmol/m²')).toBeInTheDocument()
+    expect(within(legend).getByRole('button', { name: 'Prikaži vrednosti' })).toBeInTheDocument()
   })
 
   it('comparison view: renders rows and selects a region from the comparison', async () => {

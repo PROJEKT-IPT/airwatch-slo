@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   getRegionCsvExportUrl,
@@ -18,6 +18,7 @@ import { useLanguage } from '../i18n'
 
 function Dashboard({ activeView = 'overview' }) {
   const { t, locale } = useLanguage()
+  const tRef = useRef(t)
   const [regionSummaries, setRegionSummaries] = useState([])
   const [regionGeometries, setRegionGeometries] = useState([])
   const [regionComparison, setRegionComparison] = useState([])
@@ -31,6 +32,10 @@ function Dashboard({ activeView = 'overview' }) {
   const [regionDetail, setRegionDetail] = useState(null)
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
   const [detailError, setDetailError] = useState('')
+
+  useEffect(() => {
+    tRef.current = t
+  }, [t])
 
   useEffect(() => {
     let isMounted = true
@@ -53,7 +58,7 @@ function Dashboard({ activeView = 'overview' }) {
         if (!isMounted) return
         setRegionSummaries([])
         setSelectedRegionCode('')
-        setRegionsError(t('regionLoadError'))
+        setRegionsError(tRef.current('regionLoadError'))
       } finally {
         if (isMounted) setIsLoadingRegions(false)
       }
@@ -63,7 +68,7 @@ function Dashboard({ activeView = 'overview' }) {
     return () => {
       isMounted = false
     }
-  }, [t])
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -79,7 +84,7 @@ function Dashboard({ activeView = 'overview' }) {
       } catch (error) {
         if (!isMounted) return
         setRegionGeometries([])
-        setGeometriesError(t('geometryLoadError'))
+        setGeometriesError(tRef.current('geometryLoadError'))
       } finally {
         if (isMounted) setIsLoadingGeometries(false)
       }
@@ -89,7 +94,7 @@ function Dashboard({ activeView = 'overview' }) {
     return () => {
       isMounted = false
     }
-  }, [t])
+  }, [])
 
   useEffect(() => {
     let isMounted = true
@@ -113,7 +118,7 @@ function Dashboard({ activeView = 'overview' }) {
       } catch (error) {
         if (!isMounted) return
         setRegionComparison([])
-        setComparisonError(t('comparisonLoadError'))
+        setComparisonError(tRef.current('comparisonLoadError'))
       } finally {
         if (isMounted) setIsLoadingComparison(false)
       }
@@ -123,7 +128,7 @@ function Dashboard({ activeView = 'overview' }) {
     return () => {
       isMounted = false
     }
-  }, [regionSummaries, t])
+  }, [regionSummaries])
 
   useEffect(() => {
     let isMounted = true
@@ -146,7 +151,7 @@ function Dashboard({ activeView = 'overview' }) {
       } catch (error) {
         if (!isMounted) return
         setRegionDetail(null)
-        setDetailError(t('detailLoadError'))
+        setDetailError(tRef.current('detailLoadError'))
       } finally {
         if (isMounted) setIsLoadingDetail(false)
       }
@@ -156,7 +161,7 @@ function Dashboard({ activeView = 'overview' }) {
     return () => {
       isMounted = false
     }
-  }, [selectedRegionCode, t])
+  }, [selectedRegionCode])
 
   const measurement = useMemo(() => {
     if (!regionDetail || !regionDetail.latest_measurement) return null
