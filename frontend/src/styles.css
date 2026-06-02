@@ -33,6 +33,42 @@ body {
   background: var(--plate-white);
 }
 
+html.a11y-large-text {
+  font-size: 118%;
+}
+
+html.a11y-high-contrast {
+  --blueberry-skin: #111827;
+  --berry-bloom: #1f2937;
+  --stem-grey: #374151;
+  --yogurt-tint: #ffffff;
+  --plate-white: #ffffff;
+  --accent-green: #008a4b;
+  --surface: #ffffff;
+  --line: #111827;
+  --text: #000000;
+  --muted: #1f2937;
+  --success-bg: #ffffff;
+  --success-text: #005f35;
+  --neutral-bg: #ffffff;
+  --neutral-text: #111827;
+  --error-bg: #ffffff;
+  --error-text: #8b0000;
+}
+
+html.a11y-high-contrast body {
+  background: #ffffff;
+}
+
+html.a11y-reduce-motion *,
+html.a11y-reduce-motion *::before,
+html.a11y-reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
 button,
 select {
   font: inherit;
@@ -152,6 +188,50 @@ select {
 
 .language-option-active {
   color: var(--accent-green);
+}
+
+.accessibility-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid rgba(245, 246, 243, 0.14);
+  border-radius: 10px;
+  background: rgba(245, 246, 243, 0.05);
+}
+
+.accessibility-panel h2 {
+  margin: 0;
+  color: rgba(245, 246, 243, 0.9);
+  font-size: 0.84rem;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.accessibility-options {
+  display: grid;
+  gap: 8px;
+}
+
+.accessibility-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(245, 246, 243, 0.82);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.accessibility-option input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  accent-color: var(--accent-green);
+}
+
+.accessibility-option:has(input:checked) {
+  color: var(--plate-white);
 }
 
 .nav-item {
@@ -1412,9 +1492,50 @@ select {
 .export-button:focus-visible,
 .comparison-row:focus-visible,
 .region-select select:focus-visible,
-.trend-filter-item select:focus-visible {
+.trend-filter-item select:focus-visible,
+.language-option:focus-visible,
+.accessibility-option input:focus-visible {
   outline: 2px solid var(--berry-bloom);
   outline-offset: 2px;
+}
+
+html.a11y-high-contrast .card,
+html.a11y-high-contrast .region-select,
+html.a11y-high-contrast .region-picker,
+html.a11y-high-contrast .metadata-strip,
+html.a11y-high-contrast .info-tile,
+html.a11y-high-contrast .provenance-row,
+html.a11y-high-contrast .comparison-row {
+  border-color: #111827;
+  box-shadow: none;
+}
+
+html.a11y-high-contrast .sidebar {
+  background: #000000;
+}
+
+html.a11y-high-contrast .nav-item,
+html.a11y-high-contrast .language-option,
+html.a11y-high-contrast .accessibility-option,
+html.a11y-high-contrast .brand-block p {
+  color: #ffffff;
+}
+
+html.a11y-high-contrast .nav-item-active,
+html.a11y-high-contrast .nav-item-active:not(:disabled):hover {
+  background: #ffffff;
+  color: #000000;
+  box-shadow: inset 4px 0 0 #008a4b;
+}
+
+html.a11y-high-contrast .quality-badge,
+html.a11y-high-contrast .map-tag,
+html.a11y-high-contrast .region-chip,
+html.a11y-high-contrast .comparison-count,
+html.a11y-high-contrast .history-count,
+html.a11y-high-contrast .metadata-badge,
+html.a11y-high-contrast .test-region-badge {
+  border: 1px solid currentColor;
 }
 
 /* Suppress focus rectangles and outlines when interacting with the recharts SVG */

@@ -83,3 +83,8 @@ vsebuje zadnjo meritev izbrane regije, vkljucno z vrednostjo, statusom kakovosti
 casom meritve, stevilom veljavnih pikslov, QA pragom in sledljivostjo do
 Sentinel-5P produkta oziroma processing runa.
 
+### Dostopnost
+
+V stranskem meniju je razdelek **Dostopnost** z nastavitvami za vecje besedilo,
+visok kontrast in manj gibanja. Nastavitve se shranijo v brskalnik in ostanejo
+vklopljene pri naslednjem obisku aplikacije.

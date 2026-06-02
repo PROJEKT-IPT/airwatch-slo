@@ -29,6 +29,7 @@ describe('App navigation', () => {
     vi.clearAllMocks()
     window.location.hash = ''
     window.localStorage.clear()
+    document.documentElement.classList.remove('a11y-large-text', 'a11y-high-contrast', 'a11y-reduce-motion')
 
     getRegionalLatestMeasurements.mockResolvedValue([
       {
@@ -117,6 +118,26 @@ describe('App navigation', () => {
     expect(screen.getByRole('button', { name: 'Zgodovinski trend' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Primerjava regij' })).toBeEnabled()
     expect(screen.getByRole('button', { name: 'Podatki & izvoz' })).toBeEnabled()
+  })
+
+  it('persists accessibility display settings', async () => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    await screen.findByRole('heading', { name: /pregled no/i })
+    await user.click(screen.getByRole('checkbox', { name: 'Večje besedilo' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Visok kontrast' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Manj gibanja' }))
+
+    expect(document.documentElement).toHaveClass('a11y-large-text')
+    expect(document.documentElement).toHaveClass('a11y-high-contrast')
+    expect(document.documentElement).toHaveClass('a11y-reduce-motion')
+    expect(JSON.parse(window.localStorage.getItem('airwatch-accessibility'))).toEqual({
+      largeText: true,
+      highContrast: true,
+      reduceMotion: true,
+    })
   })
 
   it.each([

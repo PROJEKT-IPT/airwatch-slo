@@ -58,4 +58,7 @@ Pričakovano: `npm test → 3 passed`, `npm run test:e2e → 1 passed`.
 
 - Manjkajoče meritve se prikažejo kot "ni podatkov", ne kot ničla.
 - Komponente prikazujejo loading, error in "ni podatkov" stanja.
+- Stranski meni vsebuje nastavitve dostopnosti: večje besedilo, visok kontrast
+  in manj gibanja. Izbira se shrani v `localStorage` in se uporabi pri naslednjem
+  obisku aplikacije.
 - Več o endpointih: [`../docs/04_api_documentation.md`](../docs/04_api_documentation.md).

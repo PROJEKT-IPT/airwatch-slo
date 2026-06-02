@@ -1,6 +1,32 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 import { supportedLanguages, useLanguage } from '../i18n'
+
+const ACCESSIBILITY_STORAGE_KEY = 'airwatch-accessibility'
+
+const defaultAccessibilitySettings = {
+  largeText: false,
+  highContrast: false,
+  reduceMotion: false,
+}
+
+function readAccessibilitySettings() {
+  if (typeof window === 'undefined') {
+    return defaultAccessibilitySettings
+  }
+
+  try {
+    const storedSettings = JSON.parse(window.localStorage.getItem(ACCESSIBILITY_STORAGE_KEY))
+    return {
+      ...defaultAccessibilitySettings,
+      ...Object.fromEntries(
+        Object.entries(storedSettings || {}).filter(([, value]) => typeof value === 'boolean'),
+      ),
+    }
+  } catch {
+    return defaultAccessibilitySettings
+  }
+}
 
 function Icon({ name }) {
   const props = {
@@ -79,6 +105,16 @@ function Icon({ name }) {
 
 function Sidebar({ activeView = 'overview', onViewChange }) {
   const { language, setLanguage, t } = useLanguage()
+  const [accessibilitySettings, setAccessibilitySettings] = useState(readAccessibilitySettings)
+
+  useEffect(() => {
+    const root = document.documentElement
+
+    root.classList.toggle('a11y-large-text', accessibilitySettings.largeText)
+    root.classList.toggle('a11y-high-contrast', accessibilitySettings.highContrast)
+    root.classList.toggle('a11y-reduce-motion', accessibilitySettings.reduceMotion)
+    window.localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify(accessibilitySettings))
+  }, [accessibilitySettings])
 
   // Each item switches the main content area to a focused view (no scrolling).
   const navigationItems = [
@@ -91,6 +127,13 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
 
   function navClass(id) {
     return `nav-item ${id === activeView ? 'nav-item-active' : ''}`
+  }
+
+  function toggleAccessibilitySetting(setting) {
+    setAccessibilitySettings(currentSettings => ({
+      ...currentSettings,
+      [setting]: !currentSettings[setting],
+    }))
   }
 
   return (
@@ -123,6 +166,36 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
           </Fragment>
         ))}
       </div>
+
+      <section className="accessibility-panel" aria-labelledby="accessibility-title">
+        <h2 id="accessibility-title">{t('accessibilityTitle')}</h2>
+        <div className="accessibility-options">
+          <label className="accessibility-option">
+            <input
+              type="checkbox"
+              checked={accessibilitySettings.largeText}
+              onChange={() => toggleAccessibilitySetting('largeText')}
+            />
+            <span>{t('accessibilityLargeText')}</span>
+          </label>
+          <label className="accessibility-option">
+            <input
+              type="checkbox"
+              checked={accessibilitySettings.highContrast}
+              onChange={() => toggleAccessibilitySetting('highContrast')}
+            />
+            <span>{t('accessibilityHighContrast')}</span>
+          </label>
+          <label className="accessibility-option">
+            <input
+              type="checkbox"
+              checked={accessibilitySettings.reduceMotion}
+              onChange={() => toggleAccessibilitySetting('reduceMotion')}
+            />
+            <span>{t('accessibilityReduceMotion')}</span>
+          </label>
+        </div>
+      </section>
 
       <nav className="sidebar-nav" aria-label={t('navMain')}>
         {navigationItems.map(item => (
