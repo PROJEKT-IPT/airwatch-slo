@@ -224,50 +224,54 @@ function Dashboard({ activeView = 'overview' }) {
     />
   )
 
-  const regionalMap = (
-    <RegionalMap
-      regions={regionSummaries}
-      geometries={regionGeometries}
-      selectedRegionCode={selectedRegionCode}
-      onRegionSelect={setSelectedRegionCode}
-      isLoading={isLoadingRegions || isLoadingGeometries}
-      error={regionsError || geometriesError}
+  const measurementPanel = (
+    <LatestMeasurementCard
+      measurement={measurement}
+      isLoading={isLoadingDetail}
+      error={detailError}
+      hasRegion={Boolean(selectedRegionCode)}
+      concentrationLevel={concentrationLevel}
+      regionSelect={
+        <RegionSelect
+          regions={regionSummaries}
+          selectedRegionCode={selectedRegionCode}
+          onRegionChange={setSelectedRegionCode}
+          isLoading={isLoadingRegions}
+          error={regionsError}
+          embedded
+          dropUp
+        />
+      }
     />
   )
 
+  const isMapView = activeView === 'overview'
+
   return (
-    <main className="dashboard-main">
-      <header className="dashboard-header">
-        <div>
-          <p className="eyebrow">AirWatch SLO</p>
-          <h1>{meta.title}</h1>
-          <p className="dashboard-subtitle">{meta.lead}</p>
-        </div>
-      </header>
+    <main className={`dashboard-main${isMapView ? ' dashboard-main--map' : ''}`}>
+      {isMapView ? (
+        <h1 className="sr-only">{meta.title}</h1>
+      ) : (
+        <header className="dashboard-header">
+          <div>
+            <p className="eyebrow">AirWatch SLO</p>
+            <h1>{meta.title}</h1>
+            <p className="dashboard-subtitle">{meta.lead}</p>
+          </div>
+        </header>
+      )}
 
       {activeView === 'overview' && (
-        <section className="overview" aria-label={t('heroAria')}>
-          <div className="overview-grid">
-            {regionalMap}
-            <LatestMeasurementCard
-              measurement={measurement}
-              isLoading={isLoadingDetail}
-              error={detailError}
-              hasRegion={Boolean(selectedRegionCode)}
-              concentrationLevel={concentrationLevel}
-              regionSelect={
-                <RegionSelect
-                  regions={regionSummaries}
-                  selectedRegionCode={selectedRegionCode}
-                  onRegionChange={setSelectedRegionCode}
-                  isLoading={isLoadingRegions}
-                  error={regionsError}
-                  embedded
-                />
-              }
-            />
-          </div>
-        </section>
+        <RegionalMap
+          regions={regionSummaries}
+          geometries={regionGeometries}
+          selectedRegionCode={selectedRegionCode}
+          onRegionSelect={setSelectedRegionCode}
+          isLoading={isLoadingRegions || isLoadingGeometries}
+          error={regionsError || geometriesError}
+          fullScreen
+          overlay={measurementPanel}
+        />
       )}
 
       {activeView === 'trend' && (

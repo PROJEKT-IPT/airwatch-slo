@@ -18,7 +18,7 @@ function formatNo2Value(value, locale) {
   return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
-function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, error, embedded = false }) {
+function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, error, embedded = false, dropUp = false }) {
   const { t, locale } = useLanguage()
   const hasRegions = regions.length > 0
   const [open, setOpen] = useState(false)
@@ -50,7 +50,10 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
   }
 
   return (
-    <div className={`region-picker${embedded ? ' region-picker--embedded' : ''}`} ref={containerRef}>
+    <div
+      className={`region-picker${embedded ? ' region-picker--embedded' : ''}${dropUp ? ' region-picker--up' : ''}`}
+      ref={containerRef}
+    >
       <span className="region-picker-label" id="rp-label">{t('regionLabel')}</span>
 
       <button

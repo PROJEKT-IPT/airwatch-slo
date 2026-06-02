@@ -15,6 +15,8 @@ function RegionalMap({
   onRegionSelect,
   isLoading,
   error,
+  fullScreen = false,
+  overlay = null,
 }) {
   const { t } = useLanguage()
   const mapElementRef = useRef(null)
@@ -28,7 +30,6 @@ function RegionalMap({
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const mapGeometryKey = useMemo(() => buildMapGeometryKey(mapRegions), [mapRegions])
   const mapScale = useMemo(() => buildMapScale(mapRegions), [mapRegions])
-  const selectedRegion = mapRegions.find(region => region.region_code === selectedRegionCode)
 
   useEffect(() => {
     selectedRegionRef.current = selectedRegionCode
@@ -66,6 +67,10 @@ function RegionalMap({
         scrollWheelZoom: false,
         zoomControl: true,
       })
+      // Keep the attribution clear of the floating panel (bottom-right).
+      if (mapRef.current.attributionControl) {
+        mapRef.current.attributionControl.setPosition('topright')
+      }
     }
 
     const map = mapRef.current
@@ -153,16 +158,18 @@ function RegionalMap({
   )
 
   return (
-    <section className="card map-card">
-      <div className="card-heading">
-        <div>
-          <p className="section-kicker">{t('spatialOverview')}</p>
-          <h2>{t('mapTitle')}</h2>
+    <section className={`card map-card${fullScreen ? ' map-card--full' : ''}`}>
+      {!fullScreen ? (
+        <div className="card-heading">
+          <div>
+            <p className="section-kicker">{t('spatialOverview')}</p>
+            <h2>{t('mapTitle')}</h2>
+          </div>
+          <span className="map-tag">Leaflet</span>
         </div>
-        <span className="map-tag">Leaflet</span>
-      </div>
+      ) : null}
 
-      <div className="regional-map" aria-label={t('mapAria')}>
+      <div className={`regional-map${fullScreen ? ' regional-map--full' : ''}`} aria-label={t('mapAria')}>
         {isLoading ? (
           <div className="map-state" role="status" aria-live="polite">
             <div className="loading-line loading-line-title" />
@@ -204,7 +211,7 @@ function RegionalMap({
       </div>
 
       {!isLoading && !error && mapRegions.length > 0 ? (
-        <div className="map-legend" aria-label={t('mapLegendAria')}>
+        <div className={`map-legend${fullScreen ? ' map-legend--float' : ''}`} aria-label={t('mapLegendAria')}>
           <div className="map-legend-controls">
             <button
               type="button"
@@ -248,16 +255,7 @@ function RegionalMap({
         </div>
       ) : null}
 
-      <div className="map-footer">
-        <p className="map-hint">{t('mapHint')}</p>
-        {selectedRegion ? (
-          <p className="map-selected-region" aria-live="polite">
-            <span>{t('selected')}</span>
-            <strong>{selectedRegion.region_name}</strong>
-            <em>{selectedRegion.region_code}</em>
-          </p>
-        ) : null}
-      </div>
+      {fullScreen && overlay ? <div className="map-overlay-panel">{overlay}</div> : null}
     </section>
   )
 }

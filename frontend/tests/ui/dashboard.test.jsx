@@ -205,7 +205,6 @@ describe('Dashboard', () => {
     expect(metricCard.querySelector('.metric-value')).toBeInTheDocument()
     expect(screen.getByLabelText('Interaktivni Leaflet zemljevid slovenskih statističnih regij'))
       .toBeInTheDocument()
-    expect(screen.getByText('Izbrano')).toBeInTheDocument()
   })
 
   it('overview: updates the cards when the selected region changes', async () => {
@@ -228,7 +227,7 @@ describe('Dashboard', () => {
         'Ni veljavnih podatkov za izbrano regijo',
       )
     })
-    expect(container.querySelector('.map-selected-region')).toHaveTextContent('SI031')
+    expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('SI031')
   })
 
   it('overview: selects a region from the regional map', async () => {
