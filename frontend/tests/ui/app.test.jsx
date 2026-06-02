@@ -125,6 +125,7 @@ describe('App navigation', () => {
       heading: /NO2 overview/i,
       trend: 'Historical trend',
       comparison: 'Region comparison',
+      dataNav: 'Data & export',
       exportCsv: 'Export CSV',
       htmlLang: 'en',
     },
@@ -133,10 +134,11 @@ describe('App navigation', () => {
       heading: /NO2-Uebersicht/i,
       trend: 'Historischer Trend',
       comparison: 'Regionenvergleich',
+      dataNav: 'Daten & Export',
       exportCsv: 'CSV exportieren',
       htmlLang: 'de',
     },
-  ])('switches the main UI to $button', async ({ button, heading, trend, comparison, exportCsv, htmlLang }) => {
+  ])('switches the main UI to $button', async ({ button, heading, trend, comparison, dataNav, exportCsv, htmlLang }) => {
     const user = userEvent.setup()
 
     render(<App />)
@@ -147,7 +149,10 @@ describe('App navigation', () => {
     expect(await screen.findByRole('heading', { name: heading })).toBeVisible()
     expect(screen.getByRole('button', { name: trend })).toBeEnabled()
     expect(screen.getByRole('button', { name: comparison })).toBeEnabled()
-    expect(screen.getByRole('link', { name: exportCsv })).toBeInTheDocument()
     expect(document.documentElement).toHaveAttribute('lang', htmlLang)
+
+    // CSV export lives on the data & export view
+    await user.click(screen.getByRole('button', { name: dataNav }))
+    expect(await screen.findByRole('link', { name: exportCsv })).toBeInTheDocument()
   })
 })

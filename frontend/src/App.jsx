@@ -7,10 +7,10 @@ import Dashboard from './pages/Dashboard'
 
 function readViewFromHash() {
   if (typeof window === 'undefined') {
-    return 'dashboard'
+    return 'overview'
   }
 
-  return window.location.hash === '#admin' ? 'admin' : 'dashboard'
+  return window.location.hash === '#admin' ? 'admin' : 'overview'
 }
 
 function App() {
@@ -31,7 +31,11 @@ function App() {
     <LanguageProvider>
       <div className="dashboard-shell">
         <Sidebar activeView={activeView} onViewChange={setActiveView} />
-        {activeView === 'admin' ? <AdminProcessingStatusPage /> : <Dashboard />}
+        {activeView === 'admin' ? (
+          <AdminProcessingStatusPage />
+        ) : (
+          <Dashboard activeView={activeView} />
+        )}
       </div>
     </LanguageProvider>
   )

@@ -191,20 +191,18 @@ test('covers the main regional dashboard flow', async ({ page }) => {
   await expect(latestMeasurementCard).toContainText('Veljavnih pikslov')
   await expect(latestMeasurementCard).toContainText('41')
 
-  const detailsCard = page.locator('.detail-card')
-  const exportLink = detailsCard.getByRole('link', { name: 'Izvozi CSV' })
-  await expect(exportLink).toHaveAttribute(
-    'href',
-    'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
-  )
-  await expect(detailsCard).toContainText('Koda regije: SI032')
-
+  // Switch the focused region on the overview; selection persists across views.
   await regionSelect.selectOption('SI031')
-
   await expect(page.locator('.map-selected-region')).toContainText('SI031')
   await expect(latestMeasurementCard.getByRole('heading', { name: 'Pomurska' })).toBeVisible()
   await expect(latestMeasurementCard).toContainText('Ni veljavnih podatkov za izbrano regijo')
+
+  // Navigate to the data & export view (no scrolling; the view switches).
+  await page.getByRole('button', { name: 'Podatki & izvoz' }).click()
+
+  const detailsCard = page.locator('.detail-card')
   await expect(detailsCard).toContainText('Koda regije: SI031')
+  const exportLink = detailsCard.getByRole('link', { name: 'Izvozi CSV' })
   await expect(exportLink).toHaveAttribute(
     'href',
     'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI031/export.csv',

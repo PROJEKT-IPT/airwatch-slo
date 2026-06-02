@@ -185,27 +185,21 @@ describe('Dashboard', () => {
     )
   })
 
-  function renderDashboard() {
+  function renderDashboard(activeView = 'overview') {
     return render(
       <LanguageProvider>
-        <Dashboard />
+        <Dashboard activeView={activeView} />
       </LanguageProvider>,
     )
   }
 
-  it('defaults to the first valid region and renders its measurement details', async () => {
-    const { container } = renderDashboard()
+  it('overview: defaults to the first valid region and renders its measurement + map', async () => {
+    const { container } = renderDashboard('overview')
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
     })
     expect(getRegionDetails).toHaveBeenCalledWith('SI032')
-
-    const exportLink = screen.getByRole('link', { name: 'Izvozi CSV' })
-    expect(exportLink).toHaveAttribute(
-      'href',
-      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
-    )
 
     const metricCard = container.querySelector('.metric-card')
     expect(within(metricCard).getByText('41')).toBeInTheDocument()
@@ -214,9 +208,9 @@ describe('Dashboard', () => {
     expect(screen.getByText('Izbrano')).toBeInTheDocument()
   })
 
-  it('updates the cards when the selected region changes', async () => {
+  it('overview: updates the cards when the selected region changes', async () => {
     const user = userEvent.setup()
-    const { container } = renderDashboard()
+    const { container } = renderDashboard('overview')
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -233,16 +227,12 @@ describe('Dashboard', () => {
         'Ni veljavnih podatkov za izbrano regijo',
       )
     })
-    expect(screen.getByRole('link', { name: 'Izvozi CSV' })).toHaveAttribute(
-      'href',
-      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI031/export.csv',
-    )
     expect(container.querySelector('.map-selected-region')).toHaveTextContent('SI031')
   })
 
-  it('selects a region from the regional map', async () => {
+  it('overview: selects a region from the regional map', async () => {
     const user = userEvent.setup()
-    const { container } = renderDashboard()
+    const { container } = renderDashboard('overview')
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -256,71 +246,8 @@ describe('Dashboard', () => {
     expect(screen.getByLabelText('Statistična regija')).toHaveValue('SI031')
   })
 
-  it('renders region comparison rows and selects a region from the comparison', async () => {
-    const user = userEvent.setup()
-    const { container } = renderDashboard()
-
-    await waitFor(() => {
-      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
-    })
-
-    expect(screen.getByRole('heading', { name: 'NO₂ po statističnih regijah' })).toBeInTheDocument()
-    expect(getRegionComparison).toHaveBeenCalledWith(['SI031', 'SI032'])
-    expect(screen.getByText('1/2 z vrednostjo')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Izberi regijo Pomurska' })).toBeInTheDocument()
-
-    await user.click(screen.getByRole('button', { name: 'Izberi regijo Pomurska' }))
-
-    await waitFor(() => {
-      expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
-    })
-    await waitFor(() => {
-      expect(screen.getByLabelText('Statistična regija')).toHaveValue('SI031')
-    })
-  })
-
-  it('renders comparison summary tiles with counts', async () => {
-    renderDashboard()
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'NO₂ po statističnih regijah' })).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('Najvišja vrednost')).toBeInTheDocument()
-    expect(screen.getByText('Najnižja vrednost')).toBeInTheDocument()
-    expect(screen.getByText('Brez veljavnih pikslov')).toBeInTheDocument()
-    expect(screen.getByText('1/2 z vrednostjo')).toBeInTheDocument()
-  })
-
-  it('renders trend chart content when history is available', async () => {
-    getRegionHistory.mockResolvedValue(regionHistoryWithMeasurements)
-
-    const { container } = renderDashboard()
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
-    })
-
-    expect(container.querySelector('.trend-chart-plot')).toBeInTheDocument()
-    expect(
-      screen.getByText(/Graf prikazuje povprečne vrednosti NO₂ po času/i),
-    ).toBeInTheDocument()
-  })
-
-  it('shows the no-data message when trend history is empty', async () => {
-    getRegionHistory.mockResolvedValue({ measurements: [] })
-
-    renderDashboard()
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.')).toBeInTheDocument()
-  })
-
-  it('renders the map quality legend so colour is not the only status indicator', async () => {
-    const { container } = renderDashboard()
+  it('overview: renders the map quality legend so colour is not the only indicator', async () => {
+    const { container } = renderDashboard('overview')
 
     await waitFor(() => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
@@ -333,27 +260,85 @@ describe('Dashboard', () => {
     expect(within(legend).getByText('Napaka obdelave')).toBeInTheDocument()
   })
 
-  it('renders provenance details and no-data note for a no-valid-pixels region', async () => {
+  it('comparison view: renders rows and selects a region from the comparison', async () => {
     const user = userEvent.setup()
-    const { container } = renderDashboard()
+    renderDashboard('comparison')
 
     await waitFor(() => {
-      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
+      expect(screen.getByRole('heading', { name: 'NO₂ po statističnih regijah' })).toBeInTheDocument()
+    })
+    expect(getRegionComparison).toHaveBeenCalledWith(['SI031', 'SI032'])
+    expect(screen.getByText('1/2 z vrednostjo')).toBeInTheDocument()
+    expect(screen.getByText('Najvišja vrednost')).toBeInTheDocument()
+    expect(screen.getByText('Najnižja vrednost')).toBeInTheDocument()
+    expect(screen.getByText('Brez veljavnih pikslov')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Izberi regijo Pomurska' }))
+
+    await waitFor(() => {
+      expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
+    })
+  })
+
+  it('trend view: renders chart content when history is available', async () => {
+    getRegionHistory.mockResolvedValue(regionHistoryWithMeasurements)
+
+    const { container } = renderDashboard('trend')
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
     })
 
+    expect(container.querySelector('.trend-chart-plot')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Graf prikazuje povprečne vrednosti NO₂ po času/i),
+    ).toBeInTheDocument()
+  })
+
+  it('trend view: shows the no-data message when history is empty', async () => {
+    getRegionHistory.mockResolvedValue({ measurements: [] })
+
+    renderDashboard('trend')
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Zgodovinski trend NO₂' })).toBeInTheDocument()
+    })
+
+    expect(screen.getByText('Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.')).toBeInTheDocument()
+  })
+
+  it('data view: renders details, CSV export and provenance; handles no-data region', async () => {
+    const user = userEvent.setup()
+    renderDashboard('data')
+
+    await waitFor(() => {
+      expect(screen.getByText('product-si032')).toBeInTheDocument()
+    })
     expect(screen.getByText('Podatki in izvor regije')).toBeInTheDocument()
     expect(screen.getByText('Sentinel-5P / Copernicus')).toBeInTheDocument()
     expect(screen.getByText('ID produkta')).toBeInTheDocument()
-    expect(screen.getByText('product-si032')).toBeInTheDocument()
+
+    const exportLink = screen.getByRole('link', { name: 'Izvozi CSV' })
+    expect(exportLink).toHaveAttribute(
+      'href',
+      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
+    )
 
     await user.selectOptions(screen.getByLabelText('Statistična regija'), 'SI031')
 
     await waitFor(() => {
-      expect(container.querySelector('.metric-card h2')).toHaveTextContent('Pomurska')
+      expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
     })
+    expect(await screen.findByText(/ni bilo dovolj veljavnih pikslov/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Izvozi CSV' })).toHaveAttribute(
+      'href',
+      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI031/export.csv',
+    )
+  })
 
-    expect(
-      screen.getByText(/ni bilo dovolj veljavnih pikslov/i),
-    ).toBeInTheDocument()
+  it('methodology view: renders methodology explanation', async () => {
+    renderDashboard('methodology')
+
+    expect(await screen.findByRole('heading', { name: 'Kako brati rezultat' })).toBeInTheDocument()
   })
 })

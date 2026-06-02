@@ -418,6 +418,19 @@ select {
   align-content: start;
 }
 
+/* Single focused screen (trend, comparison, data, methodology, map views) */
+.dashboard-view {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+/* Region map gets more height when it is the focused view */
+.map-view .regional-leaflet-map {
+  height: 460px;
+  min-height: 460px;
+}
+
 /* Editorial sections with a clear heading and lead-in */
 .dashboard-section {
   margin-top: 38px;

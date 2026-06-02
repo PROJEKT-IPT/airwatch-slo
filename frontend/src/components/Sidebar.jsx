@@ -2,28 +2,18 @@ import { supportedLanguages, useLanguage } from '../i18n'
 
 function Sidebar({ activeView = 'dashboard', onViewChange }) {
   const { language, setLanguage, t } = useLanguage()
+  // Each item switches the main content area to a focused view (no scrolling).
   const navigationItems = [
-    { id: 'dashboard', label: t('navOverview') },
-    { label: t('navTrend'), target: 'trend-section' },
-    { label: t('navComparison'), target: 'comparison-section' },
-    { label: t('navDataExport'), target: 'details-section' },
+    { id: 'overview', label: t('navOverview') },
+    { id: 'map', label: t('navMap') },
+    { id: 'trend', label: t('navTrend') },
+    { id: 'comparison', label: t('navComparison') },
+    { id: 'data', label: t('navDataExport') },
+    { id: 'methodology', label: t('navMethodology') },
   ]
 
   function handleClick(item) {
-    if (item.id) {
-      onViewChange?.(item.id)
-      return
-    }
-
-    if (item.target) {
-      // Section links live on the dashboard view; switch to it first, then
-      // scroll once the dashboard has had a chance to render.
-      onViewChange?.('dashboard')
-      requestAnimationFrame(() => {
-        const element = document.getElementById(item.target)
-        element?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }
+    onViewChange?.(item.id)
   }
 
   return (

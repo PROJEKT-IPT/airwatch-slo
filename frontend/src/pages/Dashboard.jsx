@@ -16,7 +16,7 @@ import RegionalMap from '../components/RegionalMap'
 import TrendChart from '../components/TrendChart'
 import { useLanguage } from '../i18n'
 
-function Dashboard() {
+function Dashboard({ activeView = 'overview' }) {
   const { t, locale } = useLanguage()
   const [regionSummaries, setRegionSummaries] = useState([])
   const [regionGeometries, setRegionGeometries] = useState([])
@@ -189,13 +189,44 @@ function Dashboard() {
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
+  const viewMeta = {
+    overview: { title: t('dashboardTitle'), lead: t('dashboardSubtitle') },
+    map: { title: t('navMap'), lead: t('mapViewLead') },
+    trend: { title: t('navTrend'), lead: t('trendViewLead') },
+    comparison: { title: t('navComparison'), lead: t('comparisonViewLead') },
+    data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
+    methodology: { title: t('navMethodology'), lead: t('methodologyViewLead') },
+  }
+  const meta = viewMeta[activeView] || viewMeta.overview
+
+  const regionSelect = (
+    <RegionSelect
+      regions={regionSummaries}
+      selectedRegionCode={selectedRegionCode}
+      onRegionChange={setSelectedRegionCode}
+      isLoading={isLoadingRegions}
+      error={regionsError}
+    />
+  )
+
+  const regionalMap = (
+    <RegionalMap
+      regions={regionSummaries}
+      geometries={regionGeometries}
+      selectedRegionCode={selectedRegionCode}
+      onRegionSelect={setSelectedRegionCode}
+      isLoading={isLoadingRegions || isLoadingGeometries}
+      error={regionsError || geometriesError}
+    />
+  )
+
   return (
     <main className="dashboard-main">
       <header className="dashboard-header">
         <div>
           <p className="eyebrow">AirWatch SLO</p>
-          <h1>{t('dashboardTitle')}</h1>
-          <p className="dashboard-subtitle">{t('dashboardSubtitle')}</p>
+          <h1>{meta.title}</h1>
+          <p className="dashboard-subtitle">{meta.lead}</p>
         </div>
         <div className="header-status-group">
           <div className="header-status">
@@ -206,43 +237,37 @@ function Dashboard() {
         </div>
       </header>
 
-      <section className="dashboard-hero" aria-label={t('heroAria')}>
-        <div className="hero-primary">
-          <RegionSelect
-            regions={regionSummaries}
-            selectedRegionCode={selectedRegionCode}
-            onRegionChange={setSelectedRegionCode}
-            isLoading={isLoadingRegions}
-            error={regionsError}
-          />
+      {activeView === 'overview' && (
+        <section className="dashboard-hero" aria-label={t('heroAria')}>
+          <div className="hero-primary">
+            {regionSelect}
+            <LatestMeasurementCard
+              measurement={measurement}
+              selectedRegion={selectedSummary}
+              isLoading={isLoadingDetail}
+              error={detailError}
+              hasRegion={Boolean(selectedRegionCode)}
+            />
+          </div>
+          {regionalMap}
+        </section>
+      )}
 
-          <LatestMeasurementCard
-            measurement={measurement}
-            selectedRegion={selectedSummary}
-            isLoading={isLoadingDetail}
-            error={detailError}
-            hasRegion={Boolean(selectedRegionCode)}
-          />
-        </div>
+      {activeView === 'map' && (
+        <section className="dashboard-view map-view" aria-label={t('mapAria')}>
+          {regionalMap}
+        </section>
+      )}
 
-        <RegionalMap
-          regions={regionSummaries}
-          geometries={regionGeometries}
-          selectedRegionCode={selectedRegionCode}
-          onRegionSelect={setSelectedRegionCode}
-          isLoading={isLoadingRegions || isLoadingGeometries}
-          error={regionsError || geometriesError}
-        />
-      </section>
-
-      <section className="dashboard-section" aria-label={t('analysis')}>
-        <div className="section-head">
-          <h2 className="section-title">{t('analysis')}</h2>
-          <p className="section-lead">{t('analysisLead')}</p>
-        </div>
-        <div className="section-grid section-grid--analysis">
+      {activeView === 'trend' && (
+        <section className="dashboard-view" aria-label={t('navTrend')}>
+          {regionSelect}
           <TrendChart regionCode={selectedRegionCode} regionName={displayRegionName} />
+        </section>
+      )}
 
+      {activeView === 'comparison' && (
+        <section className="dashboard-view" aria-label={t('navComparison')}>
           <RegionComparisonCard
             regions={regionComparison}
             selectedRegionCode={selectedRegionCode}
@@ -250,15 +275,12 @@ function Dashboard() {
             isLoading={isLoadingComparison}
             error={comparisonError}
           />
-        </div>
-      </section>
+        </section>
+      )}
 
-      <section className="dashboard-section" aria-label={t('dataMethodology')}>
-        <div className="section-head">
-          <h2 className="section-title">{t('dataMethodology')}</h2>
-          <p className="section-lead">{t('dataMethodologyLead')}</p>
-        </div>
-        <div className="section-grid section-grid--details">
+      {activeView === 'data' && (
+        <section className="dashboard-view" aria-label={t('navDataExport')}>
+          {regionSelect}
           <RegionDetailsCard
             measurement={measurement}
             selectedRegion={selectedSummary}
@@ -267,10 +289,14 @@ function Dashboard() {
             hasRegion={Boolean(selectedRegionCode)}
             csvExportUrl={csvExportUrl}
           />
+        </section>
+      )}
 
+      {activeView === 'methodology' && (
+        <section className="dashboard-view" aria-label={t('navMethodology')}>
           <MethodologyCard />
-        </div>
-      </section>
+        </section>
+      )}
     </main>
   )
 }
