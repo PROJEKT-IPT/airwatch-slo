@@ -94,6 +94,9 @@ const translations = {
     regionLabel: 'Statistična regija',
     loadingRegions: 'Nalaganje regij...',
     chooseRegion: 'Izberite regijo',
+    pickerTitle: 'Izberite statistično regijo',
+    searchPlaceholder: 'Išči po imenu ali kodi',
+    noRegionsFound: 'Ni najdenih regij. Poskusite z imenom regije ali kodo, npr. SI041.',
     noValidPixelsSuffix: 'ni veljavnih pikslov',
     regionsUnavailable:
       'Regijski podatki trenutno niso na voljo. Mozno je, da regionalne meritve se niso bile nalozene v bazo.',
@@ -292,6 +295,9 @@ const translations = {
     regionLabel: 'Statistical region',
     loadingRegions: 'Loading regions...',
     chooseRegion: 'Choose a region',
+    pickerTitle: 'Choose a statistical region',
+    searchPlaceholder: 'Search by name or code',
+    noRegionsFound: 'No regions found. Try a region name or code, e.g. SI041.',
     noValidPixelsSuffix: 'no valid pixels',
     regionsUnavailable:
       'Regional data is currently unavailable. Regional measurements may not yet have been loaded into the database.',
@@ -490,6 +496,9 @@ const translations = {
     regionLabel: 'Statistische Region',
     loadingRegions: 'Regionen werden geladen...',
     chooseRegion: 'Region waehlen',
+    pickerTitle: 'Statistische Region waehlen',
+    searchPlaceholder: 'Nach Name oder Code suchen',
+    noRegionsFound: 'Keine Regionen gefunden. Versuchen Sie einen Regionsnamen oder Code, z. B. SI041.',
     noValidPixelsSuffix: 'keine gueltigen Pixel',
     regionsUnavailable:
       'Regionale Daten sind derzeit nicht verfuegbar. Regionale Messungen wurden moeglicherweise noch nicht in die Datenbank geladen.',

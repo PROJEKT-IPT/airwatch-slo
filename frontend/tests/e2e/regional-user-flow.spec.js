@@ -179,8 +179,8 @@ test('covers the main regional dashboard flow', async ({ page }) => {
 
   await expect(page.locator('.dashboard-header h1')).toContainText(/regijah/i)
 
-  const regionSelect = page.getByLabel(/Statisti.*na regija/i)
-  await expect(regionSelect).toHaveValue('SI032')
+  const regionTrigger = page.getByRole('button', { name: /Statisti.*na regija/i })
+  await expect(regionTrigger).toContainText('SI032')
   await expect(
     page.getByLabel('Interaktivni Leaflet zemljevid slovenskih statističnih regij'),
   ).toBeVisible()
@@ -191,8 +191,9 @@ test('covers the main regional dashboard flow', async ({ page }) => {
   await expect(latestMeasurementCard).toContainText('Veljavnih pikslov')
   await expect(latestMeasurementCard).toContainText('41')
 
-  // Switch the focused region on the overview; selection persists across views.
-  await regionSelect.selectOption('SI031')
+  // Switch the focused region via the custom picker; selection persists across views.
+  await regionTrigger.click()
+  await page.getByRole('option', { name: /Pomurska/i }).click()
   await expect(page.locator('.map-selected-region')).toContainText('SI031')
   await expect(latestMeasurementCard.getByRole('heading', { name: 'Pomurska' })).toBeVisible()
   await expect(latestMeasurementCard).toContainText('Ni veljavnih podatkov za izbrano regijo')

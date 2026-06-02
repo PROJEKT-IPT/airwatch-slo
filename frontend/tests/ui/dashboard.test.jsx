@@ -216,7 +216,8 @@ describe('Dashboard', () => {
       expect(container.querySelector('.metric-card h2')).toHaveTextContent('Podravska')
     })
 
-    await user.selectOptions(screen.getByLabelText('Statistična regija'), 'SI031')
+    await user.click(screen.getByRole('button', { name: /Statistična regija/i }))
+    await user.click(await screen.findByRole('option', { name: /Pomurska/i }))
 
     await waitFor(() => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
@@ -243,7 +244,7 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
     })
-    expect(screen.getByLabelText('Statistična regija')).toHaveValue('SI031')
+    expect(screen.getByRole('button', { name: /Statistična regija/i })).toHaveTextContent('SI031')
   })
 
   it('overview: renders the map quality legend so colour is not the only indicator', async () => {
@@ -324,7 +325,8 @@ describe('Dashboard', () => {
       'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
     )
 
-    await user.selectOptions(screen.getByLabelText('Statistična regija'), 'SI031')
+    await user.click(screen.getByRole('button', { name: /Statistična regija/i }))
+    await user.click(await screen.findByRole('option', { name: /Pomurska/i }))
 
     await waitFor(() => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
