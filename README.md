@@ -43,3 +43,14 @@ NO₂ meritve se vnesejo prek data pipeline-a – glej dokumentacijo spodaj.
 Podrobni in zgodovinski zapisi so v [docs/archive/](docs/archive/).
 Komponentni README-ji so v `backend/`, `frontend/`, `data_pipeline/` in `database/`.
 
+## SonarQube
+
+Analiza kode je pripravljena prek GitHub Actions workflow-a
+`.github/workflows/ci.yml` in konfiguracije `sonar-project.properties`.
+
+Za povezavo nastavi GitHub secret `SONAR_TOKEN` in `SONAR_ORGANIZATION`. Po
+potrebi nastavi tudi `SONAR_PROJECT_KEY`, sicer workflow uporabi ime
+repozitorija. `SONAR_ORGANIZATION` in `SONAR_PROJECT_KEY` sta lahko GitHub
+Actions variables ali secrets.
+
+

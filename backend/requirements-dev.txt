@@ -1,3 +1,4 @@
 -r requirements.txt
 httpx==0.25.2
 pytest==8.3.4
+pytest-cov==5.0.0
