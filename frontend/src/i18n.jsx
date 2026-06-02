@@ -106,6 +106,8 @@ const translations = {
       'Vrednost je satelitska regionalna ocena NO2 iz produktov Sentinel-5P (TROPOMI), agregirana po statisticni regiji. En piksel pokriva priblizno 3,5 x 5,5 km, zato podatkov ni smiselno brati kot ulicne koncentracije. Prikaz ni v realnem casu.',
     methodologyText2:
       'Uporabljen je kakovostni filter qa_value >= 0.75. Ce regija nima dovolj veljavnih pikslov, jo prikazemo kot "ni podatkov" in vrednosti ne izracunamo.',
+    methodologyText3:
+      'Meje regij izvirajo iz generaliziranih Eurostat GISCO NUTS podatkov. Agregacija je poenostavljena: veljavni satelitski piksel se obravnava kot tocka in dodeli statisticni regiji, brez utezevanja po footprintu ali talnih meritev.',
     spatialOverview: 'Prostorski pregled',
     mapTitle: 'Zemljevid statisticnih regij',
     mapAria: 'Zemljevid slovenskih statisticnih regij',
@@ -307,6 +309,8 @@ const translations = {
       'The value is a satellite-based regional NO2 estimate from Sentinel-5P (TROPOMI) products, aggregated by statistical region. One pixel covers roughly 3.5 x 5.5 km, so the data should not be read as street-level concentrations. This is not real-time.',
     methodologyText2:
       'A quality filter of qa_value >= 0.75 is used. If a region does not have enough valid pixels, it is shown as "no data" and no value is calculated.',
+    methodologyText3:
+      'Regional boundaries come from generalized Eurostat GISCO NUTS data. Aggregation is simplified: each valid satellite pixel is treated as a point and assigned to a statistical region, without footprint weighting or ground-station fusion.',
     spatialOverview: 'Spatial overview',
     mapTitle: 'Statistical regions map',
     mapAria: 'Map of Slovenian statistical regions',
@@ -508,6 +512,8 @@ const translations = {
       'Der Wert ist eine satellitenbasierte regionale NO2-Schaetzung aus Sentinel-5P-Produkten (TROPOMI), aggregiert nach statistischer Region. Ein Pixel deckt ungefaehr 3,5 x 5,5 km ab, daher sollten die Daten nicht als Konzentrationen auf Strassenebene gelesen werden. Dies ist keine Echtzeitansicht.',
     methodologyText2:
       'Es wird ein Qualitaetsfilter qa_value >= 0.75 verwendet. Wenn eine Region nicht genug gueltige Pixel hat, wird sie als "keine Daten" angezeigt und kein Wert berechnet.',
+    methodologyText3:
+      'Die Regionsgrenzen stammen aus generalisierten Eurostat-GISCO-NUTS-Daten. Die Aggregation ist vereinfacht: jedes gueltige Satellitenpixel wird als Punkt behandelt und einer statistischen Region zugewiesen, ohne Footprint-Gewichtung oder Einbindung von Bodenstationen.',
     spatialOverview: 'Raeumliche Uebersicht',
     mapTitle: 'Karte der statistischen Regionen',
     mapAria: 'Karte der slowenischen statistischen Regionen',

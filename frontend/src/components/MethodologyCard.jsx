@@ -13,6 +13,7 @@ function MethodologyCard() {
         <code>qa_value &gt;= 0.75</code>
         {t('methodologyText2').split('qa_value >= 0.75')[1]}
       </p>
+      <p className="muted-text">{t('methodologyText3')}</p>
     </section>
   )
 }
