@@ -938,45 +938,29 @@ select {
 }
 
 .satellite-position-card {
-  position: relative;
-  min-height: clamp(520px, 62vw, 680px);
-  overflow: hidden;
-  padding: 0;
-  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+  gap: 22px;
+  align-items: stretch;
 }
 
 .satellite-position-copy {
-  position: relative;
-  z-index: 2;
   min-width: 0;
-  width: min(100%, 520px);
-  min-height: inherit;
   display: grid;
   align-content: start;
-  padding: 28px;
-  background: linear-gradient(90deg, rgba(8, 22, 29, 0.9), rgba(8, 22, 29, 0.68) 72%, transparent);
-  color: #f6fbfb;
-}
-
-.satellite-position-copy .muted-text,
-.satellite-position-copy .provenance-note,
-.satellite-position-copy .section-kicker {
-  color: rgba(244, 250, 250, 0.78);
 }
 
 .satellite-position-card .satellite-position-copy h2,
 .satellite-position-copy .info-tile strong {
-  color: #ffffff;
+  color: var(--blueberry-skin);
 }
 
 .satellite-position-copy .info-tile {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.14);
-  color: #f6fbfb;
+  color: var(--text);
 }
 
 .satellite-position-copy .info-tile span {
-  color: rgba(244, 250, 250, 0.8);
+  color: var(--stem-grey);
 }
 
 .satellite-position-grid {
@@ -991,15 +975,14 @@ select {
 }
 
 .satellite-map {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  height: 100%;
-  min-height: 100%;
-  border: 0;
-  border-radius: 0;
+  grid-column: 2;
+  grid-row: 1;
+  height: clamp(320px, 44vw, 460px);
+  min-height: 320px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
   overflow: hidden;
-  background: #061820;
+  background: #dbe8e4;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035);
 }
 
@@ -1008,7 +991,7 @@ select {
 }
 
 .satellite-leaflet-map.leaflet-container {
-  background: #061c24;
+  background: #dbe8e4;
 }
 
 .satellite-leaflet-map .leaflet-control-zoom {
@@ -1023,27 +1006,27 @@ select {
 }
 
 .satellite-leaflet-map .leaflet-control-attribution {
-  background: rgba(6, 24, 32, 0.6);
-  color: rgba(224, 240, 243, 0.58);
+  background: rgba(248, 250, 247, 0.74);
+  color: rgba(32, 48, 55, 0.68);
   font-size: 0.66rem;
 }
 
 .satellite-leaflet-map .leaflet-control-attribution a {
-  color: rgba(176, 230, 240, 0.9);
+  color: rgba(18, 78, 92, 0.88);
 }
 
 .satellite-map-base-layer {
-  filter: saturate(0.78) contrast(1.1) brightness(0.82);
+  filter: saturate(0.82) contrast(1.08) brightness(0.98);
 }
 
 .satellite-marker {
   align-items: center;
-  background: #f6fbfb;
-  border: 1px solid rgba(6, 24, 32, 0.52);
+  background: #ffffff;
+  border: 2px solid #174852;
   border-radius: 999px;
   box-shadow:
-    0 0 0 4px rgba(31, 197, 208, 0.12),
-    0 0 14px rgba(31, 197, 208, 0.38);
+    0 0 0 4px rgba(23, 72, 82, 0.16),
+    0 0 12px rgba(23, 72, 82, 0.28);
   display: flex;
   height: 10px;
   justify-content: center;
@@ -1057,15 +1040,11 @@ select {
 }
 
 .satellite-orbit-track {
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.12));
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.55));
 }
 
 .satellite-orbit-track--future {
-  filter: drop-shadow(0 0 5px rgba(240, 248, 250, 0.22));
-}
-
-.satellite-orbit-track--past {
-  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.42));
 }
 
 .satellite-intro {
@@ -2311,17 +2290,21 @@ html.a11y-high-contrast .test-region-badge {
   .overview-grid,
   .section-grid--analysis,
   .section-grid--details,
+  .satellite-position-card,
   .satellite-grid {
     grid-template-columns: 1fr;
   }
 
-  .satellite-position-card {
-    min-height: 620px;
+  .satellite-map {
+    grid-column: 1;
+    grid-row: 1;
+    height: clamp(280px, 56vw, 380px);
+    min-height: 280px;
   }
 
   .satellite-position-copy {
-    width: min(100%, 560px);
-    background: linear-gradient(180deg, rgba(8, 22, 29, 0.92), rgba(8, 22, 29, 0.68) 74%, transparent);
+    grid-column: 1;
+    grid-row: 2;
   }
 
   .satellite-facts {
@@ -2365,16 +2348,12 @@ html.a11y-high-contrast .test-region-badge {
   }
 
   .satellite-map {
-    min-height: 100%;
-  }
-
-  .satellite-position-card {
-    min-height: 700px;
+    height: 260px;
+    min-height: 240px;
   }
 
   .satellite-position-copy {
-    min-height: auto;
-    padding: 22px;
+    min-height: 0;
   }
 
   .sidebar-nav {

@@ -85,10 +85,13 @@ function Icon({ name }) {
     case 'satellite':
       return (
         <svg {...props}>
-          <path d="M5 11l3-3 4 4-3 3a2.8 2.8 0 0 1-4-4z" />
-          <path d="M9 7l2.5-2.5a2 2 0 0 1 2.8 0L16 6.2a2 2 0 0 1 0 2.8L13.5 11.5" />
-          <path d="M14 14a4 4 0 0 0 0-4" />
-          <path d="M16.5 16.5a7 7 0 0 0 0-7" />
+          <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+          <path d="M3.707 6.293l2.586 -2.586a1 1 0 0 1 1.414 0l5.586 5.586a1 1 0 0 1 0 1.414l-2.586 2.586a1 1 0 0 1 -1.414 0l-5.586 -5.586a1 1 0 0 1 0 -1.414" />
+          <path d="M6 10l-3 3l3 3l3 -3" />
+          <path d="M10 6l3 -3l3 3l-3 3" />
+          <path d="M12 12l1.5 1.5" />
+          <path d="M14.5 17a2.5 2.5 0 0 0 2.5 -2.5" />
+          <path d="M15 21a6 6 0 0 0 6 -6" />
         </svg>
       )
     case 'about':

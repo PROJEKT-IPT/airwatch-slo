@@ -57,7 +57,7 @@ const translations = {
     satAltitude: 'Višina',
     satVelocity: 'Hitrost',
     satLiveSource:
-      'Preračunano ob {time} UTC iz TLE elementov z epoho {epoch} UTC. Prikaz je informativen in se posodobi približno vsakih 15 sekund.',
+      'Preračunano ob {time} po lokalnem času iz TLE elementov z epoho {epoch} UTC. Prikaz je informativen in se posodobi približno vsakih 15 sekund.',
     satMapAria: 'Leaflet zemljevid z ocenjeno trenutno lokacijo satelita Sentinel-5P',
     satWhatTitle: 'Kaj je naš satelit?',
     satIntro:
@@ -330,7 +330,7 @@ const translations = {
     satAltitude: 'Altitude',
     satVelocity: 'Velocity',
     satLiveSource:
-      'Calculated at {time} UTC from TLE elements with epoch {epoch} UTC. This is an informative display and updates about every 15 seconds.',
+      'Calculated at {time} local time from TLE elements with epoch {epoch} UTC. This is an informative display and updates about every 15 seconds.',
     satMapAria: 'Leaflet map showing the estimated current Sentinel-5P satellite location',
     satWhatTitle: 'What is our satellite?',
     satIntro:
@@ -601,7 +601,7 @@ const translations = {
     satAltitude: 'Hoehe',
     satVelocity: 'Geschwindigkeit',
     satLiveSource:
-      'Berechnet um {time} UTC aus TLE-Elementen mit Epoche {epoch} UTC. Die Anzeige ist informativ und aktualisiert sich etwa alle 15 Sekunden.',
+      'Berechnet um {time} Ortszeit aus TLE-Elementen mit Epoche {epoch} UTC. Die Anzeige ist informativ und aktualisiert sich etwa alle 15 Sekunden.',
     satMapAria: 'Leaflet-Karte mit der geschaetzten aktuellen Position des Satelliten Sentinel-5P',
     satWhatTitle: 'Was ist unser Satellit?',
     satIntro:

@@ -130,6 +130,13 @@ function formatUtcTime(date, locale) {
   }).format(date)
 }
 
+function formatLocalTime(date, locale) {
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  }).format(date)
+}
+
 function SatellitePositionMap({ ariaLabel, now, position }) {
   const mapElementRef = useRef(null)
   const mapRef = useRef(null)
@@ -161,10 +168,12 @@ function SatellitePositionMap({ ariaLabel, now, position }) {
       zoomControl: false,
     })
 
-    map.setView([initialPosition.latitude, initialPosition.longitude], getSatelliteMapZoom(mapElementRef.current))
+    map.setView([initialPosition.latitude, initialPosition.longitude], getSatelliteMapZoom(mapElementRef.current), {
+      animate: false,
+    })
     map.attributionControl.setPosition('bottomright')
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
       className: 'satellite-map-base-layer',
@@ -195,7 +204,9 @@ function SatellitePositionMap({ ariaLabel, now, position }) {
             const currentPosition = positionRef.current
             map.invalidateSize()
             map.setZoom(getSatelliteMapZoom(mapElementRef.current), { animate: false })
-            map.setView([currentPosition.latitude, currentPosition.longitude], undefined, { animate: false })
+            map.setView([currentPosition.latitude, currentPosition.longitude], undefined, {
+              animate: false,
+            })
           })
     resizeObserver?.observe(mapElementRef.current)
 
@@ -226,12 +237,14 @@ function SatellitePositionMap({ ariaLabel, now, position }) {
         className:
           segment.phase === 'future'
             ? 'satellite-orbit-track satellite-orbit-track--future'
-            : 'satellite-orbit-track satellite-orbit-track--past',
-        color: segment.phase === 'future' ? '#e9f1f4' : '#7e8b91',
-        dashArray: segment.phase === 'future' ? null : '4 7',
-        opacity: segment.phase === 'future' ? 0.78 : 0.4,
-        smoothFactor: 1,
-        weight: segment.phase === 'future' ? 1.55 : 1.05,
+            : 'satellite-orbit-track',
+        color: '#173d46',
+        dashArray: segment.phase === 'future' ? '18 12' : null,
+        lineCap: segment.phase === 'future' ? 'butt' : 'round',
+        lineJoin: 'round',
+        opacity: segment.opacity,
+        smoothFactor: 0.35,
+        weight: segment.weight,
       }).addTo(map),
     )
   }, [groundTrackSegments, position.latitude, position.longitude])
@@ -258,9 +271,9 @@ function SatellitePositionMap({ ariaLabel, now, position }) {
 }
 
 function buildGroundTrackSegments(now) {
-  const minutesBefore = 52
-  const minutesAfter = 52
-  const stepMinutes = 2
+  const minutesBefore = 72
+  const minutesAfter = 36
+  const stepMinutes = 0.35
   const points = []
 
   for (let offset = -minutesBefore; offset <= minutesAfter; offset += stepMinutes) {
@@ -272,35 +285,114 @@ function buildGroundTrackSegments(now) {
     })
   }
 
-  return splitAntimeridianSegments(points)
+  return buildSmoothTrackSegments(points)
 }
 
-function splitAntimeridianSegments(points) {
-  return points.reduce((segments, point, index) => {
+function buildSmoothTrackSegments(points) {
+  const maxAbsOffset = Math.max(...points.map(point => Math.abs(point.offset)), 1)
+  const segments = []
+  const paths = splitAntimeridianPaths(points).map(path => smoothTrackPath(path))
+
+  paths.forEach(path => {
+    for (let index = 0; index < path.length - 1; index += 5) {
+      const chunk = path.slice(index, index + 7)
+      if (chunk.length < 2) continue
+
+      const midpointOffset = chunk[Math.floor(chunk.length / 2)].offset
+      const distanceFromSatellite = Math.min(Math.abs(midpointOffset) / maxAbsOffset, 1)
+      const opacity = 0.05 + (1 - distanceFromSatellite) ** 1.45 * 0.6
+      const weight = 0.68 + (1 - distanceFromSatellite) * 0.88
+
+      segments.push({
+        opacity,
+        phase: midpointOffset > 0 ? 'future' : 'past',
+        points: chunk.map(point => point.latLng),
+        weight,
+      })
+    }
+  })
+
+  return segments
+}
+
+function splitAntimeridianPaths(points) {
+  return points.reduce((paths, point, index) => {
     const previousPoint = points[index - 1]
     const crossesAntimeridian =
       previousPoint && Math.abs(point.latLng[1] - previousPoint.latLng[1]) > 180
-    const phase = point.offset < 0 ? 'past' : 'future'
-    const latestSegment = segments[segments.length - 1]
 
-    if (crossesAntimeridian || !latestSegment) {
-      segments.push({ phase, points: [point.latLng] })
-    } else if (latestSegment.phase !== phase) {
-      latestSegment.points.push(point.latLng)
-      segments.push({ phase, points: [point.latLng] })
+    if (crossesAntimeridian || paths.length === 0) {
+      paths.push([point])
     } else {
-      latestSegment.points.push(point.latLng)
+      paths[paths.length - 1].push(point)
     }
 
-    return segments
+    return paths
   }, [])
 }
 
+function smoothTrackPath(points) {
+  if (points.length < 4) return points
+
+  const smoothedPoints = []
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const previousPoint = points[Math.max(0, index - 1)]
+    const currentPoint = points[index]
+    const nextPoint = points[index + 1]
+    const afterNextPoint = points[Math.min(points.length - 1, index + 2)]
+
+    for (let step = 0; step < 4; step += 1) {
+      const amount = step / 4
+      smoothedPoints.push({
+        latLng: [
+          catmullRom(
+            previousPoint.latLng[0],
+            currentPoint.latLng[0],
+            nextPoint.latLng[0],
+            afterNextPoint.latLng[0],
+            amount,
+          ),
+          catmullRom(
+            previousPoint.latLng[1],
+            currentPoint.latLng[1],
+            nextPoint.latLng[1],
+            afterNextPoint.latLng[1],
+            amount,
+          ),
+        ],
+        offset: catmullRom(previousPoint.offset, currentPoint.offset, nextPoint.offset, afterNextPoint.offset, amount),
+      })
+    }
+  }
+
+  smoothedPoints.push(points[points.length - 1])
+  return smoothedPoints
+}
+
+function catmullRom(previousValue, currentValue, nextValue, afterNextValue, amount) {
+  const amountSquared = amount * amount
+  const amountCubed = amountSquared * amount
+
+  return (
+    0.5 *
+    ((2 * currentValue) +
+      (-previousValue + nextValue) * amount +
+      (2 * previousValue - 5 * currentValue + 4 * nextValue - afterNextValue) * amountSquared +
+      (-previousValue + 3 * currentValue - 3 * nextValue + afterNextValue) * amountCubed)
+  )
+}
+
 function getSatelliteMapZoom(mapElement) {
-  const width = mapElement?.clientWidth || 520
-  if (width < 420) return 1
-  if (width < 700) return 1.35
-  return 1.65
+  const width = mapElement?.clientWidth || 560
+  const height = mapElement?.clientHeight || 380
+  const referenceWidth = 560
+  const referenceHeight = 380
+  const referenceZoom = 1.95
+  const viewportScale = Math.min(width / referenceWidth, height / referenceHeight)
+  const responsiveZoom = referenceZoom + Math.log2(Math.max(viewportScale, 0.1))
+
+  return Math.min(Math.max(responsiveZoom, 1.05), 2.15)
 }
 
 function SatelliteCard() {
@@ -342,7 +434,7 @@ function SatelliteCard() {
             </div>
           </div>
           <p className="provenance-note">
-            {t('satLiveSource', { time: formatUtcTime(now, locale), epoch: tleEpochLabel })}
+            {t('satLiveSource', { time: formatLocalTime(now, locale), epoch: tleEpochLabel })}
           </p>
         </div>
       </section>
