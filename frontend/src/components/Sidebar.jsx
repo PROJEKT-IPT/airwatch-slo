@@ -126,11 +126,11 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
 
   // Each item switches the main content area to a focused view (no scrolling).
   const navigationItems = [
+    { id: 'satellite', icon: 'satellite', label: t('navSatellite') },
     { id: 'overview', icon: 'overview', label: t('navOverview') },
     { id: 'trend', icon: 'trend', label: t('navTrend') },
     { id: 'comparison', icon: 'comparison', label: t('navComparison') },
     { id: 'data', icon: 'data', label: t('navDataExport') },
-    { id: 'satellite', icon: 'satellite', label: t('navSatellite') },
     { id: 'methodology', icon: 'methodology', label: t('navMethodology') },
   ]
 

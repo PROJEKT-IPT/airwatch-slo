@@ -97,6 +97,9 @@ select {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  /* Scroll inside the sidebar if its content is taller than the viewport,
+     so it never pushes the page (the overview map view stays non-scrollable). */
+  overflow-y: auto;
 }
 
 .brand-block {
@@ -1436,7 +1439,7 @@ select {
   left: 20px;
   bottom: 20px;
   z-index: 1000;
-  width: min(320px, calc(100% - 40px));
+  width: min(380px, calc(100% - 40px));
   margin: 0;
   padding: 14px 16px;
   border: 1px solid var(--line);
@@ -1689,17 +1692,21 @@ select {
 
 .map-legend-values {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 9px;
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 6px;
 }
 
 .map-legend-thresholds {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
   color: var(--blueberry-skin);
   font-size: 0.72rem;
   line-height: 1;
+}
+
+.map-legend-unit {
+  justify-self: end;
 }
 
 .map-legend-thresholds span {
