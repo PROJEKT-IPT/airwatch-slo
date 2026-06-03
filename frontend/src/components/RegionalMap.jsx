@@ -61,10 +61,10 @@ function RegionalMap({
     if (!mapRef.current) {
       mapRef.current = L.map(mapElementRef.current, {
         attributionControl: true,
-        doubleClickZoom: false,
+        doubleClickZoom: true,
         dragging: true,
         keyboard: true,
-        scrollWheelZoom: false,
+        scrollWheelZoom: true,
         zoomControl: true,
       })
       // Keep the attribution clear of the floating panel (bottom-right).

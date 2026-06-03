@@ -201,6 +201,8 @@ describe('Dashboard', () => {
     })
     expect(getRegionDetails).toHaveBeenCalledWith('SI032')
 
+    // The headline value only renders once the per-region detail has loaded,
+    // which resolves after the summaries (so wait for it rather than assume).
     await waitFor(() => {
       expect(container.querySelector('.metric-card .metric-value')).toBeInTheDocument()
     })
