@@ -9,6 +9,9 @@ const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f'
 const MISSING_COLOR = '#cfd6dc'
 const LEGEND_STEP_COUNT = 7
 
+// Capital city reference point (decoration only — not a measurement).
+const LJUBLJANA = { lat: 46.0569, lng: 14.5058 }
+
 // Tooltip + click/keyboard/hover wiring for one region polygon. Kept at module
 // level so the map-building effect stays simple.
 function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef, translationRef }) {
@@ -92,9 +95,38 @@ function ensureResetControl(map, resetControlRef, boundsRef, label) {
   resetControlRef.current = control
 }
 
+// Small div-icon for the capital: a dot plus an always-on "Ljubljana" label.
+function buildCapitalIcon(t) {
+  return L.divIcon({
+    className: 'capital-marker-icon',
+    html:
+      '<span class="capital-dot" aria-hidden="true"></span>' +
+      `<span class="capital-label"><strong>Ljubljana</strong><span class="capital-sub">${escapeHtml(t('capitalCity'))}</span></span>`,
+    iconAnchor: [5, 5],
+    iconSize: null,
+  })
+}
+
+// Add a small, non-interactive marker for the capital so clicks still reach
+// the region polygon underneath. Created once; only its label is refreshed.
+function ensureCapitalMarker(map, capitalMarkerRef, t) {
+  if (capitalMarkerRef.current) {
+    capitalMarkerRef.current.setIcon(buildCapitalIcon(t))
+    return
+  }
+
+  const marker = L.marker([LJUBLJANA.lat, LJUBLJANA.lng], {
+    icon: buildCapitalIcon(t),
+    interactive: false,
+    keyboard: false,
+  })
+  marker.addTo(map)
+  capitalMarkerRef.current = marker
+}
+
 // (Re)build the region polygons layer and fit the map to it on first render.
 function renderRegionLayer(map, refs, params) {
-  const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef } = refs
+  const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef, capitalMarkerRef } = refs
   const { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t } = params
 
   if (geoJsonLayerRef.current) {
@@ -111,6 +143,7 @@ function renderRegionLayer(map, refs, params) {
   ).addTo(map)
 
   geoJsonLayerRef.current.eachLayer(layer => emphasizeIfSelected(layer, selectedRegionRef.current))
+  ensureCapitalMarker(map, capitalMarkerRef, t)
 
   const bounds = geoJsonLayerRef.current.getBounds()
   if (bounds.isValid()) {
@@ -177,6 +210,7 @@ function RegionalMap({
   const fittedGeometryKeyRef = useRef(null)
   const boundsRef = useRef(null)
   const resetControlRef = useRef(null)
+  const capitalMarkerRef = useRef(null)
   const selectedRegionRef = useRef(selectedRegionCode)
   const translationRef = useRef(t)
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
@@ -201,6 +235,7 @@ function RegionalMap({
         layer.setTooltipContent(buildRegionTooltip(layer.feature?.properties, t))
       }
     })
+    capitalMarkerRef.current?.setIcon(buildCapitalIcon(t))
   }, [t])
 
   useEffect(() => {
@@ -211,7 +246,7 @@ function RegionalMap({
     const map = ensureLeafletMap(mapElementRef.current, mapRef, baseLayerRef)
     renderRegionLayer(
       map,
-      { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef },
+      { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef, capitalMarkerRef },
       { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t },
     )
     setTimeout(() => {
@@ -230,6 +265,7 @@ function RegionalMap({
         mapRef.current.remove()
         mapRef.current = null
         resetControlRef.current = null
+        capitalMarkerRef.current = null
       }
     },
     [],
@@ -382,6 +418,7 @@ function getResponsiveFitBoundsOptions(mapElement) {
 
 function buildFeatureCollection(regions, mapOptions) {
   const { maxMicromol, minMicromol } = mapOptions
+  const ranking = buildRegionRanks(regions)
 
   return {
     type: 'FeatureCollection',
@@ -397,9 +434,23 @@ function buildFeatureCollection(regions, mapOptions) {
         min_micromol: minMicromol,
         pixel_count_valid: region.pixel_count_valid,
         unit: region.unit,
+        rank: ranking.ranks.get(region.region_code) ?? null,
+        rank_total: ranking.total,
       },
     })),
   }
+}
+
+// Rank valid regions by NO₂ value (highest = #1) from the loaded measurements.
+// No fabricated values: regions without a valid value are simply unranked.
+function buildRegionRanks(regions) {
+  const valid = regions
+    .filter(region => region.quality_status === 'valid' && Number.isFinite(Number(region.value_mean)))
+    .sort((a, b) => Number(b.value_mean) - Number(a.value_mean))
+
+  const ranks = new Map()
+  valid.forEach((region, index) => ranks.set(region.region_code, index + 1))
+  return { ranks, total: valid.length }
 }
 
 function hasGeometry(geometry) {
@@ -472,23 +523,66 @@ function getColorFromScale(ratio, colors) {
 }
 
 function buildRegionTooltip(properties, t) {
-  const status = properties?.quality_status
+  const name = escapeHtml(properties?.region_name || t('selectedRegion'))
+  const code = escapeHtml(properties?.region_code || '')
+
+  if (isMissingTooltipData(properties)) {
+    return buildNoDataTooltip(name, code, properties?.quality_status, t)
+  }
+  return buildValidTooltip(name, code, properties, t)
+}
+
+function isMissingTooltipData(properties) {
+  return (
+    properties?.quality_status !== 'valid' ||
+    !Number.isFinite(Number(properties?.value_mean)) ||
+    Number(properties?.pixel_count_valid) === 0
+  )
+}
+
+function buildValidTooltip(name, code, properties, t) {
   const value = formatMicromolValue(properties?.value_mean, t)
   const pixels = formatInteger(properties?.pixel_count_valid, t)
-  const statusLabel = formatQualityStatus(status, t)
-  const dotClass = `map-tooltip-dot ${getTooltipDotClass(status)}`
+  const statusLabel = formatQualityStatus(properties?.quality_status, t)
+  const dotClass = `map-tooltip-dot ${getTooltipDotClass(properties?.quality_status)}`
 
   return `
     <div class="map-tooltip">
-      <strong>${escapeHtml(properties?.region_name || t('selectedRegion'))}</strong>
-      <span class="map-tooltip-code">${escapeHtml(properties?.region_code || '')}</span>
+      <strong>${name}</strong>
+      <span class="map-tooltip-code">${code}</span>
       <span class="map-tooltip-row">${escapeHtml(t('latestNo2Value'))}: ${escapeHtml(value)}</span>
       <span class="map-tooltip-row">
         <span class="${dotClass}" aria-hidden="true"></span>
         ${escapeHtml(statusLabel)} &middot; ${escapeHtml(t('validPixels'))}: ${escapeHtml(pixels)}
       </span>
+      ${buildRankRow(properties, t)}
     </div>
   `
+}
+
+function buildNoDataTooltip(name, code, status, t) {
+  const dotClass = `map-tooltip-dot ${getTooltipDotClass(status)}`
+
+  return `
+    <div class="map-tooltip">
+      <strong>${name}</strong>
+      <span class="map-tooltip-code">${code}</span>
+      <span class="map-tooltip-row">
+        <span class="${dotClass}" aria-hidden="true"></span>
+        ${escapeHtml(formatQualityStatus(status, t))}
+      </span>
+      <span class="map-tooltip-note">${escapeHtml(t('tooltipNoDataNote'))}</span>
+    </div>
+  `
+}
+
+function buildRankRow(properties, t) {
+  const rank = Number(properties?.rank)
+  const total = Number(properties?.rank_total)
+  if (!Number.isFinite(rank) || rank <= 0 || !Number.isFinite(total) || total <= 0) {
+    return ''
+  }
+  return `<span class="map-tooltip-row map-tooltip-rank">${escapeHtml(t('regionRank'))}: #${rank} / ${total}</span>`
 }
 
 function getTooltipDotClass(status) {
