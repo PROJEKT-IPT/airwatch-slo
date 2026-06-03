@@ -6,9 +6,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 WORKDIR /app
 
 COPY requirements.txt .
-# --only-binary avoids executing arbitrary setup scripts from source dists; the
-# locked requirements.txt pins all resolved versions for reproducible builds.
-RUN pip install --no-cache-dir --only-binary=:all: -r requirements.txt
+# --only-binary avoids executing arbitrary setup scripts from source dists and
+# --require-hashes pins every resolved dependency by content hash for
+# reproducible, supply-chain-safe builds (see the hash-locked requirements.txt).
+RUN pip install --no-cache-dir --only-binary=:all: --require-hashes -r requirements.txt
 
 COPY . .
 
