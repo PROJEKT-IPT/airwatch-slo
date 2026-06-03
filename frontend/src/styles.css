@@ -1068,23 +1068,52 @@ select {
 }
 
 .satellite-marker {
-  align-items: center;
-  background: #ffffff;
-  border: 2px solid #174852;
-  border-radius: 999px;
-  box-shadow:
-    0 0 0 4px rgba(23, 72, 82, 0.16),
-    0 0 12px rgba(23, 72, 82, 0.28);
   display: flex;
-  height: 10px;
-  justify-content: center;
-  width: 10px;
+  align-items: center;
+  gap: 5px;
+  width: auto;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
-.satellite-marker span {
-  display: block;
-  height: 4px;
-  width: 4px;
+.satellite-marker-dot {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: #9fb6bd;
+  border: 2px solid #5c7780;
+}
+
+.satellite-marker-label {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(248, 250, 247, 0.8);
+  color: #2a4248;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* Our satellite stands out from the orientation-only ones. */
+.satellite-marker--primary .satellite-marker-dot {
+  width: 11px;
+  height: 11px;
+  background: #ffffff;
+  border-color: #174852;
+  box-shadow:
+    0 0 0 4px rgba(23, 72, 82, 0.16),
+    0 0 12px rgba(23, 72, 82, 0.3);
+}
+
+.satellite-marker--primary .satellite-marker-label {
+  background: #174852;
+  color: #eaf6f8;
+  font-weight: 800;
+}
+
+.satellite-other-note {
+  margin-top: 10px;
 }
 
 .satellite-orbit-track {

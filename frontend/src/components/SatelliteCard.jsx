@@ -17,9 +17,49 @@ const FACTS = [
 const GASES = ['NO₂', 'O₃', 'SO₂', 'CO', 'CH₄', 'HCHO']
 
 const SENTINEL_5P_TLE = {
-  line1: '1 42969U 17064A   26151.84911293  .00000060  00000-0  49523-4 0  9993',
-  line2: '2 42969  98.7922  94.0973 0001025  79.7791 280.3501 14.19515890447242',
+  line1: '1 42969U 17064A   26154.45710015  .00000070  00000+0  54088-4 0  9994',
+  line2: '2 42969  98.7922  96.6865 0001019  80.8558 279.2733 14.19516465447611',
 }
+
+// Sentinel-5P is our satellite; the rest (other Copernicus Sentinels + the ISS)
+// are shown for orientation only. All TLEs are public orbital elements and the
+// plotted positions are approximate, not real-time tracking. To refresh, replace
+// the TLE lines from celestrak.org (gp.php?CATNR=<id>).
+const SATELLITES = [
+  { id: 's5p', name: 'Sentinel-5P', primary: true, tle: SENTINEL_5P_TLE },
+  {
+    id: 's1a',
+    name: 'Sentinel-1A',
+    tle: {
+      line1: '1 39634U 14016A   26154.51607291  .00000265  00000+0  65894-4 0  9994',
+      line2: '2 39634  98.1774 162.2481 0001428  82.4571 277.6791 14.59201047648021',
+    },
+  },
+  {
+    id: 's2a',
+    name: 'Sentinel-2A',
+    tle: {
+      line1: '1 40697U 15028A   26154.50839958  .00000142  00000+0  70764-4 0  9991',
+      line2: '2 40697  98.5687 229.5536 0001066  86.9112 273.2193 14.30819840571775',
+    },
+  },
+  {
+    id: 's3a',
+    name: 'Sentinel-3A',
+    tle: {
+      line1: '1 41335U 16011A   26154.47111058  .00000144  00000+0  77339-4 0  9991',
+      line2: '2 41335  98.6252 222.0511 0001305 106.0370 254.0954 14.26736025536109',
+    },
+  },
+  {
+    id: 'iss',
+    name: 'ISS',
+    tle: {
+      line1: '1 25544U 98067A   26154.51601963  .00009210  00000+0  17156-3 0  9993',
+      line2: '2 25544  51.6330   7.7762 0007101 128.3162 231.8466 15.49582842569638',
+    },
+  },
+]
 
 const EARTH_RADIUS_KM = 6378.137
 const EARTH_MU = 398600.4418
@@ -137,38 +177,48 @@ function formatLocalTime(date, locale) {
   }).format(date)
 }
 
-function SatellitePositionMap({ ariaLabel, now, position }) {
+// Small div-icon for a satellite: a dot plus an always-on name label.
+function buildSatelliteIcon(satellite) {
+  const variant = satellite.primary ? 'satellite-marker--primary' : 'satellite-marker--other'
+  return L.divIcon({
+    className: `satellite-marker ${variant}`,
+    html: `<span class="satellite-marker-dot" aria-hidden="true"></span><span class="satellite-marker-label">${satellite.name}</span>`,
+    iconAnchor: [6, 6],
+    iconSize: null,
+  })
+}
+
+function getPrimary(satellites) {
+  return satellites.find(satellite => satellite.primary) || satellites[0]
+}
+
+function SatellitePositionMap({ ariaLabel, now, satellites }) {
   const mapElementRef = useRef(null)
   const mapRef = useRef(null)
-  const markerRef = useRef(null)
+  const markersRef = useRef(new Map())
   const groundTrackRef = useRef([])
-  const positionRef = useRef(position)
+  const satellitesRef = useRef(satellites)
 
   const groundTrackSegments = useMemo(() => buildGroundTrackSegments(now), [now])
 
   useEffect(() => {
-    positionRef.current = position
-  }, [position])
+    satellitesRef.current = satellites
+  }, [satellites])
 
   useEffect(() => {
     if (!mapElementRef.current || mapRef.current) return undefined
-    const initialPosition = positionRef.current
+    const initial = getPrimary(satellitesRef.current)
 
+    // Fully interactive: scroll/drag/zoom enabled so the user can explore.
     const map = L.map(mapElementRef.current, {
       attributionControl: true,
-      boxZoom: false,
-      doubleClickZoom: false,
-      dragging: false,
-      keyboard: false,
+      maxZoom: 6,
       minZoom: 1,
-      scrollWheelZoom: false,
-      tap: false,
-      touchZoom: false,
       worldCopyJump: true,
-      zoomControl: false,
+      zoomControl: true,
     })
 
-    map.setView([initialPosition.latitude, initialPosition.longitude], getSatelliteMapZoom(mapElementRef.current), {
+    map.setView([initial.position.latitude, initial.position.longitude], getSatelliteMapZoom(mapElementRef.current), {
       animate: false,
     })
     map.attributionControl.setPosition('bottomright')
@@ -181,15 +231,15 @@ function SatellitePositionMap({ ariaLabel, now, position }) {
       minZoom: 1,
     }).addTo(map)
 
-    markerRef.current = L.marker([initialPosition.latitude, initialPosition.longitude], {
-      icon: L.divIcon({
-        className: 'satellite-marker',
-        html: '<span aria-hidden="true"></span>',
-        iconAnchor: [5, 5],
-        iconSize: [10, 10],
-      }),
-      keyboard: false,
-    }).addTo(map)
+    satellitesRef.current.forEach(satellite => {
+      const marker = L.marker([satellite.position.latitude, satellite.position.longitude], {
+        icon: buildSatelliteIcon(satellite),
+        interactive: false,
+        keyboard: false,
+        zIndexOffset: satellite.primary ? 1000 : 0,
+      }).addTo(map)
+      markersRef.current.set(satellite.id, marker)
+    })
 
     mapRef.current = map
 
@@ -198,38 +248,22 @@ function SatellitePositionMap({ ariaLabel, now, position }) {
     }, 0)
 
     const resizeObserver =
-      typeof ResizeObserver === 'undefined'
-        ? null
-        : new ResizeObserver(() => {
-            const currentPosition = positionRef.current
-            map.invalidateSize()
-            map.setZoom(getSatelliteMapZoom(mapElementRef.current), { animate: false })
-            map.setView([currentPosition.latitude, currentPosition.longitude], undefined, {
-              animate: false,
-            })
-          })
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => map.invalidateSize())
     resizeObserver?.observe(mapElementRef.current)
-
-    map.on('zoomend', () => {
-      const currentPosition = positionRef.current
-      map.panTo([currentPosition.latitude, currentPosition.longitude], { animate: false })
-    })
-
     mapRef.current.resizeObserver = resizeObserver
 
     return undefined
   }, [])
 
+  // Move the markers + redraw the primary ground track as time advances, but
+  // never re-center: that would fight the user's own pan/zoom.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
 
-    map.panTo([position.latitude, position.longitude], {
-      animate: true,
-      duration: 0.75,
-      easeLinearity: 0.4,
+    satellites.forEach(satellite => {
+      markersRef.current.get(satellite.id)?.setLatLng([satellite.position.latitude, satellite.position.longitude])
     })
-    markerRef.current?.setLatLng([position.latitude, position.longitude])
 
     groundTrackRef.current.forEach(layer => layer.removeFrom(map))
     groundTrackRef.current = groundTrackSegments.map(segment =>
@@ -247,7 +281,7 @@ function SatellitePositionMap({ ariaLabel, now, position }) {
         weight: segment.weight,
       }).addTo(map),
     )
-  }, [groundTrackSegments, position.latitude, position.longitude])
+  }, [groundTrackSegments, satellites])
 
   useEffect(
     () => () => {
@@ -404,17 +438,22 @@ function SatelliteCard() {
     return () => window.clearInterval(intervalId)
   }, [])
 
-  const position = useMemo(() => calculateSatellitePosition(now), [now])
+  const satellites = useMemo(
+    () => SATELLITES.map(satellite => ({ ...satellite, position: calculateSatellitePosition(now, satellite.tle) })),
+    [now],
+  )
+  const position = useMemo(() => getPrimary(satellites).position, [satellites])
   const tleEpochLabel = formatUtcTime(position.epoch, locale)
 
   return (
     <section className="dashboard-view satellite-view" aria-label={t('navSatellite')}>
       <section className="card satellite-position-card">
-        <SatellitePositionMap ariaLabel={t('satMapAria')} now={now} position={position} />
+        <SatellitePositionMap ariaLabel={t('satMapAria')} now={now} satellites={satellites} />
         <div className="satellite-position-copy">
           <h2>{t('satLiveTitle')}</h2>
           <p className="muted-text">{t('satLiveText')}</p>
           <p className="muted-text satellite-live-how">{t('satLiveHowText')}</p>
+          <p className="muted-text satellite-other-note">{t('satOtherSats')}</p>
           <div className="satellite-position-grid" aria-label={t('satLiveTitle')}>
             <div className="info-tile">
               <span>{t('satLatitude')}</span>

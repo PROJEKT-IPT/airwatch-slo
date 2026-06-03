@@ -46,7 +46,6 @@ const translations = {
     comparisonViewLead: 'Primerjava zadnjih razpoložljivih vrednosti NO₂ med regijami.',
     methodologyViewLead: 'Kaj pomenijo podatki Sentinel-5P, kakovostni filter in omejitve.',
     navSatellite: 'Satelit',
-    satelliteViewLead: 'Kratka in razumljiva predstavitev satelita, ki je vir naših podatkov o NO₂.',
     satLiveTitle: 'Kje je Sentinel-5P trenutno?',
     satLiveText:
       'Spodnji prikaz sproti preračuna približno trenutno pod-satelitsko točko Sentinel-5P iz javnih orbitalnih elementov TLE. To je lokacija satelita, ne meritev NO₂ v realnem času.',
@@ -59,6 +58,8 @@ const translations = {
     satLiveSource:
       'Preračunano ob {time} po lokalnem času iz TLE elementov z epoho {epoch} UTC. Prikaz je informativen in se posodobi približno vsakih 15 sekund.',
     satMapAria: 'Leaflet zemljevid z ocenjeno trenutno lokacijo satelita Sentinel-5P',
+    satOtherSats:
+      'Za orientacijo so prikazani tudi nekateri drugi Copernicus sateliti in ISS. Naš satelit (Sentinel-5P) je posebej označen. Zemljevid lahko povečate in premikate; vse lokacije so približne.',
     satWhatTitle: 'Kaj je naš satelit?',
     satIntro:
       'AirWatch SLO podatke črpa iz evropskega satelita Sentinel-5P (program Copernicus, ESA/EU). Ta z instrumentom TROPOMI iz vesolja meri onesnaževala v ozračju, med njimi tudi dušikov dioksid (NO₂), ki ga prikazujemo po slovenskih statističnih regijah.',
@@ -367,6 +368,8 @@ const translations = {
     satLiveSource:
       'Calculated at {time} local time from TLE elements with epoch {epoch} UTC. This is an informative display and updates about every 15 seconds.',
     satMapAria: 'Leaflet map showing the estimated current Sentinel-5P satellite location',
+    satOtherSats:
+      'A few other Copernicus satellites and the ISS are shown for orientation. Our satellite (Sentinel-5P) is highlighted. You can zoom and pan the map; all locations are approximate.',
     satWhatTitle: 'What is our satellite?',
     satIntro:
       'AirWatch SLO draws its data from the European Sentinel-5P satellite (the Copernicus programme, ESA/EU). Using the TROPOMI instrument, it measures pollutants in the atmosphere from space, including nitrogen dioxide (NO₂), which we display across Slovenia’s statistical regions.',
@@ -673,6 +676,8 @@ const translations = {
     satLiveSource:
       'Berechnet um {time} Ortszeit aus TLE-Elementen mit Epoche {epoch} UTC. Die Anzeige ist informativ und aktualisiert sich etwa alle 15 Sekunden.',
     satMapAria: 'Leaflet-Karte mit der geschaetzten aktuellen Position des Satelliten Sentinel-5P',
+    satOtherSats:
+      'Zur Orientierung werden auch einige andere Copernicus-Satelliten und die ISS angezeigt. Unser Satellit (Sentinel-5P) ist hervorgehoben. Die Karte laesst sich zoomen und verschieben; alle Positionen sind ungefaehr.',
     satWhatTitle: 'Was ist unser Satellit?',
     satIntro:
       'AirWatch SLO Daten stammen vom europaeischen Satelliten Sentinel-5P (Programm Copernicus, ESA/EU). Mit dem Instrument TROPOMI misst er aus dem Weltraum Schadstoffe in der Atmosphaere, darunter Stickstoffdioxid (NO₂), das wir fuer die statistischen Regionen Sloweniens darstellen.',
