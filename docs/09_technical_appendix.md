@@ -226,3 +226,4 @@ brez Dockerja – uporablja ga dnevni scheduler).
   (generalizirane).
 - **Generirani `.nc` produkti in JSON izhodi se ne commitajo** (gitignored);
   ostanejo lokalni artefakti.
+  
