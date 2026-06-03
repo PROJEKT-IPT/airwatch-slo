@@ -1,18 +1,12 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 
 import { useLanguage } from '../i18n'
 
 // Softer, environmental ramp: light yellow -> amber -> coral -> muted red.
 const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f', '#cb5f4b', '#a8453d']
 const MISSING_COLOR = '#cfd6dc'
-const QUALITY_COLORS = {
-  valid: '#4caf73',
-  no_valid_pixels: '#c4ccbf',
-  processing_error: '#cb5f4b',
-  unknown: '#c4ccbf',
-}
 const LEGEND_STEP_COUNT = 7
 
 // Tooltip + click/keyboard/hover wiring for one region polygon. Kept at module
@@ -101,14 +95,14 @@ function ensureResetControl(map, resetControlRef, boundsRef, label) {
 // (Re)build the region polygons layer and fit the map to it on first render.
 function renderRegionLayer(map, refs, params) {
   const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef } = refs
-  const { mapRegions, mapScale, mapMode, mapGeometryKey, onRegionSelect, t } = params
+  const { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t } = params
 
   if (geoJsonLayerRef.current) {
     geoJsonLayerRef.current.removeFrom(map)
   }
 
   geoJsonLayerRef.current = L.geoJSON(
-    buildFeatureCollection(mapRegions, { maxMicromol: mapScale.max, minMicromol: mapScale.min, mapMode }),
+    buildFeatureCollection(mapRegions, { maxMicromol: mapScale.max, minMicromol: mapScale.min }),
     {
       style: feature => getRegionStyle(feature.properties, selectedRegionRef.current),
       onEachFeature: (feature, layer) =>
@@ -185,7 +179,6 @@ function RegionalMap({
   const resetControlRef = useRef(null)
   const selectedRegionRef = useRef(selectedRegionCode)
   const translationRef = useRef(t)
-  const [mapMode, setMapMode] = useState('value')
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const mapGeometryKey = useMemo(() => buildMapGeometryKey(mapRegions), [mapRegions])
   const mapScale = useMemo(() => buildMapScale(mapRegions), [mapRegions])
@@ -219,7 +212,7 @@ function RegionalMap({
     renderRegionLayer(
       map,
       { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef },
-      { mapRegions, mapScale, mapMode, mapGeometryKey, onRegionSelect, t },
+      { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t },
     )
     setTimeout(() => {
       map.invalidateSize()
@@ -229,7 +222,7 @@ function RegionalMap({
     }, 0)
 
     return undefined
-  }, [error, isLoading, mapGeometryKey, mapRegions, mapScale, mapMode, onRegionSelect, t])
+  }, [error, isLoading, mapGeometryKey, mapRegions, mapScale, onRegionSelect, t])
 
   useEffect(
     () => () => {
@@ -282,7 +275,7 @@ function RegionalMap({
       </div>
 
       {!isLoading && !error && mapRegions.length > 0 ? (
-        <MapLegend fullScreen={fullScreen} mapMode={mapMode} onMapMode={setMapMode} mapScale={mapScale} t={t} />
+        <MapLegend fullScreen={fullScreen} mapScale={mapScale} t={t} />
       ) : null}
 
       {fullScreen && overlay ? <div className="map-overlay-panel">{overlay}</div> : null}
@@ -290,43 +283,12 @@ function RegionalMap({
   )
 }
 
-// Map display-mode segmented control + the matching legend (NO₂ value gradient
-// or data-quality status colors).
-function MapLegend({ fullScreen, mapMode, onMapMode, mapScale, t }) {
+// NO₂ value gradient legend (relative scale across the shown regions).
+function MapLegend({ fullScreen, mapScale, t }) {
   return (
     <div className={`map-legend${fullScreen ? ' map-legend--float' : ''}`} aria-label={t('mapLegendAria')}>
-      <div className="map-mode-segmented" role="group" aria-label={t('mapModeLabel')}>
-        <button
-          type="button"
-          className={`map-mode-option${mapMode === 'value' ? ' map-mode-option--active' : ''}`}
-          aria-pressed={mapMode === 'value'}
-          onClick={() => onMapMode('value')}
-        >
-          {t('mapModeValue')}
-        </button>
-        <button
-          type="button"
-          className={`map-mode-option${mapMode === 'quality' ? ' map-mode-option--active' : ''}`}
-          aria-pressed={mapMode === 'quality'}
-          onClick={() => onMapMode('quality')}
-        >
-          {t('mapModeQuality')}
-        </button>
-      </div>
-
-      {mapMode === 'value' ? (
-        <MapValueLegend mapScale={mapScale} t={t} />
-      ) : (
-        <MapQualityLegend t={t} />
-      )}
-    </div>
-  )
-}
-
-function MapValueLegend({ mapScale, t }) {
-  return (
-    <>
       <div className="map-legend-heading">
+        <span>{t('mapModeValue')}</span>
         <strong>{t('mapLegendRelativeScale')}</strong>
       </div>
       <div className="map-gradient-legend" aria-hidden="true">
@@ -347,30 +309,6 @@ function MapValueLegend({ mapScale, t }) {
         <span className="map-legend-swatch map-legend-swatch--missing" aria-hidden="true" />
         <span>{t('noValidValue')}</span>
       </div>
-    </>
-  )
-}
-
-function MapQualityLegend({ t }) {
-  const rows = [
-    { key: 'valid', label: t('valid') },
-    { key: 'no_valid_pixels', label: t('noValidPixels') },
-    { key: 'processing_error', label: t('processingError') },
-  ]
-
-  return (
-    <div className="map-quality-legend">
-      <p className="map-legend-hint">{t('mapLegendQualityHint')}</p>
-      {rows.map(row => (
-        <div className="map-legend-missing" key={row.key}>
-          <span
-            className="map-legend-swatch"
-            style={{ backgroundColor: QUALITY_COLORS[row.key] }}
-            aria-hidden="true"
-          />
-          <span>{row.label}</span>
-        </div>
-      ))}
     </div>
   )
 }
@@ -443,7 +381,7 @@ function getResponsiveFitBoundsOptions(mapElement) {
 }
 
 function buildFeatureCollection(regions, mapOptions) {
-  const { maxMicromol, minMicromol, mapMode } = mapOptions
+  const { maxMicromol, minMicromol } = mapOptions
 
   return {
     type: 'FeatureCollection',
@@ -455,7 +393,6 @@ function buildFeatureCollection(regions, mapOptions) {
         region_name: region.region_name,
         quality_status: region.quality_status,
         value_mean: region.value_mean,
-        color_mode: mapMode,
         max_micromol: maxMicromol,
         min_micromol: minMicromol,
         pixel_count_valid: region.pixel_count_valid,
@@ -513,10 +450,6 @@ function buildMapScale(regions) {
 }
 
 function getFillColor(properties) {
-  if (properties?.color_mode === 'quality') {
-    return QUALITY_COLORS[properties?.quality_status] || QUALITY_COLORS.unknown
-  }
-
   return absoluteFillColor(properties?.value_mean, properties?.min_micromol, properties?.max_micromol)
 }
 
