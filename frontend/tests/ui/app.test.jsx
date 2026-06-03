@@ -152,7 +152,7 @@ describe('App navigation', () => {
     },
     {
       button: 'DE',
-      heading: /NO2-Uebersicht/i,
+      heading: /NO2-Übersicht/i,
       trend: 'Historischer Trend',
       comparison: 'Regionenvergleich',
       dataNav: 'Daten & Export',
