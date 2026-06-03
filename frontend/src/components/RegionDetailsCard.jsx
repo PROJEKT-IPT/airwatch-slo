@@ -53,39 +53,65 @@ function RegionDetailsCard({
         </div>
       </div>
 
-      {!hasRegion ? (
-        <p className="muted-text">{t('selectRegionForDetails')}</p>
-      ) : isLoading ? (
-        <div className="details-loading" role="status" aria-live="polite">
-          <div className="loading-line loading-line-title" />
-          <div className="loading-line" />
-          <div className="loading-line" />
-          <p className="muted-text">{t('loadingRegionData')}</p>
-        </div>
-      ) : error ? (
-        <div className="details-error" role="alert">
-          <h3>{t('detailsLoadErrorTitle')}</h3>
-          <p className="error-text">{error}</p>
-        </div>
-      ) : !measurement ? (
-        <div className="details-empty" role="status" aria-live="polite">
-          <h3>{t('noRegionDataTitle')}</h3>
-          <p className="muted-text">{t('noRegionDataText')}</p>
-        </div>
-      ) : missingDataState ? (
-        <div className="details-empty" role="status" aria-live="polite">
-          <h3>{missingDataState.title}</h3>
-          <p className="muted-text">{missingDataState.text}</p>
-          <MeasurementDetails measurement={measurement} t={t} locale={locale} includeValue={false} />
-          <p className="provenance-note">{getProvenanceNote(measurement, t)}</p>
-        </div>
-      ) : (
-        <>
-          <MeasurementDetails measurement={measurement} t={t} locale={locale} includeValue />
-          <p className="provenance-note">{getProvenanceNote(measurement, t)}</p>
-        </>
-      )}
+      <DetailsBody
+        hasRegion={hasRegion}
+        isLoading={isLoading}
+        error={error}
+        measurement={measurement}
+        missingDataState={missingDataState}
+        t={t}
+        locale={locale}
+      />
     </section>
+  )
+}
+
+// State-dependent body. Flat early-returns keep the branching simple.
+function DetailsBody({ hasRegion, isLoading, error, measurement, missingDataState, t, locale }) {
+  if (!hasRegion) {
+    return <p className="muted-text">{t('selectRegionForDetails')}</p>
+  }
+  if (isLoading) {
+    return (
+      <div className="details-loading" role="status" aria-live="polite">
+        <div className="loading-line loading-line-title" />
+        <div className="loading-line" />
+        <div className="loading-line" />
+        <p className="muted-text">{t('loadingRegionData')}</p>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="details-error" role="alert">
+        <h3>{t('detailsLoadErrorTitle')}</h3>
+        <p className="error-text">{error}</p>
+      </div>
+    )
+  }
+  if (!measurement) {
+    return (
+      <div className="details-empty" role="status" aria-live="polite">
+        <h3>{t('noRegionDataTitle')}</h3>
+        <p className="muted-text">{t('noRegionDataText')}</p>
+      </div>
+    )
+  }
+  if (missingDataState) {
+    return (
+      <div className="details-empty" role="status" aria-live="polite">
+        <h3>{missingDataState.title}</h3>
+        <p className="muted-text">{missingDataState.text}</p>
+        <MeasurementDetails measurement={measurement} t={t} locale={locale} includeValue={false} />
+        <p className="provenance-note">{getProvenanceNote(measurement, t)}</p>
+      </div>
+    )
+  }
+  return (
+    <>
+      <MeasurementDetails measurement={measurement} t={t} locale={locale} includeValue />
+      <p className="provenance-note">{getProvenanceNote(measurement, t)}</p>
+    </>
   )
 }
 

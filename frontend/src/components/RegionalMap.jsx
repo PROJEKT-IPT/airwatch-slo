@@ -8,6 +8,55 @@ const SEQUENTIAL_COLORS = ['#ffffb2', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a'
 const DEVIATION_COLORS = ['#2166ac', '#67a9cf', '#d1e5f0', '#f7f7f7', '#fddbc7', '#ef8a62', '#b2182b']
 const LEGEND_STEP_COUNT = 7
 
+// Tooltip + click/keyboard/hover wiring for one region polygon. Kept at module
+// level so the map-building effect stays simple.
+function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef, translationRef }) {
+  const regionCode = feature.properties.region_code
+
+  layer.bindTooltip(buildRegionTooltip(feature.properties, translationRef.current), {
+    direction: 'top',
+    opacity: 1,
+    sticky: true,
+  })
+
+  layer.on({
+    click: () => onRegionSelect(regionCode),
+    keypress: event => {
+      const key = event.originalEvent?.key
+      if (key === 'Enter' || key === ' ') onRegionSelect(regionCode)
+    },
+    mouseout: event => event.target.setStyle(getRegionStyle(feature.properties, selectedRegionRef.current)),
+    mouseover: event => event.target.setStyle({ color: '#26324d', fillOpacity: 0.94, weight: 2 }),
+  })
+}
+
+// Loading / error / empty placeholder shown in place of the Leaflet map.
+function MapStateMessage({ isLoading, error, t }) {
+  if (isLoading) {
+    return (
+      <div className="map-state" role="status" aria-live="polite">
+        <div className="loading-line loading-line-title" />
+        <div className="loading-line" />
+        <p>{t('loadingMap')}</p>
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="map-state map-state-error" role="alert">
+        <h3>{t('mapErrorTitle')}</h3>
+        <p>{error}</p>
+      </div>
+    )
+  }
+  return (
+    <div className="map-state">
+      <h3>{t('noGeometriesTitle')}</h3>
+      <p>{t('noGeometriesText')}</p>
+    </div>
+  )
+}
+
 function RegionalMap({
   regions,
   geometries,
@@ -101,36 +150,13 @@ function RegionalMap({
         showDeviations,
       }),
       {
-      style: feature => getRegionStyle(feature.properties, selectedRegionRef.current),
-      onEachFeature: (feature, layer) => {
-        const { region_code: regionCode } = feature.properties
-
-        layer.bindTooltip(buildRegionTooltip(feature.properties, translationRef.current), {
-          direction: 'top',
-          opacity: 1,
-          sticky: true,
-        })
-
-        layer.on({
-          click: () => onRegionSelect(regionCode),
-          keypress: event => {
-            const key = event.originalEvent?.key
-            if (key === 'Enter' || key === ' ') {
-              onRegionSelect(regionCode)
-            }
-          },
-          mouseout: event => {
-            event.target.setStyle(getRegionStyle(feature.properties, selectedRegionRef.current))
-          },
-          mouseover: event => {
-            event.target.setStyle({
-              color: '#26324d',
-              fillOpacity: 0.94,
-              weight: 2,
-            })
-          },
-        })
-      },
+        style: feature => getRegionStyle(feature.properties, selectedRegionRef.current),
+        onEachFeature: (feature, layer) =>
+          bindRegionInteractions(feature, layer, {
+            onRegionSelect,
+            selectedRegionRef,
+            translationRef,
+          }),
       },
     ).addTo(map)
 
@@ -170,23 +196,7 @@ function RegionalMap({
       ) : null}
 
       <div className={`regional-map${fullScreen ? ' regional-map--full' : ''}`} aria-label={t('mapAria')}>
-        {isLoading ? (
-          <div className="map-state" role="status" aria-live="polite">
-            <div className="loading-line loading-line-title" />
-            <div className="loading-line" />
-            <p>{t('loadingMap')}</p>
-          </div>
-        ) : error ? (
-          <div className="map-state map-state-error" role="alert">
-            <h3>{t('mapErrorTitle')}</h3>
-            <p>{error}</p>
-          </div>
-        ) : mapRegions.length === 0 ? (
-          <div className="map-state">
-            <h3>{t('noGeometriesTitle')}</h3>
-            <p>{t('noGeometriesText')}</p>
-          </div>
-        ) : (
+        {!isLoading && !error && mapRegions.length > 0 ? (
           <>
             <div
               ref={mapElementRef}
@@ -207,6 +217,8 @@ function RegionalMap({
               ))}
             </div>
           </>
+        ) : (
+          <MapStateMessage isLoading={isLoading} error={error} t={t} />
         )}
       </div>
 

@@ -77,44 +77,17 @@ function AdminProcessingStatusPage() {
 
       <section className="admin-status-grid">
         <article className="card processing-status-card">
-          {isLoading ? (
-            <LoadingState text={t('loadingProcessingStatus')} />
-          ) : error ? (
-            <ErrorState title={t('processingStatusErrorTitle')} text={error} />
-          ) : !status ? (
-            <EmptyState title={t('noProcessingRecordsTitle')} text={t('noProcessingRecordsText')} />
-          ) : (
-            <>
-              <div className="card-heading">
-                <div>
-                  <p className="section-kicker">{t('latestProcessing')}</p>
-                  <h2>{statusInfo.title}</h2>
-                </div>
-                <span className={`quality-badge ${statusInfo.className}`}>
-                  {statusInfo.label}
-                </span>
-              </div>
-
-              <div className="admin-summary-grid">
-                <InfoTile label={t('latestProcessingRun')} value={latestRunAt} detail={`Run ID: ${status.id_processing_run}`} />
-                <InfoTile label={t('latestProduct')} value={status.source_product_name} detail={`${t('status')}: ${status.run_status}`} />
-                <InfoTile label={t('latestSuccessfulUpdate')} value={lastSuccessfulAt} detail={`${t('product')}: ${lastSuccessfulProduct}`} />
-              </div>
-
-              <dl className="details-list">
-                <DetailRow label="Run ID" value={status.id_processing_run} t={t} />
-                <DetailRow label={t('status')} value={status.run_status} t={t} />
-                <DetailRow label={t('script')} value={status.script_name} t={t} />
-                <DetailRow label={t('scriptVersion')} value={status.script_version || t('noData')} t={t} />
-                <DetailRow label={t('qaThreshold')} value={formatNumber(status.qa_threshold, t, locale)} t={t} />
-                <DetailRow label={t('startedAt')} value={formatDateTime(status.started_at, t, locale)} t={t} />
-                <DetailRow label={t('finishedAt')} value={formatDateTime(status.finished_at, t, locale)} t={t} />
-                <DetailRow label={t('product')} value={status.source_product_name} t={t} />
-                <DetailRow label={t('latestSuccessfulUpdate')} value={lastSuccessfulAt} t={t} />
-                {status.error_message ? <DetailRow label={t('error')} value={status.error_message} t={t} /> : null}
-              </dl>
-            </>
-          )}
+          <ProcessingStatusBody
+            isLoading={isLoading}
+            error={error}
+            status={status}
+            statusInfo={statusInfo}
+            latestRunAt={latestRunAt}
+            lastSuccessfulAt={lastSuccessfulAt}
+            lastSuccessfulProduct={lastSuccessfulProduct}
+            t={t}
+            locale={locale}
+          />
         </article>
 
         <article className="card processing-history-card">
@@ -138,6 +111,56 @@ function AdminProcessingStatusPage() {
         </article>
       </section>
     </main>
+  )
+}
+
+// State-dependent status card body; flat early-returns keep complexity low.
+function ProcessingStatusBody({
+  isLoading,
+  error,
+  status,
+  statusInfo,
+  latestRunAt,
+  lastSuccessfulAt,
+  lastSuccessfulProduct,
+  t,
+  locale,
+}) {
+  if (isLoading) return <LoadingState text={t('loadingProcessingStatus')} />
+  if (error) return <ErrorState title={t('processingStatusErrorTitle')} text={error} />
+  if (!status) {
+    return <EmptyState title={t('noProcessingRecordsTitle')} text={t('noProcessingRecordsText')} />
+  }
+
+  return (
+    <>
+      <div className="card-heading">
+        <div>
+          <p className="section-kicker">{t('latestProcessing')}</p>
+          <h2>{statusInfo.title}</h2>
+        </div>
+        <span className={`quality-badge ${statusInfo.className}`}>{statusInfo.label}</span>
+      </div>
+
+      <div className="admin-summary-grid">
+        <InfoTile label={t('latestProcessingRun')} value={latestRunAt} detail={`Run ID: ${status.id_processing_run}`} />
+        <InfoTile label={t('latestProduct')} value={status.source_product_name} detail={`${t('status')}: ${status.run_status}`} />
+        <InfoTile label={t('latestSuccessfulUpdate')} value={lastSuccessfulAt} detail={`${t('product')}: ${lastSuccessfulProduct}`} />
+      </div>
+
+      <dl className="details-list">
+        <DetailRow label="Run ID" value={status.id_processing_run} t={t} />
+        <DetailRow label={t('status')} value={status.run_status} t={t} />
+        <DetailRow label={t('script')} value={status.script_name} t={t} />
+        <DetailRow label={t('scriptVersion')} value={status.script_version || t('noData')} t={t} />
+        <DetailRow label={t('qaThreshold')} value={formatNumber(status.qa_threshold, t, locale)} t={t} />
+        <DetailRow label={t('startedAt')} value={formatDateTime(status.started_at, t, locale)} t={t} />
+        <DetailRow label={t('finishedAt')} value={formatDateTime(status.finished_at, t, locale)} t={t} />
+        <DetailRow label={t('product')} value={status.source_product_name} t={t} />
+        <DetailRow label={t('latestSuccessfulUpdate')} value={lastSuccessfulAt} t={t} />
+        {status.error_message ? <DetailRow label={t('error')} value={status.error_message} t={t} /> : null}
+      </dl>
+    </>
   )
 }
 
