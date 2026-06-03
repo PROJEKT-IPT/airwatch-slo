@@ -201,8 +201,11 @@ describe('Dashboard', () => {
     })
     expect(getRegionDetails).toHaveBeenCalledWith('SI032')
 
-    const metricCard = container.querySelector('.metric-card')
-    expect(metricCard.querySelector('.metric-value')).toBeInTheDocument()
+    // The headline value only renders once the per-region detail has loaded,
+    // which resolves after the summaries (so wait for it rather than assume).
+    await waitFor(() => {
+      expect(container.querySelector('.metric-card .metric-value')).toBeInTheDocument()
+    })
     expect(screen.getByLabelText('Interaktivni Leaflet zemljevid slovenskih statističnih regij'))
       .toBeInTheDocument()
   })
