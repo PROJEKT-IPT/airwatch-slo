@@ -280,6 +280,57 @@ select {
   color: rgba(245, 246, 243, 0.55);
 }
 
+/* Collapsed (icon-only) sidebar */
+.dashboard-shell--collapsed {
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.sidebar--collapsed {
+  padding: 24px 14px;
+  align-items: center;
+}
+
+.sidebar--collapsed .brand-block {
+  justify-content: center;
+}
+
+.sidebar--collapsed .brand-text,
+.sidebar--collapsed .language-switcher,
+.sidebar--collapsed .accessibility-panel {
+  display: none;
+}
+
+.sidebar--collapsed .sidebar-divider {
+  align-self: stretch;
+}
+
+.sidebar--collapsed .nav-item {
+  justify-content: center;
+  gap: 0;
+  padding-inline: 0;
+}
+
+/* Keep labels in the accessibility tree but hidden visually when collapsed */
+.sidebar--collapsed .nav-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sidebar-collapse-toggle .nav-icon {
+  transition: transform 0.15s ease;
+}
+
+.sidebar--collapsed .sidebar-collapse-toggle .nav-icon {
+  transform: rotate(180deg);
+}
+
 .dashboard-main {
   width: 100%;
   max-width: 1640px;

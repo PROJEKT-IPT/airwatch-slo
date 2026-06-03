@@ -34,6 +34,8 @@ const translations = {
     navMap: 'Karta regij',
     navMethodology: 'Metodologija',
     navAbout: 'O aplikaciji',
+    collapseSidebar: 'Skrči',
+    expandSidebar: 'Razširi stranski meni',
     aboutLead: 'O aplikaciji in viru podatkov.',
     aboutText1:
       'AirWatch SLO prikazuje zadnjo razpoložljivo obdelano meritev NO₂ po 12 slovenskih statističnih regijah na podlagi satelitskih podatkov Copernicus Sentinel-5P (TROPOMI).',
@@ -302,6 +304,8 @@ const translations = {
     navMap: 'Region map',
     navMethodology: 'Methodology',
     navAbout: 'About',
+    collapseSidebar: 'Collapse',
+    expandSidebar: 'Expand sidebar',
     aboutLead: 'About the application and its data source.',
     aboutText1:
       'AirWatch SLO shows the latest available processed NO₂ measurement for the 12 Slovenian statistical regions, based on Copernicus Sentinel-5P (TROPOMI) satellite data.',
@@ -568,6 +572,8 @@ const translations = {
     navMap: 'Regionenkarte',
     navMethodology: 'Methodik',
     navAbout: 'Über die App',
+    collapseSidebar: 'Einklappen',
+    expandSidebar: 'Seitenleiste ausklappen',
     aboutLead: 'Über die Anwendung und ihre Datenquelle.',
     aboutText1:
       'AirWatch SLO zeigt die neueste verfuegbare verarbeitete NO₂-Messung fuer die 12 slowenischen statistischen Regionen auf Basis von Copernicus Sentinel-5P (TROPOMI) Satellitendaten.',

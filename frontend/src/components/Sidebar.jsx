@@ -99,12 +99,19 @@ function Icon({ name }) {
           <path d="M12 8h.01" />
         </svg>
       )
+    case 'collapse':
+      return (
+        <svg {...props}>
+          <path d="M11 7l-5 5 5 5" />
+          <path d="M18 7l-5 5 5 5" />
+        </svg>
+      )
     default:
       return null
   }
 }
 
-function Sidebar({ activeView = 'overview', onViewChange }) {
+function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onToggleCollapse }) {
   const { language, setLanguage, t } = useLanguage()
   const [accessibilitySettings, setAccessibilitySettings] = useState(readAccessibilitySettings)
 
@@ -139,7 +146,7 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
   }
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="brand-block">
         <div className="brand-mark">
           <img src="/logo_airwatch.png" alt="AirWatch SLO" width="46" height="46" />
@@ -205,6 +212,7 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
             type="button"
             className={navClass(item.id)}
             aria-current={item.id === activeView ? 'page' : undefined}
+            title={collapsed ? item.label : undefined}
             onClick={() => onViewChange?.(item.id)}
           >
             <span className="nav-icon">
@@ -221,12 +229,26 @@ function Sidebar({ activeView = 'overview', onViewChange }) {
           type="button"
           className={`nav-item nav-footer-item ${activeView === 'about' ? 'nav-item-active' : ''}`}
           aria-current={activeView === 'about' ? 'page' : undefined}
+          title={collapsed ? t('navAbout') : undefined}
           onClick={() => onViewChange?.('about')}
         >
           <span className="nav-icon">
             <Icon name="about" />
           </span>
           <span className="nav-label">{t('navAbout')}</span>
+        </button>
+        <button
+          type="button"
+          className="nav-item nav-footer-item sidebar-collapse-toggle"
+          aria-label={collapsed ? t('expandSidebar') : t('collapseSidebar')}
+          aria-expanded={!collapsed}
+          title={collapsed ? t('expandSidebar') : t('collapseSidebar')}
+          onClick={() => onToggleCollapse?.()}
+        >
+          <span className="nav-icon">
+            <Icon name="collapse" />
+          </span>
+          <span className="nav-label">{t('collapseSidebar')}</span>
         </button>
       </div>
     </aside>
