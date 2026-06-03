@@ -19,5 +19,14 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './tests/setup.js',
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{js,jsx}'],
+      // Entry point and the self-contained live-orbit widget (TLE maths) are
+      // not exercised by the UI integration tests.
+      exclude: ['src/main.jsx', 'src/components/SatelliteCard.jsx'],
+    },
   },
 })

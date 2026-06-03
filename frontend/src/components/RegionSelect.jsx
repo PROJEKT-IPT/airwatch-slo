@@ -1,21 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 
 import { useLanguage } from '../i18n'
+import { formatNo2Value } from '../utils/format'
 
 function dotClass(status) {
   if (status === 'valid') return 'rp-dot rp-dot--valid'
   if (status === 'no_valid_pixels') return 'rp-dot rp-dot--empty'
   if (status === 'processing_error') return 'rp-dot rp-dot--error'
   return 'rp-dot'
-}
-
-function formatNo2Value(value, locale) {
-  const numberValue = Number(value)
-  if (value === null || value === undefined || value === '' || !Number.isFinite(numberValue)) return ''
-  if (numberValue === 0) return '0'
-  const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
-  const mantissa = numberValue / 10 ** exponent
-  return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
 function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, error, embedded = false, dropUp = false }) {

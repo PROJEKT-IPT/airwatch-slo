@@ -10,6 +10,7 @@ import {
 } from 'recharts'
 
 import { useLanguage } from '../i18n'
+import { formatNo2Value } from '../utils/format'
 
 // Low -> high concentration ramp (green to orange), consistent with the map.
 const BAR_COLORS = ['#2f9e63', '#5cae53', '#94c247', '#d6c63f', '#e3a93b', '#e2843c', '#d2603a']
@@ -207,7 +208,7 @@ function buildComparisonRows(regions) {
 
 function formatRegionValue(row, t, locale) {
   if (!row) return t('noData')
-  return `${row.regionName}: ${formatNo2Value(row.valueMean, t, locale)}`
+  return `${row.regionName}: ${formatNo2Value(row.valueMean, locale, t('noData'))}`
 }
 
 function formatNoDataCount(rows, locale) {
@@ -218,18 +219,6 @@ function formatNoDataCount(rows, locale) {
 function formatCount(validCount, totalCount, t) {
   if (totalCount === 0) return t('noRegions')
   return t('withValue', { valid: validCount, total: totalCount })
-}
-
-function formatNo2Value(value, t, locale) {
-  if (value === null || value === undefined || value === '') return t('noData')
-
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return String(value)
-  if (numberValue === 0) return '0'
-
-  const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
-  const mantissa = numberValue / 10 ** exponent
-  return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
 export default RegionComparisonCard

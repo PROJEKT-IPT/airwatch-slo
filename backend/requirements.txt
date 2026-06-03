@@ -1,6 +1,30 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-psycopg2-binary==2.9.9
-sqlalchemy==2.0.23
-python-dotenv==1.0.0
+# Fully locked (resolved transitive versions) for reproducible, secure builds.
+# Direct deps: fastapi, uvicorn[standard], psycopg2-binary, sqlalchemy,
+# python-dotenv, alembic. Regenerate against the production runtime with:
+#   docker run --rm -v "$PWD":/w -w /w python:3.11-slim \
+#     sh -c "pip install -q -r requirements.txt && pip freeze"
 alembic==1.13.1
+annotated-types==0.7.0
+anyio==3.7.1
+click==8.4.1
+fastapi==0.104.1
+greenlet==3.5.1
+h11==0.16.0
+httptools==0.8.0
+idna==3.18
+Mako==1.3.12
+MarkupSafe==3.0.3
+psycopg2-binary==2.9.9
+pydantic==2.13.4
+pydantic_core==2.46.4
+python-dotenv==1.0.0
+PyYAML==6.0.3
+sniffio==1.3.1
+SQLAlchemy==2.0.23
+starlette==0.27.0
+typing-inspection==0.4.2
+typing_extensions==4.15.0
+uvicorn==0.24.0
+uvloop==0.22.1
+watchfiles==1.2.0
+websockets==16.0

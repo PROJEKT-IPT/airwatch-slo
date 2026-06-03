@@ -86,7 +86,7 @@ function TrendChart({ regionCode, regionName }) {
             }
           })
           .filter(Boolean)
-        const unique = Array.from(new Set(dates)).sort()
+        const unique = Array.from(new Set(dates)).sort((left, right) => left.localeCompare(right))
         setAvailableDates(unique)
 
         if (unique.length > 0) {

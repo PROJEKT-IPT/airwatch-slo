@@ -1,4 +1,5 @@
 import { useLanguage } from '../i18n'
+import { formatNo2Value as formatNo2 } from '../utils/format'
 
 function RegionDetailsCard({
   measurement,
@@ -93,10 +94,10 @@ function MeasurementDetails({ measurement, t, locale, includeValue }) {
     <dl className="details-list">
       {includeValue ? (
         <>
-          <DetailRow label={t('latestNo2Value')} value={formatNo2Value(measurement.value_mean, t, locale)} t={t} />
+          <DetailRow label={t('latestNo2Value')} value={formatNo2(measurement.value_mean, locale, t('noData'))} t={t} />
           <DetailRow
             label={t('minMaxNo2')}
-            value={`${formatNo2Value(measurement.value_min, t, locale)} / ${formatNo2Value(measurement.value_max, t, locale)}`}
+            value={`${formatNo2(measurement.value_min, locale, t('noData'))} / ${formatNo2(measurement.value_max, locale, t('noData'))}`}
             t={t}
           />
           <DetailRow label={t('unit')} value={measurement.unit || t('noData')} t={t} />
@@ -175,18 +176,6 @@ function getMissingDataState(measurement, t) {
   }
 
   return null
-}
-
-function formatNo2Value(value, t, locale) {
-  if (value === null || value === undefined || value === '') return t('noData')
-
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return String(value)
-  if (numberValue === 0) return '0'
-
-  const exponent = Math.floor(Math.log10(Math.abs(numberValue)))
-  const mantissa = numberValue / 10 ** exponent
-  return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
 function formatNumber(value, t, locale) {

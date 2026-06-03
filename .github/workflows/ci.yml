@@ -135,9 +135,17 @@ jobs:
         working-directory: frontend
         run: npm run lint
 
-      - name: Run frontend UI tests
+      - name: Run frontend UI tests with coverage
         working-directory: frontend
-        run: npm test
+        run: npm run test:coverage
+
+      - name: Upload frontend coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/lcov.info
+          if-no-files-found: ignore
 
       - name: Build frontend
         working-directory: frontend
@@ -173,6 +181,12 @@ jobs:
         with:
           name: data-pipeline-coverage
           path: data_pipeline
+
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage
 
       - name: Skip SonarQube scan when token is missing
         if: env.SONAR_TOKEN == ''

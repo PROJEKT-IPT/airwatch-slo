@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import csv
 from io import StringIO
 from typing import Optional
@@ -38,6 +39,21 @@ from services.region_service import (
 
 app = FastAPI(title="AirWatch SLO API")
 logger = logging.getLogger(__name__)
+
+
+def _safe_log(value: object) -> str:
+    """Neutralize user-supplied values before logging them.
+
+    Removes CR/LF/control characters so a crafted region code cannot forge or
+    inject extra log lines (log-injection hardening).
+    """
+    return re.sub(r"[\x00-\x1f\x7f]", " ", str(value))[:200]
+
+
+REGION_NOT_FOUND_DETAIL = "Region not found."
+NO_NO2_MEASUREMENT_DETAIL = "No NO2 measurement found for the requested region."
+
+
 # DEPLOY: uncomment these two lines once `admin_refresh.py`'s deploy
 # prerequisites are in place (see that module's docstring for the checklist).
 # Activating this exposes POST /admin/refresh-latest with X-Admin-Token auth.
@@ -189,13 +205,13 @@ def get_latest_measurement(
     if row is None:
         raise HTTPException(
             status_code=404,
-            detail="Region not found.",
+            detail=REGION_NOT_FOUND_DETAIL,
         )
 
     if row["indicator_code"] is None:
         raise HTTPException(
             status_code=404,
-            detail="No NO2 measurement found for the requested region.",
+            detail=NO_NO2_MEASUREMENT_DETAIL,
         )
 
     return dict(row)
@@ -279,7 +295,7 @@ def compare_regions(
     except HTTPException:
         raise
     except SQLAlchemyError as exc:
-        logger.exception("Failed to compare regions %s", normalized_region_codes)
+        logger.exception("Failed to compare regions %s", _safe_log(normalized_region_codes))
         raise HTTPException(
             status_code=500,
             detail="Failed to compare regions.",
@@ -335,13 +351,13 @@ def get_region_details(
             include_test_region=include_test_region,
         )
         if region is None:
-            raise HTTPException(status_code=404, detail="Region not found.")
+            raise HTTPException(status_code=404, detail=REGION_NOT_FOUND_DETAIL)
 
         latest_measurement = get_latest_no2_measurement_for_region(db, region["id_region"])
         if latest_measurement is None:
             raise HTTPException(
                 status_code=404,
-                detail="No NO2 measurement found for the requested region.",
+                detail=NO_NO2_MEASUREMENT_DETAIL,
             )
 
         return {
@@ -354,7 +370,7 @@ def get_region_details(
     except HTTPException:
         raise
     except SQLAlchemyError as exc:
-        logger.exception("Failed to fetch region details for %s", normalized_region_code)
+        logger.exception("Failed to fetch region details for %s", _safe_log(normalized_region_code))
         raise HTTPException(
             status_code=500,
             detail="Failed to fetch region details.",
@@ -378,7 +394,7 @@ def get_region_history(
             include_test_region=include_test_region,
         )
         if region is None:
-            raise HTTPException(status_code=404, detail="Region not found.")
+            raise HTTPException(status_code=404, detail=REGION_NOT_FOUND_DETAIL)
 
         measurements = get_no2_measurement_history_for_region(
             db,
@@ -401,7 +417,7 @@ def get_region_history(
     except HTTPException:
         raise
     except SQLAlchemyError as exc:
-        logger.exception("Failed to fetch region history for %s", normalized_region_code)
+        logger.exception("Failed to fetch region history for %s", _safe_log(normalized_region_code))
         raise HTTPException(
             status_code=500,
             detail="Failed to fetch region history.",
@@ -423,13 +439,13 @@ def export_region_csv(
             include_test_region=include_test_region,
         )
         if region is None:
-            raise HTTPException(status_code=404, detail="Region not found.")
+            raise HTTPException(status_code=404, detail=REGION_NOT_FOUND_DETAIL)
 
         export_row = get_latest_no2_csv_export_row_for_region(db, region["id_region"])
         if export_row is None:
             raise HTTPException(
                 status_code=404,
-                detail="No NO2 measurement found for the requested region.",
+                detail=NO_NO2_MEASUREMENT_DETAIL,
             )
 
         validated_row = RegionCsvExportRow.model_validate(export_row)
@@ -449,7 +465,7 @@ def export_region_csv(
     except HTTPException:
         raise
     except SQLAlchemyError as exc:
-        logger.exception("Failed to export regional CSV for %s", normalized_region_code)
+        logger.exception("Failed to export regional CSV for %s", _safe_log(normalized_region_code))
         raise HTTPException(
             status_code=500,
             detail="Failed to export regional CSV.",

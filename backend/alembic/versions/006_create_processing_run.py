@@ -15,6 +15,8 @@ branch_labels = None
 depends_on = None
 
 
+SQL_NOW = "NOW()"
+
 def upgrade() -> None:
     op.create_table(
         "processing_run",
@@ -29,7 +31,7 @@ def upgrade() -> None:
             "started_at",
             sa.TIMESTAMP(timezone=True),
             nullable=False,
-            server_default=sa.text("NOW()"),
+            server_default=sa.text(SQL_NOW),
         ),
         sa.Column("finished_at", sa.TIMESTAMP(timezone=True), nullable=True),
         sa.Column("error_message", sa.Text(), nullable=True),
@@ -37,13 +39,13 @@ def upgrade() -> None:
             "created_at",
             sa.TIMESTAMP(timezone=True),
             nullable=False,
-            server_default=sa.text("NOW()"),
+            server_default=sa.text(SQL_NOW),
         ),
         sa.Column(
             "updated_at",
             sa.TIMESTAMP(timezone=True),
             nullable=False,
-            server_default=sa.text("NOW()"),
+            server_default=sa.text(SQL_NOW),
         ),
         sa.ForeignKeyConstraint(
             ["fk_source_file"],

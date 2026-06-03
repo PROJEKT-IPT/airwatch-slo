@@ -16,6 +16,7 @@ import numpy as np
 import xarray as xr
 
 
+UTC_ISO_OFFSET = "+00:00"
 DEFAULT_LAT_MIN = 45.4
 DEFAULT_LAT_MAX = 46.9
 DEFAULT_LON_MIN = 13.4
@@ -193,7 +194,7 @@ def load_valid_pixels(
                 float(lat_values[index]),
                 float(no2_values[index]),
             )
-            for index in zip(*np.where(valid_positions))
+            for index in zip(*np.nonzero(valid_positions))
         ]
 
     return pixels, total_pixels_in_bbox, len(pixels)
@@ -204,17 +205,17 @@ def normalize_iso_time(value: str) -> str:
     if not cleaned:
         raise ValueError("time value is empty")
 
-    parsed_value = cleaned.replace("Z", "+00:00")
+    parsed_value = cleaned.replace("Z", UTC_ISO_OFFSET)
     parsed = datetime.fromisoformat(parsed_value)
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=timezone.utc)
     parsed = parsed.astimezone(timezone.utc)
-    return parsed.isoformat().replace("+00:00", "Z")
+    return parsed.isoformat().replace(UTC_ISO_OFFSET, "Z")
 
 
 def compact_time_to_iso(value: str) -> str:
     parsed = datetime.strptime(value, "%Y%m%dT%H%M%S").replace(tzinfo=timezone.utc)
-    return parsed.isoformat().replace("+00:00", "Z")
+    return parsed.isoformat().replace(UTC_ISO_OFFSET, "Z")
 
 
 def extract_times_from_filename(product_name: str) -> tuple[Optional[str], Optional[str]]:
