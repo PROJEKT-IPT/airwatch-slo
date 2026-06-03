@@ -163,6 +163,33 @@ const translations = {
       'Uporabljen je kakovostni filter qa_value >= 0.75. Če regija nima dovolj veljavnih pikslov, jo prikažemo kot "ni podatkov" in vrednosti ne izračunamo.',
     methodologyText3:
       'Meje regij izvirajo iz generaliziranih Eurostat GISCO NUTS podatkov. Agregacija je poenostavljena: veljavni satelitski piksel se obravnava kot točka in dodeli statistični regiji, brez uteževanja po odtisu piksla ali talnih meritev.',
+    exportPdf: 'Izvozi PDF',
+    methAppTitle: 'Kaj prikazuje AirWatch SLO?',
+    methAppText:
+      'AirWatch SLO prikazuje, koliko dušikovega dioksida (NO₂) je v zraku nad 12 slovenskimi statističnimi regijami. Podatki prihajajo iz evropskega satelita Sentinel-5P, ki onesnaženost ozračja meri iz vesolja. Cilj je preprosto in pregledno pokazati, kje je zrak bolj obremenjen z NO₂ in kako se to spreminja skozi čas.',
+    methNo2Title: 'Kaj je NO₂ in zakaj je pomemben?',
+    methNo2Text:
+      'Dušikov dioksid (NO₂) je plin, ki nastaja predvsem pri zgorevanju goriv – v prometu (dizelski in bencinski motorji), pri ogrevanju stavb, v industriji in termoelektrarnah. Je eden glavnih kazalnikov onesnaženosti zraka, zlasti v mestih in ob prometnicah.',
+    methNo2Effects:
+      'Povišane vrednosti NO₂ dražijo dihala, poslabšajo astmo in pljučne bolezni ter prispevajo k nastanku smoga in kislega dežja. Spremljanje NO₂ zato pomaga razumeti kakovost zraka ter vpliv prometa in industrije na zdravje in okolje.',
+    methHowTitle: 'Kako nastane prikazana vrednost?',
+    methStep1:
+      'Satelit Sentinel-5P z instrumentom TROPOMI izmeri, koliko sončne svetlobe ozračje absorbira pri valovnih dolžinah, značilnih za NO₂.',
+    methStep2:
+      'Iz tega izračuna stolpčno gostoto NO₂ – količino NO₂ v navpičnem stolpcu zraka nad določeno točko.',
+    methStep3:
+      'Posnetke omejimo na Slovenijo in obdržimo le piksle dovolj dobre kakovosti (kakovostni filter qa_value ≥ 0,75; oblačne in nezanesljive meritve izločimo).',
+    methStep4:
+      'Vsak veljaven piksel pripišemo statistični regiji (meje regij so iz podatkov Eurostat GISCO NUTS) in izračunamo povprečje na regijo.',
+    methStep5:
+      'Za vsako regijo prikažemo zadnjo razpoložljivo obdelano vrednost; postopek se ponovi, ko so na voljo novi satelitski produkti.',
+    methValueText:
+      'Vrednost je podana v mol/m² in je običajno zelo majhna, npr. 2,7 × 10⁻⁵ mol/m². Pove, koliko molov NO₂ je v navpičnem stolpcu zraka nad enim kvadratnim metrom tal – torej skupno količino plina od tal do vrha ozračja, ne koncentracije tik pri tleh. Zaradi berljivosti jo ponekod prikažemo v µmol/m² (1 µmol = 10⁻⁶ mol). Višja kot je vrednost, več NO₂ je v zraku nad regijo.',
+    methColorsText:
+      'Barve na zemljevidu in v primerjavi regij prikazujejo relativno raven: zelena pomeni nižje, rumena in oranžna pa višje vrednosti glede na druge regije. Oznake »nizka/srednja/visoka koncentracija« so torej primerjalne med slovenskimi regijami in niso zdravstvene mejne vrednosti.',
+    methLimitsTitle: 'Omejitve',
+    methLimitsText:
+      'Prikaz ni v realnem času – satelitski produkti so na voljo z nekajdnevnim zamikom. Prav tako ni meritev na ravni ulice: en piksel pokriva približno 3,5 × 5,5 km, vrednost pa je satelitska ocena za celotno regijo in ne nadomešča talnih merilnih postaj. Če regija nima dovolj veljavnih pikslov (npr. zaradi oblakov), je prikazana kot »ni podatkov«.',
     spatialOverview: 'Prostorski pregled',
     mapTitle: 'Zemljevid statističnih regij',
     mapAria: 'Zemljevid slovenskih statističnih regij',
@@ -434,6 +461,33 @@ const translations = {
       'A quality filter of qa_value >= 0.75 is used. If a region does not have enough valid pixels, it is shown as "no data" and no value is calculated.',
     methodologyText3:
       'Regional boundaries come from generalized Eurostat GISCO NUTS data. Aggregation is simplified: each valid satellite pixel is treated as a point and assigned to a statistical region, without footprint weighting or ground-station fusion.',
+    exportPdf: 'Export PDF',
+    methAppTitle: 'What does AirWatch SLO show?',
+    methAppText:
+      'AirWatch SLO shows how much nitrogen dioxide (NO₂) is in the air over Slovenia’s 12 statistical regions. The data comes from the European Sentinel-5P satellite, which measures air pollution from space. The goal is to show, simply and clearly, where the air is more burdened with NO₂ and how that changes over time.',
+    methNo2Title: 'What is NO₂ and why does it matter?',
+    methNo2Text:
+      'Nitrogen dioxide (NO₂) is a gas produced mainly by burning fuel – in road traffic (diesel and petrol engines), building heating, industry and power plants. It is one of the main indicators of air pollution, especially in cities and along roads.',
+    methNo2Effects:
+      'Elevated NO₂ irritates the airways, worsens asthma and lung disease, and contributes to smog and acid rain. Monitoring NO₂ therefore helps us understand air quality and the impact of traffic and industry on health and the environment.',
+    methHowTitle: 'How is the displayed value produced?',
+    methStep1:
+      'The Sentinel-5P satellite, with its TROPOMI instrument, measures how much sunlight the atmosphere absorbs at wavelengths characteristic of NO₂.',
+    methStep2:
+      'From this it computes the NO₂ column density – the amount of NO₂ in a vertical column of air above a given point.',
+    methStep3:
+      'We crop the scenes to Slovenia and keep only good-quality pixels (quality filter qa_value ≥ 0.75; cloudy and unreliable measurements are discarded).',
+    methStep4:
+      'Each valid pixel is assigned to a statistical region (boundaries from Eurostat GISCO NUTS) and we compute a per-region average.',
+    methStep5:
+      'For each region we show the latest available processed value; the process repeats as new satellite products become available.',
+    methValueText:
+      'The value is given in mol/m² and is usually very small, e.g. 2.7 × 10⁻⁵ mol/m². It tells you how many moles of NO₂ are in a vertical column of air above one square metre of ground – the total amount of gas from the surface to the top of the atmosphere, not the concentration right at ground level. For readability we sometimes show it in µmol/m² (1 µmol = 10⁻⁶ mol). The higher the value, the more NO₂ is in the air over the region.',
+    methColorsText:
+      'Colours on the map and in the region comparison show the relative level: green means lower, yellow and orange higher values compared with the other regions. The "low/moderate/high concentration" labels are therefore comparative across Slovenian regions, not health limit values.',
+    methLimitsTitle: 'Limitations',
+    methLimitsText:
+      'The display is not real-time – satellite products arrive with a delay of a few days. It is also not a street-level measurement: one pixel covers roughly 3.5 × 5.5 km, and the value is a satellite estimate for the whole region, not a replacement for ground monitoring stations. If a region lacks enough valid pixels (e.g. due to clouds), it is shown as "no data".',
     spatialOverview: 'Spatial overview',
     mapTitle: 'Statistical regions map',
     mapAria: 'Map of Slovenian statistical regions',
@@ -705,6 +759,33 @@ const translations = {
       'Es wird ein Qualitaetsfilter qa_value >= 0.75 verwendet. Wenn eine Region nicht genug gueltige Pixel hat, wird sie als "keine Daten" angezeigt und kein Wert berechnet.',
     methodologyText3:
       'Die Regionsgrenzen stammen aus generalisierten Eurostat-GISCO-NUTS-Daten. Die Aggregation ist vereinfacht: jedes gueltige Satellitenpixel wird als Punkt behandelt und einer statistischen Region zugewiesen, ohne Footprint-Gewichtung oder Einbindung von Bodenstationen.',
+    exportPdf: 'PDF exportieren',
+    methAppTitle: 'Was zeigt AirWatch SLO?',
+    methAppText:
+      'AirWatch SLO zeigt, wie viel Stickstoffdioxid (NO₂) in der Luft ueber den 12 statistischen Regionen Sloweniens ist. Die Daten stammen vom europaeischen Satelliten Sentinel-5P, der die Luftverschmutzung aus dem Weltraum misst. Ziel ist es, einfach und uebersichtlich zu zeigen, wo die Luft staerker mit NO₂ belastet ist und wie sich das im Laufe der Zeit aendert.',
+    methNo2Title: 'Was ist NO₂ und warum ist es wichtig?',
+    methNo2Text:
+      'Stickstoffdioxid (NO₂) ist ein Gas, das vor allem bei der Verbrennung von Kraftstoffen entsteht – im Verkehr (Diesel- und Benzinmotoren), beim Heizen von Gebaeuden, in der Industrie und in Kraftwerken. Es ist einer der wichtigsten Indikatoren fuer Luftverschmutzung, besonders in Staedten und an Strassen.',
+    methNo2Effects:
+      'Erhoehte NO₂-Werte reizen die Atemwege, verschlimmern Asthma und Lungenerkrankungen und tragen zu Smog und saurem Regen bei. Die Beobachtung von NO₂ hilft daher, die Luftqualitaet und den Einfluss von Verkehr und Industrie auf Gesundheit und Umwelt zu verstehen.',
+    methHowTitle: 'Wie entsteht der angezeigte Wert?',
+    methStep1:
+      'Der Satellit Sentinel-5P misst mit dem Instrument TROPOMI, wie viel Sonnenlicht die Atmosphaere bei fuer NO₂ typischen Wellenlaengen absorbiert.',
+    methStep2:
+      'Daraus wird die NO₂-Saeulendichte berechnet – die Menge an NO₂ in einer senkrechten Luftsaeule ueber einem bestimmten Punkt.',
+    methStep3:
+      'Die Aufnahmen werden auf Slowenien beschnitten und nur Pixel ausreichender Qualitaet behalten (Qualitaetsfilter qa_value ≥ 0,75; bewoelkte und unzuverlaessige Messungen werden verworfen).',
+    methStep4:
+      'Jedes gueltige Pixel wird einer statistischen Region zugeordnet (Grenzen aus Eurostat GISCO NUTS) und je Region wird ein Durchschnitt berechnet.',
+    methStep5:
+      'Fuer jede Region zeigen wir den letzten verfuegbaren aufbereiteten Wert; der Vorgang wiederholt sich, sobald neue Satellitenprodukte verfuegbar sind.',
+    methValueText:
+      'Der Wert wird in mol/m² angegeben und ist meist sehr klein, z. B. 2,7 × 10⁻⁵ mol/m². Er gibt an, wie viele Mol NO₂ sich in einer senkrechten Luftsaeule ueber einem Quadratmeter Boden befinden – also die Gesamtmenge des Gases vom Boden bis zur oberen Atmosphaere, nicht die Konzentration direkt am Boden. Zur besseren Lesbarkeit zeigen wir ihn teils in µmol/m² (1 µmol = 10⁻⁶ mol). Je hoeher der Wert, desto mehr NO₂ ist in der Luft ueber der Region.',
+    methColorsText:
+      'Die Farben auf der Karte und im Regionenvergleich zeigen das relative Niveau: Gruen bedeutet niedrigere, Gelb und Orange hoehere Werte im Vergleich zu den anderen Regionen. Die Bezeichnungen „niedrige/mittlere/hohe Konzentration“ sind also ein Vergleich zwischen den slowenischen Regionen und keine gesundheitlichen Grenzwerte.',
+    methLimitsTitle: 'Einschraenkungen',
+    methLimitsText:
+      'Die Anzeige erfolgt nicht in Echtzeit – Satellitenprodukte stehen mit einigen Tagen Verzoegerung zur Verfuegung. Es ist auch keine Messung auf Strassenebene: ein Pixel deckt etwa 3,5 × 5,5 km ab, und der Wert ist eine Satellitenschaetzung fuer die gesamte Region und ersetzt keine Bodenmessstationen. Hat eine Region nicht genug gueltige Pixel (z. B. wegen Wolken), wird sie als „keine Daten“ angezeigt.',
     spatialOverview: 'Raeumliche Uebersicht',
     mapTitle: 'Karte der statistischen Regionen',
     mapAria: 'Karte der slowenischen statistischen Regionen',

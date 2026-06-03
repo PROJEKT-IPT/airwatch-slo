@@ -932,6 +932,54 @@ select {
   margin-top: 12px;
 }
 
+/* Methodology explainer view */
+.methodology-view {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+.methodology-view .card h2 {
+  margin: 0 0 10px;
+}
+
+.methodology-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.methodology-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+  counter-reset: meth-step;
+}
+
+.methodology-steps li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  color: var(--stem-grey);
+  line-height: 1.55;
+}
+
+.methodology-step-number {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(47, 110, 72, 0.12);
+  color: var(--success-text);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
 /* Satellite explainer view: hero card with key facts + clean section grid */
 .satellite-view .card h2 {
   margin: 0 0 10px;
@@ -2065,6 +2113,65 @@ html.a11y-high-contrast .test-region-badge {
   overflow-wrap: anywhere;
 }
 
+/* Horizontal bar chart (recharts) */
+.comparison-chart {
+  margin-top: 20px;
+}
+
+.comparison-axis-unit {
+  margin: 2px 0 0;
+  text-align: right;
+  color: var(--stem-grey);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.comparison-chart .recharts-bar-rectangle {
+  cursor: pointer;
+}
+
+/* Suppress focus rectangles on the recharts SVG */
+.comparison-chart svg:focus,
+.comparison-chart svg *:focus,
+.comparison-chart .recharts-wrapper:focus {
+  outline: none !important;
+}
+
+.comparison-tooltip {
+  display: grid;
+  gap: 3px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 12px 28px rgba(29, 61, 41, 0.14);
+}
+
+.comparison-tooltip strong {
+  color: var(--blueberry-skin);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.comparison-tooltip span {
+  color: var(--stem-grey);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* Accessible region-select buttons (the chart is the visual layer) */
+.comparison-controls {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .comparison-list {
   margin-top: 16px;
   display: grid;
@@ -2291,7 +2398,8 @@ html.a11y-high-contrast .test-region-badge {
   .section-grid--analysis,
   .section-grid--details,
   .satellite-position-card,
-  .satellite-grid {
+  .satellite-grid,
+  .methodology-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2380,5 +2488,37 @@ html.a11y-high-contrast .test-region-badge {
 
   .history-metric {
     justify-items: start;
+  }
+}
+
+/* Print / "Export PDF": render a clean one-page report of the current view.
+   The sidebar, the region picker and the export buttons are hidden. */
+@media print {
+  .dashboard-shell {
+    display: block;
+  }
+
+  .sidebar,
+  .region-picker,
+  .detail-card-actions {
+    display: none !important;
+  }
+
+  .dashboard-main {
+    max-width: none;
+    height: auto;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .card {
+    border: 1px solid #c9d6cc;
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

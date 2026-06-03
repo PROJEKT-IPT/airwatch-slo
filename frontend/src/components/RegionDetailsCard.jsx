@@ -39,6 +39,16 @@ function RegionDetailsCard({
           >
             {t('exportCsv')}
           </a>
+          <button
+            type="button"
+            className={`export-button${isExportDisabled ? ' export-button-disabled' : ''}`}
+            disabled={isExportDisabled}
+            onClick={() => {
+              if (!isExportDisabled && typeof window !== 'undefined') window.print()
+            }}
+          >
+            {t('exportPdf')}
+          </button>
         </div>
       </div>
 
