@@ -74,7 +74,7 @@ def aggregate(nc, out, pid, mstart, mend):
     return True, (int(m.group(1)) if m else 0), r.stdout
 
 
-def main() -> int:
+def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--start-date", help="UTC date; default = today - 14 days")
     ap.add_argument("--end-date", help="UTC date; default = today")
@@ -101,7 +101,7 @@ def main() -> int:
     offl = [p for p in products if (p.get("Name") or "").startswith(OFFL_PREFIX)]
     if not offl:
         print("No OFFL product over Slovenia in window. Nothing to do.")
-        return 0
+        return
 
     # newest available day, and all overpasses on it (search is desc by Start)
     newest_day = offl[0]["ContentDate"]["Start"][:10]
@@ -119,7 +119,7 @@ def main() -> int:
     if present and not args.force:
         print(f"Newest day {newest_day} already ingested ({len(present)} overpass[es]). "
               "Nothing to do.")
-        return 0
+        return
 
     # download + aggregate each overpass, keep the one with most valid regions
     best = None  # (valid_regions, out_path, product)
@@ -151,7 +151,7 @@ def main() -> int:
 
         if best is None:
             print("No overpass could be processed. Nothing ingested.")
-            return 1
+            sys.exit(1)
 
         valid, out, c = best
         print(f"Best overpass: {c['Id'][:8]} ({valid} valid regions) -> ingest", flush=True)
@@ -159,16 +159,16 @@ def main() -> int:
         if r.returncode != 0 or "PASS" not in r.stdout:
             sys.stderr.write((r.stdout + r.stderr)[-600:])
             print("VALIDATE FAILED")
-            return 1
+            sys.exit(1)
         r = run([PY, os.path.join(REPO_ROOT, "backend", "scripts",
                  "ingest_regional_no2_measurements.py"), "--file", out])
         print(r.stdout[-400:])
         if r.returncode != 0:
             sys.stderr.write(r.stderr[-600:])
             print("INGEST FAILED")
-            return 1
+            sys.exit(1)
         print(f"OK: ingested best overpass for {newest_day} into target DB.")
-        return 0
+        return
     finally:
         for f in tmp:
             try:
@@ -179,4 +179,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

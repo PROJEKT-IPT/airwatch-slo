@@ -294,7 +294,7 @@ def resolve_product(args: argparse.Namespace) -> dict | None:
     return product
 
 
-def main() -> int:
+def main() -> None:
     args = parse_args()
 
     print("Sentinel-5P NO2 — latest-data ingestion runner")
@@ -306,7 +306,7 @@ def main() -> int:
             "\nNo OFFL S5P NO2 products found in the search window. Nothing to "
             "do — try widening --start-date / --end-date."
         )
-        return 0
+        return
 
     print()
     print("Newest OFFL candidate:")
@@ -323,19 +323,18 @@ def main() -> int:
             "--force to repeat aggregation and ingestion against the same "
             "product."
         )
-        return 0
+        return
 
     if args.dry_run:
         print("\n[dry-run] Skipping download / aggregate / validate / ingest.")
-        return 0
+        return
 
     nc_path = ensure_downloaded(product)
     output_path = aggregate_and_validate(product, nc_path)
     ingest_in_docker(output_path)
     print_api_state()
     print("\nDone.")
-    return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
