@@ -199,7 +199,9 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
     })
-    expect(getRegionDetails).toHaveBeenCalledWith('SI032')
+    await waitFor(() => {
+      expect(getRegionDetails).toHaveBeenCalledWith('SI032')
+    })
 
     // The headline value only renders once the per-region detail has loaded,
     // which resolves after the summaries (so wait for it rather than assume).
