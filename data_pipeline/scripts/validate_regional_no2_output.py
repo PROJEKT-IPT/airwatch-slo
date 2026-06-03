@@ -107,32 +107,34 @@ def validate_row(row: Any, index: int, expected_qa_threshold: float) -> list[str
         )
 
     if quality_status == "valid":
-        if isinstance(pixel_count, int) and pixel_count <= 0:
-            errors.append(f"{region_label}: valid row must have pixel_count_valid > 0.")
-        for field in ("value_mean", "value_min", "value_max"):
-            if not is_number(row.get(field)):
-                errors.append(f"{region_label}: {field} must be a finite number.")
-        if all(
-            is_number(row.get(field))
-            for field in ("value_mean", "value_min", "value_max")
-        ):
-            value_min = row["value_min"]
-            value_mean = row["value_mean"]
-            value_max = row["value_max"]
-            if not value_min <= value_mean <= value_max:
-                errors.append(
-                    f"{region_label}: expected value_min <= value_mean <= value_max."
-                )
-
+        errors.extend(_validate_valid_row_values(row, region_label, pixel_count))
     if quality_status == "no_valid_pixels":
-        if pixel_count != 0:
-            errors.append(
-                f"{region_label}: no_valid_pixels row must have pixel_count_valid == 0."
-            )
-        for field in ("value_mean", "value_min", "value_max"):
-            if not is_null_or_absent(row, field):
-                errors.append(f"{region_label}: {field} must be null or absent.")
+        errors.extend(_validate_no_data_row_values(row, region_label, pixel_count))
 
+    return errors
+
+
+def _validate_valid_row_values(row: dict, region_label: str, pixel_count: Any) -> list[str]:
+    errors: list[str] = []
+    if isinstance(pixel_count, int) and pixel_count <= 0:
+        errors.append(f"{region_label}: valid row must have pixel_count_valid > 0.")
+    value_fields = ("value_mean", "value_min", "value_max")
+    for field in value_fields:
+        if not is_number(row.get(field)):
+            errors.append(f"{region_label}: {field} must be a finite number.")
+    if all(is_number(row.get(field)) for field in value_fields):
+        if not row["value_min"] <= row["value_mean"] <= row["value_max"]:
+            errors.append(f"{region_label}: expected value_min <= value_mean <= value_max.")
+    return errors
+
+
+def _validate_no_data_row_values(row: dict, region_label: str, pixel_count: Any) -> list[str]:
+    errors: list[str] = []
+    if pixel_count != 0:
+        errors.append(f"{region_label}: no_valid_pixels row must have pixel_count_valid == 0.")
+    for field in ("value_mean", "value_min", "value_max"):
+        if not is_null_or_absent(row, field):
+            errors.append(f"{region_label}: {field} must be null or absent.")
     return errors
 
 
@@ -178,28 +180,18 @@ def validate_output(
         if isinstance(row, dict) and row.get("quality_status") == "valid"
     )
 
-    if len(data) != expected_region_count:
-        errors.append(f"Expected {expected_region_count} regions, found {len(data)}.")
-    if expected_valid_regions is not None and valid_regions != expected_valid_regions:
-        errors.append(
-            f"Expected {expected_valid_regions} valid regions, found {valid_regions}."
+    errors.extend(
+        _check_expected_counts(
+            data_count=len(data),
+            expected_region_count=expected_region_count,
+            valid_regions=valid_regions,
+            expected_valid_regions=expected_valid_regions,
+            no_data_regions=no_data_regions,
+            expected_no_data_regions=expected_no_data_regions,
+            assigned_valid_pixels=assigned_valid_pixels,
+            expected_assigned_valid_pixels=expected_assigned_valid_pixels,
         )
-    if (
-        expected_no_data_regions is not None
-        and no_data_regions != expected_no_data_regions
-    ):
-        errors.append(
-            f"Expected {expected_no_data_regions} no_valid_pixels regions, "
-            f"found {no_data_regions}."
-        )
-    if (
-        expected_assigned_valid_pixels is not None
-        and assigned_valid_pixels != expected_assigned_valid_pixels
-    ):
-        errors.append(
-            f"Expected {expected_assigned_valid_pixels} assigned valid pixels, "
-            f"found {assigned_valid_pixels}."
-        )
+    )
     if processing_error_regions:
         warnings.append(f"Found {processing_error_regions} processing_error regions.")
 
@@ -211,6 +203,38 @@ def validate_output(
         "assigned_valid_pixels": assigned_valid_pixels,
     }
     return errors, warnings, summary
+
+
+def _check_expected_counts(
+    *,
+    data_count: int,
+    expected_region_count: int,
+    valid_regions: int,
+    expected_valid_regions: Optional[int],
+    no_data_regions: int,
+    expected_no_data_regions: Optional[int],
+    assigned_valid_pixels: int,
+    expected_assigned_valid_pixels: Optional[int],
+) -> list[str]:
+    """Compare observed counts against optional expected values."""
+    errors: list[str] = []
+    if data_count != expected_region_count:
+        errors.append(f"Expected {expected_region_count} regions, found {data_count}.")
+    if expected_valid_regions is not None and valid_regions != expected_valid_regions:
+        errors.append(f"Expected {expected_valid_regions} valid regions, found {valid_regions}.")
+    if expected_no_data_regions is not None and no_data_regions != expected_no_data_regions:
+        errors.append(
+            f"Expected {expected_no_data_regions} no_valid_pixels regions, found {no_data_regions}."
+        )
+    if (
+        expected_assigned_valid_pixels is not None
+        and assigned_valid_pixels != expected_assigned_valid_pixels
+    ):
+        errors.append(
+            f"Expected {expected_assigned_valid_pixels} assigned valid pixels, "
+            f"found {assigned_valid_pixels}."
+        )
+    return errors
 
 
 def print_summary(summary: dict[str, int], warnings: list[str], errors: list[str]) -> None:

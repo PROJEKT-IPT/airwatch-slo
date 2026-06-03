@@ -93,33 +93,38 @@ def load_rows(path: Path) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     seen_region_codes: set[str] = set()
     for index, row in enumerate(data):
-        if not isinstance(row, dict):
-            raise SystemExit(f"Row {index} is not an object.")
-        missing = sorted(REQUIRED_FIELDS - set(row.keys()))
-        if missing:
-            raise SystemExit(f"Row {index} is missing fields: {', '.join(missing)}")
-
-        region_code = str(row["region_code"]).strip()
-        quality_status = str(row["quality_status"]).strip()
-        pixel_count_valid = row["pixel_count_valid"]
-        if not region_code:
-            raise SystemExit(f"Row {index} has empty region_code.")
-        if region_code in seen_region_codes:
-            raise SystemExit(f"Duplicate region_code in input: {region_code}")
-        if quality_status not in ALLOWED_QUALITY_STATUSES:
-            raise SystemExit(f"Unsupported quality_status for {region_code}: {quality_status}")
-        if (
-            not isinstance(pixel_count_valid, int)
-            or isinstance(pixel_count_valid, bool)
-            or pixel_count_valid < 0
-        ):
-            raise SystemExit(
-                f"pixel_count_valid for {region_code} must be a non-negative integer."
-            )
-
+        region_code = _validate_measurement_row(index, row, seen_region_codes)
         seen_region_codes.add(region_code)
         rows.append(row)
     return rows
+
+
+def _validate_measurement_row(index: int, row: Any, seen_region_codes: set[str]) -> str:
+    """Validate one input row and return its region_code (raises on invalid)."""
+    if not isinstance(row, dict):
+        raise SystemExit(f"Row {index} is not an object.")
+    missing = sorted(REQUIRED_FIELDS - set(row.keys()))
+    if missing:
+        raise SystemExit(f"Row {index} is missing fields: {', '.join(missing)}")
+
+    region_code = str(row["region_code"]).strip()
+    quality_status = str(row["quality_status"]).strip()
+    pixel_count_valid = row["pixel_count_valid"]
+    if not region_code:
+        raise SystemExit(f"Row {index} has empty region_code.")
+    if region_code in seen_region_codes:
+        raise SystemExit(f"Duplicate region_code in input: {region_code}")
+    if quality_status not in ALLOWED_QUALITY_STATUSES:
+        raise SystemExit(f"Unsupported quality_status for {region_code}: {quality_status}")
+    if (
+        not isinstance(pixel_count_valid, int)
+        or isinstance(pixel_count_valid, bool)
+        or pixel_count_valid < 0
+    ):
+        raise SystemExit(
+            f"pixel_count_valid for {region_code} must be a non-negative integer."
+        )
+    return region_code
 
 
 def require_single_metadata_value(rows: list[dict[str, Any]], field_name: str) -> Any:

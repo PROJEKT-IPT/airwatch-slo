@@ -122,53 +122,13 @@ def main() -> None:
         return
 
     # download + aggregate each overpass, keep the one with most valid regions
-    best = None  # (valid_regions, out_path, product)
     tmp = []
     try:
-        for c in candidates:
-            pid = c["Id"]
-            mstart = c["ContentDate"]["Start"][:19] + "Z"
-            mend = c["ContentDate"]["End"][:19] + "Z"
-            r = run([PY, os.path.join(SCRIPTS, "download_s5p_no2_product.py"),
-                     "--product-id", pid])
-            m = re.search(r"Downloaded product to:\s*(\S+)", r.stdout)
-            if not m:
-                sys.stderr.write((r.stderr or r.stdout)[-500:])
-                print(f"  {pid[:8]} DOWNLOAD FAILED, skipping this overpass")
-                continue
-            nc = m.group(1)
-            tmp.append(nc)
-            out = os.path.join(OUTDIR, f"latest_{pid}.json")
-            tmp.append(out)
-            ok, valid, _ = aggregate(nc, out, pid, mstart, mend)
-            print(f"  {pid[:8]} valid_regions={valid}", flush=True)
-            try:
-                os.remove(nc)  # free ~600 MB as soon as aggregated
-            except OSError:
-                pass
-            if ok and (best is None or valid > best[0]):
-                best = (valid, out, c)
-
+        best = _select_best_overpass(candidates, tmp)
         if best is None:
             print("No overpass could be processed. Nothing ingested.")
             sys.exit(1)
-
-        valid, out, c = best
-        print(f"Best overpass: {c['Id'][:8]} ({valid} valid regions) -> ingest", flush=True)
-        r = run([PY, os.path.join(SCRIPTS, "validate_regional_no2_output.py"), "--file", out])
-        if r.returncode != 0 or "PASS" not in r.stdout:
-            sys.stderr.write((r.stdout + r.stderr)[-600:])
-            print("VALIDATE FAILED")
-            sys.exit(1)
-        r = run([PY, os.path.join(REPO_ROOT, "backend", "scripts",
-                 "ingest_regional_no2_measurements.py"), "--file", out])
-        print(r.stdout[-400:])
-        if r.returncode != 0:
-            sys.stderr.write(r.stderr[-600:])
-            print("INGEST FAILED")
-            sys.exit(1)
-        print(f"OK: ingested best overpass for {newest_day} into target DB.")
-        return
+        _validate_and_ingest(best, newest_day)
     finally:
         for f in tmp:
             try:
@@ -176,6 +136,56 @@ def main() -> None:
                     os.remove(f)
             except OSError:
                 pass
+
+
+def _select_best_overpass(candidates, tmp):
+    """Download + aggregate each overpass; return (valid_regions, out_path,
+    product) for the one with the most valid regions, or None. Temp file paths
+    are appended to `tmp` for the caller to clean up."""
+    best = None
+    for c in candidates:
+        pid = c["Id"]
+        mstart = c["ContentDate"]["Start"][:19] + "Z"
+        mend = c["ContentDate"]["End"][:19] + "Z"
+        r = run([PY, os.path.join(SCRIPTS, "download_s5p_no2_product.py"),
+                 "--product-id", pid])
+        m = re.search(r"Downloaded product to:\s*(\S+)", r.stdout)
+        if not m:
+            sys.stderr.write((r.stderr or r.stdout)[-500:])
+            print(f"  {pid[:8]} DOWNLOAD FAILED, skipping this overpass")
+            continue
+        nc = m.group(1)
+        tmp.append(nc)
+        out = os.path.join(OUTDIR, f"latest_{pid}.json")
+        tmp.append(out)
+        ok, valid, _ = aggregate(nc, out, pid, mstart, mend)
+        print(f"  {pid[:8]} valid_regions={valid}", flush=True)
+        try:
+            os.remove(nc)  # free ~600 MB as soon as aggregated
+        except OSError:
+            pass
+        if ok and (best is None or valid > best[0]):
+            best = (valid, out, c)
+    return best
+
+
+def _validate_and_ingest(best, newest_day):
+    """Validate the chosen overpass output and ingest it; exits non-zero on failure."""
+    valid, out, c = best
+    print(f"Best overpass: {c['Id'][:8]} ({valid} valid regions) -> ingest", flush=True)
+    r = run([PY, os.path.join(SCRIPTS, "validate_regional_no2_output.py"), "--file", out])
+    if r.returncode != 0 or "PASS" not in r.stdout:
+        sys.stderr.write((r.stdout + r.stderr)[-600:])
+        print("VALIDATE FAILED")
+        sys.exit(1)
+    r = run([PY, os.path.join(REPO_ROOT, "backend", "scripts",
+             "ingest_regional_no2_measurements.py"), "--file", out])
+    print(r.stdout[-400:])
+    if r.returncode != 0:
+        sys.stderr.write(r.stderr[-600:])
+        print("INGEST FAILED")
+        sys.exit(1)
+    print(f"OK: ingested best overpass for {newest_day} into target DB.")
 
 
 if __name__ == "__main__":
