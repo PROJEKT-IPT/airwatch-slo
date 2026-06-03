@@ -209,6 +209,7 @@ function Dashboard({ activeView = 'overview' }) {
     comparison: { title: t('navComparison'), lead: t('comparisonViewLead') },
     data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
     methodology: { title: t('navMethodology'), lead: t('methodologyViewLead') },
+    suggestions: { title: t('navSuggestions'), lead: '' },
     satellite: { title: t('navSatellite'), lead: t('satelliteViewLead') },
     about: { title: t('navAbout'), lead: t('aboutLead') },
   }
@@ -256,7 +257,7 @@ function Dashboard({ activeView = 'overview' }) {
           <div>
             <p className="eyebrow">AirWatch SLO</p>
             <h1>{meta.title}</h1>
-            <p className="dashboard-subtitle">{meta.lead}</p>
+            {meta.lead ? <p className="dashboard-subtitle">{meta.lead}</p> : null}
           </div>
         </header>
       )}
@@ -311,6 +312,10 @@ function Dashboard({ activeView = 'overview' }) {
         <section className="dashboard-view" aria-label={t('navMethodology')}>
           <MethodologyCard />
         </section>
+      )}
+
+      {activeView === 'suggestions' && (
+        <section className="dashboard-view" aria-label={t('navSuggestions')} />
       )}
 
       {activeView === 'satellite' && <SatelliteCard />}

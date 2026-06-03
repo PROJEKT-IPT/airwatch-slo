@@ -308,10 +308,18 @@ select {
   align-self: stretch;
 }
 
+.sidebar--collapsed .sidebar-nav,
+.sidebar--collapsed .sidebar-footer {
+  width: 100%;
+  align-items: stretch;
+}
+
 .sidebar--collapsed .nav-item {
   justify-content: center;
   gap: 0;
-  padding-inline: 0;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 12px;
 }
 
 /* Keep labels in the accessibility tree but hidden visually when collapsed */

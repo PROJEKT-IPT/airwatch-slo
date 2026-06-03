@@ -82,6 +82,15 @@ function Icon({ name }) {
           <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H13v16h5.5A2.5 2.5 0 0 1 21 21.5z" />
         </svg>
       )
+    case 'suggestions':
+      return (
+        <svg {...props}>
+          <path d="M7 4h10" />
+          <path d="M7 8h10" />
+          <path d="M7 12h6" />
+          <path d="M5 20l2.5-5H17a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h1" />
+        </svg>
+      )
     case 'satellite':
       return (
         <svg {...props}>
@@ -135,6 +144,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
     { id: 'comparison', icon: 'comparison', label: t('navComparison') },
     { id: 'data', icon: 'data', label: t('navDataExport') },
     { id: 'methodology', icon: 'methodology', label: t('navMethodology') },
+    { id: 'suggestions', icon: 'suggestions', label: t('navSuggestions') },
   ]
 
   function navClass(id) {
