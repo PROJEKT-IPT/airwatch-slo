@@ -61,7 +61,7 @@ const translations = {
     satMapAria: 'Leaflet zemljevid z ocenjeno trenutno lokacijo satelita Sentinel-5P',
     satWhatTitle: 'Kaj je naš satelit?',
     satIntro:
-      'AirWatch SLO ne upravlja lastnega satelita – podatke črpa iz evropskega satelita Sentinel-5P (program Copernicus, ESA/EU). Ta z instrumentom TROPOMI iz vesolja meri onesnaževala v ozračju, med njimi tudi dušikov dioksid (NO₂), ki ga prikazujemo po slovenskih statističnih regijah.',
+      'AirWatch SLO podatke črpa iz evropskega satelita Sentinel-5P (program Copernicus, ESA/EU). Ta z instrumentom TROPOMI iz vesolja meri onesnaževala v ozračju, med njimi tudi dušikov dioksid (NO₂), ki ga prikazujemo po slovenskih statističnih regijah.',
     satFactInstrumentLabel: 'Instrument',
     satFactInstrumentValue: 'TROPOMI',
     satFactLaunchLabel: 'Izstrelitev',
@@ -334,7 +334,7 @@ const translations = {
     satMapAria: 'Leaflet map showing the estimated current Sentinel-5P satellite location',
     satWhatTitle: 'What is our satellite?',
     satIntro:
-      'AirWatch SLO does not operate its own satellite – it draws its data from the European Sentinel-5P satellite (the Copernicus programme, ESA/EU). Using the TROPOMI instrument, it measures pollutants in the atmosphere from space, including nitrogen dioxide (NO₂), which we display across Slovenia’s statistical regions.',
+      'AirWatch SLO draws its data from the European Sentinel-5P satellite (the Copernicus programme, ESA/EU). Using the TROPOMI instrument, it measures pollutants in the atmosphere from space, including nitrogen dioxide (NO₂), which we display across Slovenia’s statistical regions.',
     satFactInstrumentLabel: 'Instrument',
     satFactInstrumentValue: 'TROPOMI',
     satFactLaunchLabel: 'Launch',
@@ -605,7 +605,7 @@ const translations = {
     satMapAria: 'Leaflet-Karte mit der geschaetzten aktuellen Position des Satelliten Sentinel-5P',
     satWhatTitle: 'Was ist unser Satellit?',
     satIntro:
-      'AirWatch SLO betreibt keinen eigenen Satelliten – die Daten stammen vom europaeischen Satelliten Sentinel-5P (Programm Copernicus, ESA/EU). Mit dem Instrument TROPOMI misst er aus dem Weltraum Schadstoffe in der Atmosphaere, darunter Stickstoffdioxid (NO₂), das wir fuer die statistischen Regionen Sloweniens darstellen.',
+      'AirWatch SLO Daten stammen vom europaeischen Satelliten Sentinel-5P (Programm Copernicus, ESA/EU). Mit dem Instrument TROPOMI misst er aus dem Weltraum Schadstoffe in der Atmosphaere, darunter Stickstoffdioxid (NO₂), das wir fuer die statistischen Regionen Sloweniens darstellen.',
     satFactInstrumentLabel: 'Instrument',
     satFactInstrumentValue: 'TROPOMI',
     satFactLaunchLabel: 'Start',
