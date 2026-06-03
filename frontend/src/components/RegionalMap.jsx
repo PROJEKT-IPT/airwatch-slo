@@ -9,23 +9,6 @@ const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f'
 const MISSING_COLOR = '#cfd6dc'
 const LEGEND_STEP_COUNT = 7
 
-// Regional centre of each of the 12 Slovenian statistical regions, so every
-// region has its main city marked (decoration only — not measurements).
-const REGION_CAPITALS = [
-  { name: 'Ljubljana', lat: 46.0569, lng: 14.5058 }, // Osrednjeslovenska
-  { name: 'Maribor', lat: 46.5547, lng: 15.6459 }, // Podravska
-  { name: 'Celje', lat: 46.2309, lng: 15.2604 }, // Savinjska
-  { name: 'Kranj', lat: 46.2389, lng: 14.3556 }, // Gorenjska
-  { name: 'Koper', lat: 45.5481, lng: 13.7302 }, // Obalno-kraška
-  { name: 'Novo mesto', lat: 45.8038, lng: 15.169 }, // Jugovzhodna Slovenija
-  { name: 'Nova Gorica', lat: 45.956, lng: 13.6483 }, // Goriška
-  { name: 'Murska Sobota', lat: 46.6625, lng: 16.1664 }, // Pomurska
-  { name: 'Slovenj Gradec', lat: 46.5103, lng: 15.0808 }, // Koroška
-  { name: 'Krško', lat: 45.959, lng: 15.4897 }, // Posavska
-  { name: 'Trbovlje', lat: 46.1551, lng: 15.053 }, // Zasavska
-  { name: 'Postojna', lat: 45.7749, lng: 14.2136 }, // Primorsko-notranjska
-]
-
 // Click/keyboard/hover wiring for one region polygon. Kept at module level so
 // the map-building effect stays simple. No text on hover — only a highlight.
 function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef }) {
@@ -111,37 +94,9 @@ function ensureResetControl(map, resetControlRef, boundsRef, label) {
   resetControlRef.current = control
 }
 
-// Small div-icon for a city: a dot plus an always-on name label.
-function buildCityIcon(name) {
-  return L.divIcon({
-    className: 'city-marker-icon',
-    html:
-      '<span class="city-dot" aria-hidden="true"></span>' +
-      `<span class="city-label">${escapeHtml(name)}</span>`,
-    iconAnchor: [4, 4],
-    iconSize: null,
-  })
-}
-
-// Add small, non-interactive markers for every region capital so clicks still
-// reach the region polygon underneath. Created once and kept on top.
-function ensureCityMarkers(map, cityLayerRef) {
-  if (cityLayerRef.current) return
-
-  cityLayerRef.current = L.layerGroup(
-    REGION_CAPITALS.map(city =>
-      L.marker([city.lat, city.lng], {
-        icon: buildCityIcon(city.name),
-        interactive: false,
-        keyboard: false,
-      }),
-    ),
-  ).addTo(map)
-}
-
 // (Re)build the region polygons layer and fit the map to it on first render.
 function renderRegionLayer(map, refs, params) {
-  const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef, cityLayerRef } = refs
+  const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef } = refs
   const { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t } = params
 
   if (geoJsonLayerRef.current) {
@@ -158,7 +113,6 @@ function renderRegionLayer(map, refs, params) {
   ).addTo(map)
 
   geoJsonLayerRef.current.eachLayer(layer => emphasizeIfSelected(layer, selectedRegionRef.current))
-  ensureCityMarkers(map, cityLayerRef)
 
   const bounds = geoJsonLayerRef.current.getBounds()
   if (bounds.isValid()) {
@@ -225,7 +179,6 @@ function RegionalMap({
   const fittedGeometryKeyRef = useRef(null)
   const boundsRef = useRef(null)
   const resetControlRef = useRef(null)
-  const cityLayerRef = useRef(null)
   const selectedRegionRef = useRef(selectedRegionCode)
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const mapGeometryKey = useMemo(() => buildMapGeometryKey(mapRegions), [mapRegions])
@@ -247,7 +200,7 @@ function RegionalMap({
     const map = ensureLeafletMap(mapElementRef.current, mapRef, baseLayerRef)
     renderRegionLayer(
       map,
-      { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef, cityLayerRef },
+      { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef },
       { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t },
     )
     setTimeout(() => {
@@ -266,7 +219,6 @@ function RegionalMap({
         mapRef.current.remove()
         mapRef.current = null
         resetControlRef.current = null
-        cityLayerRef.current = null
       }
     },
     [],
@@ -533,15 +485,6 @@ function formatLegendNumber(value) {
 
 function getMicromolUnit() {
   return 'µmol/m²'
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;')
 }
 
 export default RegionalMap
