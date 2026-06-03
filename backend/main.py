@@ -53,6 +53,13 @@ def _safe_log(value: object) -> str:
 REGION_NOT_FOUND_DETAIL = "Region not found."
 NO_NO2_MEASUREMENT_DETAIL = "No NO2 measurement found for the requested region."
 
+# Reusable OpenAPI error-response docs so every endpoint documents the
+# HTTPException status codes it can return (Sonar python:S6855). Literal
+# integer keys are required for the documentation to be recognized.
+_BAD_REQUEST = {"description": "Invalid request parameters."}
+_NOT_FOUND = {"description": "The requested region or measurement was not found."}
+_SERVER_ERROR = {"description": "Unexpected error while querying the database."}
+
 
 # DEPLOY: uncomment these two lines once `admin_refresh.py`'s deploy
 # prerequisites are in place (see that module's docstring for the checklist).
@@ -115,7 +122,11 @@ def get_regions(db: Session = Depends(get_db)):
     return [dict(row) for row in rows]
 
 
-@app.get("/measurements/latest", response_model=LatestMeasurementResponse)
+@app.get(
+    "/measurements/latest",
+    response_model=LatestMeasurementResponse,
+    responses={400: _BAD_REQUEST, 404: _NOT_FOUND},
+)
 def get_latest_measurement(
     region_code: Optional[str] = Query(default=None),
     id_region: Optional[int] = Query(default=None),
@@ -220,6 +231,7 @@ def get_latest_measurement(
 @app.get(
     "/api/v1/regions/latest-measurements",
     response_model=list[RegionLatestMeasurementSummaryResponse],
+    responses={500: _SERVER_ERROR},
 )
 def get_latest_region_measurements(db: Session = Depends(get_db)):
     try:
@@ -235,6 +247,7 @@ def get_latest_region_measurements(db: Session = Depends(get_db)):
 @app.get(
     "/api/v1/regions/compare",
     response_model=list[RegionComparisonResponse],
+    responses={400: _BAD_REQUEST, 404: _NOT_FOUND, 500: _SERVER_ERROR},
 )
 def compare_regions(
     region_codes: Optional[list[str]] = Query(default=None),
@@ -324,6 +337,7 @@ def _normalize_region_codes(region_codes: Optional[list[str]]) -> list[str]:
 @app.get(
     "/api/v1/regions/geometries",
     response_model=list[RegionGeometryResponse],
+    responses={500: _SERVER_ERROR},
 )
 def get_region_geometries(db: Session = Depends(get_db)):
     try:
@@ -336,7 +350,11 @@ def get_region_geometries(db: Session = Depends(get_db)):
         ) from exc
 
 
-@app.get("/api/v1/regions/{region_code}", response_model=RegionDetailsResponse)
+@app.get(
+    "/api/v1/regions/{region_code}",
+    response_model=RegionDetailsResponse,
+    responses={404: _NOT_FOUND, 500: _SERVER_ERROR},
+)
 def get_region_details(
     region_code: str,
     include_test_region: bool = Query(default=False),
@@ -377,7 +395,11 @@ def get_region_details(
         ) from exc
 
 
-@app.get("/api/v1/regions/{region_code}/history", response_model=RegionHistoryResponse)
+@app.get(
+    "/api/v1/regions/{region_code}/history",
+    response_model=RegionHistoryResponse,
+    responses={404: _NOT_FOUND, 500: _SERVER_ERROR},
+)
 def get_region_history(
     region_code: str,
     include_test_region: bool = Query(default=False),
@@ -424,7 +446,10 @@ def get_region_history(
         ) from exc
 
 
-@app.get("/api/v1/regions/{region_code}/export.csv")
+@app.get(
+    "/api/v1/regions/{region_code}/export.csv",
+    responses={404: _NOT_FOUND, 500: _SERVER_ERROR},
+)
 def export_region_csv(
     region_code: str,
     include_test_region: bool = Query(default=False),
@@ -472,7 +497,11 @@ def export_region_csv(
         ) from exc
 
 
-@app.get("/processing/status", response_model=ProcessingStatusResponse)
+@app.get(
+    "/processing/status",
+    response_model=ProcessingStatusResponse,
+    responses={404: _NOT_FOUND},
+)
 def get_processing_status(db: Session = Depends(get_db)):
     row = db.execute(
         text(

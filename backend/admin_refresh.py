@@ -104,7 +104,14 @@ def register_admin_routes(app: FastAPI) -> None:
     means a developer reviewing main.py sees one obvious uncomment site.
     """
 
-    @app.post("/admin/refresh-latest", status_code=status.HTTP_202_ACCEPTED)
+    @app.post(
+        "/admin/refresh-latest",
+        status_code=status.HTTP_202_ACCEPTED,
+        responses={
+            401: {"description": "Missing or invalid admin token."},
+            503: {"description": "Admin refresh disabled (ADMIN_REFRESH_TOKEN not set)."},
+        },
+    )
     def admin_refresh_latest(
         background_tasks: BackgroundTasks,
         x_admin_token: str | None = Header(default=None, alias="X-Admin-Token"),
