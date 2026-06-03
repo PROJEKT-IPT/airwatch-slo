@@ -48,12 +48,15 @@ const translations = {
     satLiveTitle: 'Kje je Sentinel-5P trenutno?',
     satLiveText:
       'Spodnji prikaz sproti preračuna približno trenutno pod-satelitsko točko Sentinel-5P iz javnih orbitalnih elementov TLE. To je lokacija satelita, ne meritev NO₂ v realnem času.',
+    satLiveHowText:
+      'Deluje tako, da aplikacija prebere dva TLE zapisa za orbito, iz njiju izračuna trenutni položaj satelita glede na čas UTC in ga preslika na zemljevid kot točko neposredno pod satelitom. Koordinate, višina in hitrost so zato orbitalna ocena, prikaz pa se samodejno osveži približno vsakih 15 sekund.',
     satLatitude: 'Zemljepisna širina',
     satLongitude: 'Zemljepisna dolžina',
     satAltitude: 'Višina',
     satVelocity: 'Hitrost',
     satLiveSource:
       'Preračunano ob {time} UTC iz TLE elementov z epoho {epoch} UTC. Prikaz je informativen in se posodobi približno vsakih 15 sekund.',
+    satMapAria: 'Leaflet zemljevid z ocenjeno trenutno lokacijo satelita Sentinel-5P',
     satWhatTitle: 'Kaj je naš satelit?',
     satIntro:
       'AirWatch SLO ne upravlja lastnega satelita – podatke črpa iz evropskega satelita Sentinel-5P (program Copernicus, ESA/EU). Ta z instrumentom TROPOMI iz vesolja meri onesnaževala v ozračju, med njimi tudi dušikov dioksid (NO₂), ki ga prikazujemo po slovenskih statističnih regijah.',
@@ -316,12 +319,15 @@ const translations = {
     satLiveTitle: 'Where is Sentinel-5P right now?',
     satLiveText:
       'The display below continuously estimates Sentinel-5P’s current sub-satellite point from public TLE orbital elements. It shows the satellite location, not real-time NO₂ pollution.',
+    satLiveHowText:
+      'It works by reading two TLE orbit lines, calculating the satellite position for the current UTC time, and projecting that position onto the map as the point directly beneath the satellite. The latitude, longitude, altitude, and velocity are therefore orbital estimates, and the display refreshes automatically about every 15 seconds.',
     satLatitude: 'Latitude',
     satLongitude: 'Longitude',
     satAltitude: 'Altitude',
     satVelocity: 'Velocity',
     satLiveSource:
       'Calculated at {time} UTC from TLE elements with epoch {epoch} UTC. This is an informative display and updates about every 15 seconds.',
+    satMapAria: 'Leaflet map showing the estimated current Sentinel-5P satellite location',
     satWhatTitle: 'What is our satellite?',
     satIntro:
       'AirWatch SLO does not operate its own satellite – it draws its data from the European Sentinel-5P satellite (the Copernicus programme, ESA/EU). Using the TROPOMI instrument, it measures pollutants in the atmosphere from space, including nitrogen dioxide (NO₂), which we display across Slovenia’s statistical regions.',
@@ -582,12 +588,15 @@ const translations = {
     satLiveTitle: 'Wo ist Sentinel-5P gerade?',
     satLiveText:
       'Die Anzeige unten schaetzt den aktuellen Subsatellitenpunkt von Sentinel-5P fortlaufend aus oeffentlichen TLE-Orbitalelementen. Sie zeigt die Satellitenposition, nicht NO₂-Verschmutzung in Echtzeit.',
+    satLiveHowText:
+      'Die Berechnung liest zwei TLE-Bahnzeilen, bestimmt daraus die Satellitenposition fuer die aktuelle UTC-Zeit und projiziert sie als Punkt direkt unter dem Satelliten auf die Karte. Breitengrad, Laengengrad, Hoehe und Geschwindigkeit sind daher Bahnschaetzungen; die Anzeige aktualisiert sich automatisch etwa alle 15 Sekunden.',
     satLatitude: 'Breitengrad',
     satLongitude: 'Laengengrad',
     satAltitude: 'Hoehe',
     satVelocity: 'Geschwindigkeit',
     satLiveSource:
       'Berechnet um {time} UTC aus TLE-Elementen mit Epoche {epoch} UTC. Die Anzeige ist informativ und aktualisiert sich etwa alle 15 Sekunden.',
+    satMapAria: 'Leaflet-Karte mit der geschaetzten aktuellen Position des Satelliten Sentinel-5P',
     satWhatTitle: 'Was ist unser Satellit?',
     satIntro:
       'AirWatch SLO betreibt keinen eigenen Satelliten – die Daten stammen vom europaeischen Satelliten Sentinel-5P (Programm Copernicus, ESA/EU). Mit dem Instrument TROPOMI misst er aus dem Weltraum Schadstoffe in der Atmosphaere, darunter Stickstoffdioxid (NO₂), das wir fuer die statistischen Regionen Sloweniens darstellen.',

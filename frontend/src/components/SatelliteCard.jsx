@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLanguage } from '../i18n'
 
@@ -128,41 +130,177 @@ function formatUtcTime(date, locale) {
   }).format(date)
 }
 
-function SatellitePositionMap({ position }) {
-  const x = ((position.longitude + 180) / 360) * 100
-  const y = ((90 - position.latitude) / 180) * 100
+function SatellitePositionMap({ ariaLabel, now, position }) {
+  const mapElementRef = useRef(null)
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
+  const groundTrackRef = useRef([])
+  const positionRef = useRef(position)
+
+  const groundTrackSegments = useMemo(() => buildGroundTrackSegments(now), [now])
+
+  useEffect(() => {
+    positionRef.current = position
+  }, [position])
+
+  useEffect(() => {
+    if (!mapElementRef.current || mapRef.current) return undefined
+    const initialPosition = positionRef.current
+
+    const map = L.map(mapElementRef.current, {
+      attributionControl: true,
+      boxZoom: false,
+      doubleClickZoom: false,
+      dragging: false,
+      keyboard: false,
+      minZoom: 1,
+      scrollWheelZoom: false,
+      tap: false,
+      touchZoom: false,
+      worldCopyJump: true,
+      zoomControl: false,
+    })
+
+    map.setView([initialPosition.latitude, initialPosition.longitude], getSatelliteMapZoom(mapElementRef.current))
+    map.attributionControl.setPosition('bottomright')
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      className: 'satellite-map-base-layer',
+      maxZoom: 8,
+      minZoom: 1,
+    }).addTo(map)
+
+    markerRef.current = L.marker([initialPosition.latitude, initialPosition.longitude], {
+      icon: L.divIcon({
+        className: 'satellite-marker',
+        html: '<span aria-hidden="true"></span>',
+        iconAnchor: [5, 5],
+        iconSize: [10, 10],
+      }),
+      keyboard: false,
+    }).addTo(map)
+
+    mapRef.current = map
+
+    setTimeout(() => {
+      map.invalidateSize()
+    }, 0)
+
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => {
+            const currentPosition = positionRef.current
+            map.invalidateSize()
+            map.setZoom(getSatelliteMapZoom(mapElementRef.current), { animate: false })
+            map.setView([currentPosition.latitude, currentPosition.longitude], undefined, { animate: false })
+          })
+    resizeObserver?.observe(mapElementRef.current)
+
+    map.on('zoomend', () => {
+      const currentPosition = positionRef.current
+      map.panTo([currentPosition.latitude, currentPosition.longitude], { animate: false })
+    })
+
+    mapRef.current.resizeObserver = resizeObserver
+
+    return undefined
+  }, [])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    map.panTo([position.latitude, position.longitude], {
+      animate: true,
+      duration: 0.75,
+      easeLinearity: 0.4,
+    })
+    markerRef.current?.setLatLng([position.latitude, position.longitude])
+
+    groundTrackRef.current.forEach(layer => layer.removeFrom(map))
+    groundTrackRef.current = groundTrackSegments.map(segment =>
+      L.polyline(segment.points, {
+        className:
+          segment.phase === 'future'
+            ? 'satellite-orbit-track satellite-orbit-track--future'
+            : 'satellite-orbit-track satellite-orbit-track--past',
+        color: segment.phase === 'future' ? '#e9f1f4' : '#7e8b91',
+        dashArray: segment.phase === 'future' ? null : '4 7',
+        opacity: segment.phase === 'future' ? 0.78 : 0.4,
+        smoothFactor: 1,
+        weight: segment.phase === 'future' ? 1.55 : 1.05,
+      }).addTo(map),
+    )
+  }, [groundTrackSegments, position.latitude, position.longitude])
+
+  useEffect(
+    () => () => {
+      if (mapRef.current) {
+        mapRef.current.resizeObserver?.disconnect()
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    },
+    [],
+  )
 
   return (
-    <div className="satellite-map" aria-hidden="true">
-      <svg viewBox="0 0 100 50" role="img">
-        <defs>
-          <linearGradient id="satellite-map-water" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0" stopColor="#dcefe8" />
-            <stop offset="1" stopColor="#edf5ec" />
-          </linearGradient>
-        </defs>
-        <rect width="100" height="50" rx="2" fill="url(#satellite-map-water)" />
-        <path
-          d="M7 15c8-7 20-8 31-4 8 3 15 1 23-2 10-4 22-2 32 5v5c-11-4-20-3-30 1-8 3-16 4-25 1C27 17 16 18 7 24z"
-          fill="#b9d8bf"
-          opacity="0.9"
-        />
-        <path
-          d="M11 32c12-4 24-3 36 1 8 3 15 2 23-1 8-4 16-3 22 1v7c-8-4-17-4-26 0-9 3-18 4-29 0-10-4-19-4-26 0z"
-          fill="#a8cfae"
-          opacity="0.82"
-        />
-        {[25, 50, 75].map(lineX => (
-          <line key={`x-${lineX}`} x1={lineX} x2={lineX} y1="0" y2="50" className="satellite-map-grid" />
-        ))}
-        {[12.5, 25, 37.5].map(lineY => (
-          <line key={`y-${lineY}`} x1="0" x2="100" y1={lineY} y2={lineY} className="satellite-map-grid" />
-        ))}
-        <circle cx={x} cy={y} r="2.8" className="satellite-map-pulse" />
-        <circle cx={x} cy={y} r="1.25" className="satellite-map-dot" />
-      </svg>
-    </div>
+    <div
+      ref={mapElementRef}
+      className="satellite-map satellite-leaflet-map"
+      role="application"
+      aria-label={ariaLabel}
+    />
   )
+}
+
+function buildGroundTrackSegments(now) {
+  const minutesBefore = 52
+  const minutesAfter = 52
+  const stepMinutes = 2
+  const points = []
+
+  for (let offset = -minutesBefore; offset <= minutesAfter; offset += stepMinutes) {
+    const pointDate = new Date(now.getTime() + offset * 60 * 1000)
+    const point = calculateSatellitePosition(pointDate)
+    points.push({
+      offset,
+      latLng: [point.latitude, point.longitude],
+    })
+  }
+
+  return splitAntimeridianSegments(points)
+}
+
+function splitAntimeridianSegments(points) {
+  return points.reduce((segments, point, index) => {
+    const previousPoint = points[index - 1]
+    const crossesAntimeridian =
+      previousPoint && Math.abs(point.latLng[1] - previousPoint.latLng[1]) > 180
+    const phase = point.offset < 0 ? 'past' : 'future'
+    const latestSegment = segments[segments.length - 1]
+
+    if (crossesAntimeridian || !latestSegment) {
+      segments.push({ phase, points: [point.latLng] })
+    } else if (latestSegment.phase !== phase) {
+      latestSegment.points.push(point.latLng)
+      segments.push({ phase, points: [point.latLng] })
+    } else {
+      latestSegment.points.push(point.latLng)
+    }
+
+    return segments
+  }, [])
+}
+
+function getSatelliteMapZoom(mapElement) {
+  const width = mapElement?.clientWidth || 520
+  if (width < 420) return 1
+  if (width < 700) return 1.35
+  return 1.65
 }
 
 function SatelliteCard() {
@@ -180,10 +318,11 @@ function SatelliteCard() {
   return (
     <section className="dashboard-view satellite-view" aria-label={t('navSatellite')}>
       <section className="card satellite-position-card">
+        <SatellitePositionMap ariaLabel={t('satMapAria')} now={now} position={position} />
         <div className="satellite-position-copy">
-          <p className="section-kicker">Sentinel-5P live orbit</p>
           <h2>{t('satLiveTitle')}</h2>
           <p className="muted-text">{t('satLiveText')}</p>
+          <p className="muted-text satellite-live-how">{t('satLiveHowText')}</p>
           <div className="satellite-position-grid" aria-label={t('satLiveTitle')}>
             <div className="info-tile">
               <span>{t('satLatitude')}</span>
@@ -206,7 +345,6 @@ function SatelliteCard() {
             {t('satLiveSource', { time: formatUtcTime(now, locale), epoch: tleEpochLabel })}
           </p>
         </div>
-        <SatellitePositionMap position={position} />
       </section>
 
       <section className="card satellite-hero">

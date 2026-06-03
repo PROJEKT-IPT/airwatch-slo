@@ -201,8 +201,9 @@ describe('Dashboard', () => {
     })
     expect(getRegionDetails).toHaveBeenCalledWith('SI032')
 
-    const metricCard = container.querySelector('.metric-card')
-    expect(metricCard.querySelector('.metric-value')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(container.querySelector('.metric-card .metric-value')).toBeInTheDocument()
+    })
     expect(screen.getByLabelText('Interaktivni Leaflet zemljevid slovenskih statističnih regij'))
       .toBeInTheDocument()
   })
@@ -349,5 +350,15 @@ describe('Dashboard', () => {
     renderDashboard('methodology')
 
     expect(await screen.findByRole('heading', { name: 'Kako brati rezultat' })).toBeInTheDocument()
+  })
+
+  it('satellite view: explains how the live orbit display works', async () => {
+    renderDashboard('satellite')
+
+    await waitFor(() => {
+      expect(getRegionDetails).toHaveBeenCalledWith('SI032')
+    })
+    expect(screen.getByRole('heading', { name: 'Kje je Sentinel-5P trenutno?' })).toBeInTheDocument()
+    expect(screen.getByText(/Deluje tako, da aplikacija prebere dva TLE zapisa/i)).toBeInTheDocument()
   })
 })
