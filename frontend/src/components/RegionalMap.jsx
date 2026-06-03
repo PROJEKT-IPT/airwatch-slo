@@ -30,6 +30,70 @@ function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegion
   })
 }
 
+// Create the Leaflet map + base tile layer once; return the map instance.
+function ensureLeafletMap(element, mapRef, baseLayerRef) {
+  if (!mapRef.current) {
+    mapRef.current = L.map(element, {
+      attributionControl: true,
+      doubleClickZoom: true,
+      dragging: true,
+      keyboard: true,
+      scrollWheelZoom: true,
+      zoomControl: true,
+    })
+    // Keep the attribution clear of the floating panel (bottom-right).
+    if (mapRef.current.attributionControl) {
+      mapRef.current.attributionControl.setPosition('topright')
+    }
+  }
+
+  const map = mapRef.current
+  if (!baseLayerRef.current) {
+    baseLayerRef.current = L.tileLayer(
+      'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        className: 'regional-map-base-layer',
+        maxZoom: 18,
+        opacity: 0.42,
+      },
+    ).addTo(map)
+  }
+  return map
+}
+
+// (Re)build the region polygons layer and fit the map to it on first render.
+function renderRegionLayer(map, refs, params) {
+  const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef } = refs
+  const { mapRegions, mapScale, showDeviations, mapGeometryKey, onRegionSelect } = params
+
+  if (geoJsonLayerRef.current) {
+    geoJsonLayerRef.current.removeFrom(map)
+  }
+
+  geoJsonLayerRef.current = L.geoJSON(
+    buildFeatureCollection(mapRegions, {
+      averageMicromol: mapScale.average,
+      maxAbsDeviationMicromol: mapScale.maxAbsDeviation,
+      maxMicromol: mapScale.max,
+      minMicromol: mapScale.min,
+      showDeviations,
+    }),
+    {
+      style: feature => getRegionStyle(feature.properties, selectedRegionRef.current),
+      onEachFeature: (feature, layer) =>
+        bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef, translationRef }),
+    },
+  ).addTo(map)
+
+  const bounds = geoJsonLayerRef.current.getBounds()
+  if (bounds.isValid() && fittedGeometryKeyRef.current !== mapGeometryKey) {
+    map.fitBounds(bounds, getResponsiveFitBoundsOptions(map.getContainer()))
+    fittedGeometryKeyRef.current = mapGeometryKey
+  }
+}
+
 // Loading / error / empty placeholder shown in place of the Leaflet map.
 function MapStateMessage({ isLoading, error, t }) {
   if (isLoading) {
@@ -107,71 +171,16 @@ function RegionalMap({
       return undefined
     }
 
-    if (!mapRef.current) {
-      mapRef.current = L.map(mapElementRef.current, {
-        attributionControl: true,
-        doubleClickZoom: true,
-        dragging: true,
-        keyboard: true,
-        scrollWheelZoom: true,
-        zoomControl: true,
-      })
-      // Keep the attribution clear of the floating panel (bottom-right).
-      if (mapRef.current.attributionControl) {
-        mapRef.current.attributionControl.setPosition('topright')
-      }
-    }
-
-    const map = mapRef.current
-
-    if (!baseLayerRef.current) {
-      baseLayerRef.current = L.tileLayer(
-        'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
-        {
-          attribution:
-            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-          className: 'regional-map-base-layer',
-          maxZoom: 18,
-          opacity: 0.42,
-        },
-      ).addTo(map)
-    }
-
-    if (geoJsonLayerRef.current) {
-      geoJsonLayerRef.current.removeFrom(map)
-    }
-
-    geoJsonLayerRef.current = L.geoJSON(
-      buildFeatureCollection(mapRegions, {
-        averageMicromol: mapScale.average,
-        maxAbsDeviationMicromol: mapScale.maxAbsDeviation,
-        maxMicromol: mapScale.max,
-        minMicromol: mapScale.min,
-        showDeviations,
-      }),
-      {
-        style: feature => getRegionStyle(feature.properties, selectedRegionRef.current),
-        onEachFeature: (feature, layer) =>
-          bindRegionInteractions(feature, layer, {
-            onRegionSelect,
-            selectedRegionRef,
-            translationRef,
-          }),
-      },
-    ).addTo(map)
-
-    const bounds = geoJsonLayerRef.current.getBounds()
-    if (bounds.isValid() && fittedGeometryKeyRef.current !== mapGeometryKey) {
-      map.fitBounds(bounds, getResponsiveFitBoundsOptions(mapElementRef.current))
-      fittedGeometryKeyRef.current = mapGeometryKey
-    }
-
-    setTimeout(() => {
-      map.invalidateSize()
-    }, 0)
+    const map = ensureLeafletMap(mapElementRef.current, mapRef, baseLayerRef)
+    renderRegionLayer(
+      map,
+      { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef },
+      { mapRegions, mapScale, showDeviations, mapGeometryKey, onRegionSelect },
+    )
+    setTimeout(() => map.invalidateSize(), 0)
 
     return undefined
-  }, [error, isLoading, mapGeometryKey, mapRegions, mapScale.average, mapScale.max, mapScale.maxAbsDeviation, mapScale.min, onRegionSelect, showDeviations])
+  }, [error, isLoading, mapGeometryKey, mapRegions, mapScale, onRegionSelect, showDeviations])
 
   useEffect(
     () => () => {
@@ -223,52 +232,61 @@ function RegionalMap({
       </div>
 
       {!isLoading && !error && mapRegions.length > 0 ? (
-        <div className={`map-legend${fullScreen ? ' map-legend--float' : ''}`} aria-label={t('mapLegendAria')}>
-          <div className="map-legend-controls">
-            <button
-              type="button"
-              className="map-mode-toggle"
-              aria-pressed={showDeviations}
-              onClick={() => setShowDeviations(value => !value)}
-            >
-              {showDeviations ? t('showValues') : t('showDeviations')}
-            </button>
-          </div>
-          <div className="map-legend-heading">
-            <span>{showDeviations ? t('mapLegendDeviationMetric') : t('mapLegendAbsoluteMetric')}</span>
-            <strong>
-              {showDeviations
-                ? t('mapLegendDeviationScale', {
-                    mean: formatMicromolNumberFromMicromol(mapScale.average, t),
-                  })
-                : t('mapLegendDynamicScale')}
-            </strong>
-          </div>
-          <div
-            className={`map-gradient-legend ${showDeviations ? 'map-gradient-legend--deviation' : 'map-gradient-legend--absolute'}`}
-            aria-hidden="true"
-          >
-            {(showDeviations ? DEVIATION_COLORS : SEQUENTIAL_COLORS).map((color, index) => (
-              <span key={`${color}-${index}`} style={{ backgroundColor: color }} />
-            ))}
-          </div>
-          <div className="map-legend-values" aria-hidden="true">
-            <div className="map-legend-thresholds map-legend-thresholds--dynamic">
-              {(showDeviations ? mapScale.deviationLabels : mapScale.absoluteLabels).map((label, index) => (
-                <span key={`${label}-${index}`}>{label}</span>
-              ))}
-            </div>
-            <span className="map-legend-unit">{getMicromolUnit()}</span>
-          </div>
-          <div className="map-legend-missing">
-            <span className="map-legend-swatch map-legend-swatch--missing" aria-hidden="true" />
-            <span>{t('noValidValue')}</span>
-          </div>
-        </div>
+        <MapLegend
+          fullScreen={fullScreen}
+          showDeviations={showDeviations}
+          onToggle={() => setShowDeviations(value => !value)}
+          mapScale={mapScale}
+          t={t}
+        />
       ) : null}
 
       {fullScreen && overlay ? <div className="map-overlay-panel">{overlay}</div> : null}
     </section>
+  )
+}
+
+// Color-scale legend (absolute values vs. deviations from the mean).
+function MapLegend({ fullScreen, showDeviations, onToggle, mapScale, t }) {
+  const colors = showDeviations ? DEVIATION_COLORS : SEQUENTIAL_COLORS
+  const labels = showDeviations ? mapScale.deviationLabels : mapScale.absoluteLabels
+
+  return (
+    <div className={`map-legend${fullScreen ? ' map-legend--float' : ''}`} aria-label={t('mapLegendAria')}>
+      <div className="map-legend-controls">
+        <button type="button" className="map-mode-toggle" aria-pressed={showDeviations} onClick={onToggle}>
+          {showDeviations ? t('showValues') : t('showDeviations')}
+        </button>
+      </div>
+      <div className="map-legend-heading">
+        <span>{showDeviations ? t('mapLegendDeviationMetric') : t('mapLegendAbsoluteMetric')}</span>
+        <strong>
+          {showDeviations
+            ? t('mapLegendDeviationScale', { mean: formatMicromolNumberFromMicromol(mapScale.average, t) })
+            : t('mapLegendDynamicScale')}
+        </strong>
+      </div>
+      <div
+        className={`map-gradient-legend ${showDeviations ? 'map-gradient-legend--deviation' : 'map-gradient-legend--absolute'}`}
+        aria-hidden="true"
+      >
+        {colors.map((color, index) => (
+          <span key={`${color}-${index}`} style={{ backgroundColor: color }} />
+        ))}
+      </div>
+      <div className="map-legend-values" aria-hidden="true">
+        <div className="map-legend-thresholds map-legend-thresholds--dynamic">
+          {labels.map((label, index) => (
+            <span key={`${label}-${index}`}>{label}</span>
+          ))}
+        </div>
+        <span className="map-legend-unit">{getMicromolUnit()}</span>
+      </div>
+      <div className="map-legend-missing">
+        <span className="map-legend-swatch map-legend-swatch--missing" aria-hidden="true" />
+        <span>{t('noValidValue')}</span>
+      </div>
+    </div>
   )
 }
 
