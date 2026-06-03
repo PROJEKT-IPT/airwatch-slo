@@ -1,11 +1,14 @@
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLanguage } from '../i18n'
 
 // Softer, environmental ramp: light yellow -> amber -> coral -> muted red.
 const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f', '#cb5f4b', '#a8453d']
+// Diverging ramp for the "deviation from the average" mode: blue below the
+// regional mean -> neutral -> red above it.
+const DEVIATION_COLORS = ['#2166ac', '#67a9cf', '#d1e5f0', '#f7f7f7', '#fddbc7', '#ef8a62', '#b2182b']
 const MISSING_COLOR = '#cfd6dc'
 const LEGEND_STEP_COUNT = 7
 
@@ -97,14 +100,20 @@ function ensureResetControl(map, resetControlRef, boundsRef, label) {
 // (Re)build the region polygons layer and fit the map to it on first render.
 function renderRegionLayer(map, refs, params) {
   const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef } = refs
-  const { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t } = params
+  const { mapRegions, mapScale, mapGeometryKey, onRegionSelect, showDeviations, t } = params
 
   if (geoJsonLayerRef.current) {
     geoJsonLayerRef.current.removeFrom(map)
   }
 
   geoJsonLayerRef.current = L.geoJSON(
-    buildFeatureCollection(mapRegions, { maxMicromol: mapScale.max, minMicromol: mapScale.min }),
+    buildFeatureCollection(mapRegions, {
+      averageMicromol: mapScale.average,
+      maxAbsDeviationMicromol: mapScale.maxAbsDeviation,
+      maxMicromol: mapScale.max,
+      minMicromol: mapScale.min,
+      showDeviations,
+    }),
     {
       style: feature => getRegionStyle(feature.properties, selectedRegionRef.current),
       onEachFeature: (feature, layer) =>
@@ -180,6 +189,7 @@ function RegionalMap({
   const boundsRef = useRef(null)
   const resetControlRef = useRef(null)
   const selectedRegionRef = useRef(selectedRegionCode)
+  const [showDeviations, setShowDeviations] = useState(false)
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const mapGeometryKey = useMemo(() => buildMapGeometryKey(mapRegions), [mapRegions])
   const mapScale = useMemo(() => buildMapScale(mapRegions), [mapRegions])
@@ -201,7 +211,7 @@ function RegionalMap({
     renderRegionLayer(
       map,
       { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef },
-      { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t },
+      { mapRegions, mapScale, mapGeometryKey, onRegionSelect, showDeviations, t },
     )
     setTimeout(() => {
       map.invalidateSize()
@@ -211,7 +221,7 @@ function RegionalMap({
     }, 0)
 
     return undefined
-  }, [error, isLoading, mapGeometryKey, mapRegions, mapScale, onRegionSelect, t])
+  }, [error, isLoading, mapGeometryKey, mapRegions, mapScale, onRegionSelect, showDeviations, t])
 
   useEffect(
     () => () => {
@@ -264,7 +274,13 @@ function RegionalMap({
       </div>
 
       {!isLoading && !error && mapRegions.length > 0 ? (
-        <MapLegend fullScreen={fullScreen} mapScale={mapScale} t={t} />
+        <MapLegend
+          fullScreen={fullScreen}
+          mapScale={mapScale}
+          showDeviations={showDeviations}
+          onToggle={() => setShowDeviations(value => !value)}
+          t={t}
+        />
       ) : null}
 
       {fullScreen && overlay ? <div className="map-overlay-panel">{overlay}</div> : null}
@@ -272,34 +288,65 @@ function RegionalMap({
   )
 }
 
-// NO₂ value gradient legend (relative scale across the shown regions).
-function MapLegend({ fullScreen, mapScale, t }) {
+// Color legend with a switch between absolute NO₂ values and deviation from the
+// regional average (relative scale across the shown regions).
+function MapLegend({ fullScreen, mapScale, showDeviations, onToggle, t }) {
+  const view = getLegendView(showDeviations, mapScale, t)
+
   return (
     <div className={`map-legend${fullScreen ? ' map-legend--float' : ''}`} aria-label={t('mapLegendAria')}>
-      <div className="map-legend-heading">
-        <span>{t('mapModeValue')}</span>
-        <strong>{t('mapLegendRelativeScale')}</strong>
+      <div className="map-legend-controls">
+        <button type="button" className="map-mode-toggle" aria-pressed={showDeviations} onClick={onToggle}>
+          {showDeviations ? t('showValues') : t('showDeviations')}
+        </button>
       </div>
-      <div className="map-gradient-legend" aria-hidden="true">
-        {SEQUENTIAL_COLORS.map((color, index) => (
+      <div className="map-legend-heading">
+        <span>{view.metric}</span>
+        <strong>{view.scale}</strong>
+      </div>
+      <div className={`map-gradient-legend ${view.gradientClass}`} aria-hidden="true">
+        {view.colors.map((color, index) => (
           <span key={`${color}-${index}`} style={{ backgroundColor: color }} />
         ))}
       </div>
       <div className="map-legend-values" aria-hidden="true">
         <div className="map-legend-thresholds map-legend-thresholds--dynamic">
-          {mapScale.absoluteLabels.map((label, index) => (
+          {view.labels.map((label, index) => (
             <span key={`${label}-${index}`}>{label}</span>
           ))}
         </div>
         <span className="map-legend-unit">{getMicromolUnit()}</span>
       </div>
-      <p className="map-legend-hint">{t('mapLegendValueHint')}</p>
+      <p className="map-legend-hint">{view.hint}</p>
       <div className="map-legend-missing">
         <span className="map-legend-swatch map-legend-swatch--missing" aria-hidden="true" />
         <span>{t('noValidValue')}</span>
       </div>
     </div>
   )
+}
+
+// Mode-dependent legend content, kept out of the component to stay flat.
+function getLegendView(showDeviations, mapScale, t) {
+  if (showDeviations) {
+    return {
+      colors: DEVIATION_COLORS,
+      gradientClass: 'map-gradient-legend--deviation',
+      hint: t('mapLegendDeviationHint'),
+      labels: mapScale.deviationLabels,
+      metric: t('mapLegendDeviationMetric'),
+      scale: t('mapLegendDeviationScale', { mean: formatAverageLabel(mapScale.average) }),
+    }
+  }
+
+  return {
+    colors: SEQUENTIAL_COLORS,
+    gradientClass: 'map-gradient-legend--absolute',
+    hint: t('mapLegendValueHint'),
+    labels: mapScale.absoluteLabels,
+    metric: t('mapModeValue'),
+    scale: t('mapLegendRelativeScale'),
+  }
 }
 
 function buildMapRegions(regions, geometries) {
@@ -370,7 +417,7 @@ function getResponsiveFitBoundsOptions(mapElement) {
 }
 
 function buildFeatureCollection(regions, mapOptions) {
-  const { maxMicromol, minMicromol } = mapOptions
+  const { averageMicromol, maxAbsDeviationMicromol, maxMicromol, minMicromol, showDeviations } = mapOptions
 
   return {
     type: 'FeatureCollection',
@@ -382,8 +429,12 @@ function buildFeatureCollection(regions, mapOptions) {
         region_name: region.region_name,
         quality_status: region.quality_status,
         value_mean: region.value_mean,
+        color_mode: showDeviations ? 'deviation' : 'absolute',
         max_micromol: maxMicromol,
         min_micromol: minMicromol,
+        average_micromol: averageMicromol,
+        deviation_micromol: getDeviationMicromol(region.value_mean, averageMicromol),
+        max_abs_deviation_micromol: maxAbsDeviationMicromol,
         pixel_count_valid: region.pixel_count_valid,
         unit: region.unit,
       },
@@ -428,18 +479,49 @@ function buildMapScale(regions) {
   if (values.length === 0) {
     return {
       absoluteLabels: Array.from({ length: LEGEND_STEP_COUNT }, () => '0.0'),
+      average: null,
+      deviationLabels: Array.from({ length: LEGEND_STEP_COUNT }, () => '0.0'),
       max: null,
+      maxAbsDeviation: null,
       min: null,
     }
   }
 
+  const average = values.reduce((sum, value) => sum + value, 0) / values.length
+  const maxAbsDeviation = Math.max(...values.map(value => Math.abs(value - average))) || 0
   const min = Math.min(...values)
   const max = Math.max(...values)
-  return { absoluteLabels: buildLegendLabels(min, max), max, min }
+
+  return {
+    absoluteLabels: buildLegendLabels(min, max),
+    average,
+    deviationLabels: buildLegendLabels(-maxAbsDeviation, maxAbsDeviation, { forceSign: true }),
+    max,
+    maxAbsDeviation,
+    min,
+  }
+}
+
+function getDeviationMicromol(value, averageMicromol) {
+  const micromolValue = molToMicromol(value)
+  const averageValue = Number(averageMicromol)
+  if (!Number.isFinite(micromolValue) || !Number.isFinite(averageValue)) return null
+  return micromolValue - averageValue
 }
 
 function getFillColor(properties) {
+  if (properties?.color_mode === 'deviation') {
+    return deviationFillColor(properties?.deviation_micromol, properties?.max_abs_deviation_micromol)
+  }
   return absoluteFillColor(properties?.value_mean, properties?.min_micromol, properties?.max_micromol)
+}
+
+function deviationFillColor(deviationMicromol, maxAbsDeviationMicromol) {
+  const deviationValue = Number(deviationMicromol)
+  const maxAbsValue = Number(maxAbsDeviationMicromol)
+  if (!Number.isFinite(deviationValue) || !Number.isFinite(maxAbsValue)) return MISSING_COLOR
+  if (maxAbsValue === 0) return DEVIATION_COLORS[Math.floor(DEVIATION_COLORS.length / 2)]
+  return getColorFromScale((deviationValue + maxAbsValue) / (2 * maxAbsValue), DEVIATION_COLORS)
 }
 
 function absoluteFillColor(value, minMicromol, maxMicromol) {
@@ -465,22 +547,27 @@ function molToMicromol(value) {
   return Number.isFinite(numberValue) ? numberValue * 1_000_000 : NaN
 }
 
-function buildLegendLabels(min, max) {
+function buildLegendLabels(min, max, { forceSign = false } = {}) {
   if (!Number.isFinite(min) || !Number.isFinite(max)) {
     return Array.from({ length: LEGEND_STEP_COUNT }, () => '0.0')
   }
 
   if (min === max) {
-    return Array.from({ length: LEGEND_STEP_COUNT }, () => formatLegendNumber(min))
+    return Array.from({ length: LEGEND_STEP_COUNT }, () => formatLegendNumber(min, forceSign))
   }
 
   const step = (max - min) / (LEGEND_STEP_COUNT - 1)
-  return Array.from({ length: LEGEND_STEP_COUNT }, (_, index) => formatLegendNumber(min + step * index))
+  return Array.from({ length: LEGEND_STEP_COUNT }, (_, index) => formatLegendNumber(min + step * index, forceSign))
 }
 
-function formatLegendNumber(value) {
+function formatLegendNumber(value, forceSign = false) {
   const rounded = Math.abs(value) < 0.05 ? 0 : value
-  return rounded.toFixed(1)
+  const text = rounded.toFixed(1)
+  return forceSign && rounded > 0 ? `+${text}` : text
+}
+
+function formatAverageLabel(average) {
+  return Number.isFinite(Number(average)) ? Number(average).toFixed(1) : '0.0'
 }
 
 function getMicromolUnit() {
