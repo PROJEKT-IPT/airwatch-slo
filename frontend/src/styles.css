@@ -900,6 +900,32 @@ select {
   align-items: start;
 }
 
+/* About page: two-up cards for users/features, bulleted lists */
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.about-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
+  color: var(--stem-grey);
+  line-height: 1.5;
+}
+
+.about-view h3 {
+  margin: 0 0 8px;
+  color: var(--blueberry-skin);
+}
+
+.about-view h3:not(:first-child) {
+  margin-top: 18px;
+}
+
 /* Map-first overview: large central map + compact summary panel */
 .overview {
   display: grid;
@@ -2460,7 +2486,8 @@ html.a11y-high-contrast .test-region-badge {
   .section-grid--details,
   .satellite-position-card,
   .satellite-grid,
-  .methodology-grid {
+  .methodology-grid,
+  .about-grid {
     grid-template-columns: 1fr;
   }
 

@@ -1,5 +1,5 @@
 import { useLanguage } from '../i18n'
-import { formatNo2Value as formatNo2 } from '../utils/format'
+import { formatNo2Value as formatNo2, regionsCsvDataUrl } from '../utils/format'
 
 function RegionDetailsCard({
   measurement,
@@ -7,14 +7,17 @@ function RegionDetailsCard({
   isLoading,
   error,
   hasRegion,
-  csvExportUrl,
+  regions = [],
 }) {
   const { t, locale } = useLanguage()
   const regionName = measurement?.region_name || selectedRegion?.region_name || t('selectedRegion')
   const regionCode = measurement?.region_code || selectedRegion?.region_code || ''
   const qualityStatus = getQualityStatus(measurement?.quality_status, t)
   const missingDataState = measurement ? getMissingDataState(measurement, t) : null
-  const isExportDisabled = !measurement || isLoading || Boolean(error) || !csvExportUrl
+  // CSV always exports every region; PDF prints the current detail view.
+  const csvDataUrl = regionsCsvDataUrl(regions)
+  const isCsvDisabled = !csvDataUrl
+  const isPdfDisabled = !measurement || isLoading || Boolean(error)
 
   return (
     <section className="card detail-card" id="details-section">
@@ -31,21 +34,22 @@ function RegionDetailsCard({
             </span>
           ) : null}
           <a
-            className={`export-button${isExportDisabled ? ' export-button-disabled' : ''}`}
-            href={isExportDisabled ? undefined : csvExportUrl}
-            aria-disabled={isExportDisabled}
+            className={`export-button${isCsvDisabled ? ' export-button-disabled' : ''}`}
+            href={isCsvDisabled ? undefined : csvDataUrl}
+            download="airwatch-regije.csv"
+            aria-disabled={isCsvDisabled}
             onClick={event => {
-              if (isExportDisabled) event.preventDefault()
+              if (isCsvDisabled) event.preventDefault()
             }}
           >
             {t('exportCsv')}
           </a>
           <button
             type="button"
-            className={`export-button${isExportDisabled ? ' export-button-disabled' : ''}`}
-            disabled={isExportDisabled}
+            className={`export-button${isPdfDisabled ? ' export-button-disabled' : ''}`}
+            disabled={isPdfDisabled}
             onClick={() => {
-              if (!isExportDisabled && typeof window !== 'undefined') window.print()
+              if (!isPdfDisabled && typeof window !== 'undefined') window.print()
             }}
           >
             {t('exportPdf')}
@@ -131,10 +135,8 @@ function MeasurementDetails({ measurement, t, locale, includeValue }) {
       ) : null}
       <DetailRow label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
       <DetailRow label={t('qaThreshold')} value={formatNumber(measurement.qa_threshold, t, locale)} t={t} />
-      <DetailRow label={t('qualityStatus')} value={formatQualityStatus(measurement.quality_status, t)} t={t} />
       <DetailRow label={t('measurementStart')} value={formatDateTime(measurement.measurement_start_time, t, locale)} t={t} />
       <DetailRow label={t('measurementEnd')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
-      <DetailRow label={t('processingRunId')} value={formatInteger(measurement.processing_run_id, t, locale)} t={t} />
       <DetailRow label={t('dataSource')} value="Sentinel-5P / Copernicus" t={t} />
       <DetailRow
         label={t('productSource')}
@@ -142,7 +144,6 @@ function MeasurementDetails({ measurement, t, locale, includeValue }) {
         title={measurement.source_product_name}
         t={t}
       />
-      <DetailRow label={t('productId')} value={measurement.source_product_id || t('noData')} t={t} />
     </dl>
   )
 }
@@ -162,13 +163,6 @@ function shortenProduct(name, t) {
   if (!name) return t('noData')
   if (name.includes('S5P') && name.includes('NO2')) return 'Sentinel-5P OFFL L2 NO2'
   return name
-}
-
-function formatQualityStatus(status, t) {
-  if (status === 'valid') return t('valid')
-  if (status === 'no_valid_pixels') return t('noValidPixels')
-  if (status === 'processing_error') return t('processingError')
-  return t('unknown')
 }
 
 function getQualityStatus(status, t) {

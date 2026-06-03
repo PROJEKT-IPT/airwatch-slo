@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
-  getRegionCsvExportUrl,
   getRegionComparison,
   getRegionDetails,
   getRegionGeometries,
@@ -179,7 +178,6 @@ function Dashboard({ activeView = 'overview' }) {
     () => regionSummaries.find(item => item.region_code === selectedRegionCode) || null,
     [regionSummaries, selectedRegionCode],
   )
-  const csvExportUrl = selectedRegionCode ? getRegionCsvExportUrl(selectedRegionCode) : ''
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
@@ -303,7 +301,7 @@ function Dashboard({ activeView = 'overview' }) {
             isLoading={isLoadingDetail}
             error={detailError}
             hasRegion={Boolean(selectedRegionCode)}
-            csvExportUrl={csvExportUrl}
+            regions={regionSummaries}
           />
         </section>
       )}
@@ -321,12 +319,47 @@ function Dashboard({ activeView = 'overview' }) {
       {activeView === 'satellite' && <SatelliteCard />}
 
       {activeView === 'about' && (
-        <section className="dashboard-view" aria-label={t('navAbout')}>
+        <section className="dashboard-view about-view" aria-label={t('navAbout')}>
           <section className="card">
             <p className="section-kicker">{t('navAbout')}</p>
             <h2>AirWatch SLO</h2>
             <p className="muted-text">{t('aboutText1')}</p>
-            <p className="muted-text">{t('aboutText2')}</p>
+            <p className="muted-text">{t('aboutVisionText')}</p>
+          </section>
+
+          <div className="about-grid">
+            <section className="card">
+              <h3>{t('aboutUsersTitle')}</h3>
+              <ul className="about-list">
+                <li>{t('aboutUsersResearchers')}</li>
+                <li>{t('aboutUsersPublic')}</li>
+                <li>{t('aboutUsersEducation')}</li>
+              </ul>
+            </section>
+
+            <section className="card">
+              <h3>{t('aboutFeaturesTitle')}</h3>
+              <ul className="about-list">
+                <li>{t('aboutFeature1')}</li>
+                <li>{t('aboutFeature2')}</li>
+                <li>{t('aboutFeature3')}</li>
+                <li>{t('aboutFeature4')}</li>
+              </ul>
+            </section>
+          </div>
+
+          <section className="card">
+            <h3>{t('aboutLimitsTitle')}</h3>
+            <p className="muted-text">{t('aboutLimitsText')}</p>
+            <h3>{t('aboutScopeTitle')}</h3>
+            <p className="muted-text">{t('aboutScopeText')}</p>
+          </section>
+
+          <section className="card">
+            <h3>{t('aboutDataTitle')}</h3>
+            <p className="muted-text">{t('aboutDataText')}</p>
+            <h3>{t('aboutTeamTitle')}</h3>
+            <p className="provenance-note">{t('aboutTeamText')}</p>
           </section>
         </section>
       )}

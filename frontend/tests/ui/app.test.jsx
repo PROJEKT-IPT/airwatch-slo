@@ -148,7 +148,7 @@ describe('App navigation', () => {
       trend: 'Historical trend',
       comparison: 'Region comparison',
       dataNav: 'Data & export',
-      exportCsv: 'Export CSV',
+      exportCsv: 'Export all regions (CSV)',
       htmlLang: 'en',
     },
     {
@@ -157,7 +157,7 @@ describe('App navigation', () => {
       trend: 'Historischer Trend',
       comparison: 'Regionenvergleich',
       dataNav: 'Daten & Export',
-      exportCsv: 'CSV exportieren',
+      exportCsv: 'Alle Regionen exportieren (CSV)',
       htmlLang: 'de',
     },
   ])('switches the main UI to $button', async ({ button, heading, trend, comparison, dataNav, exportCsv, htmlLang }) => {

@@ -314,22 +314,27 @@ describe('Dashboard', () => {
     expect(screen.getByText('Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.')).toBeInTheDocument()
   })
 
-  it('data view: renders details, CSV export and provenance; handles no-data region', async () => {
+  it('data view: renders details, all-regions CSV export and provenance; handles no-data region', async () => {
     const user = userEvent.setup()
     renderDashboard('data')
 
     await waitFor(() => {
-      expect(screen.getByText('product-si032')).toBeInTheDocument()
+      expect(screen.getByText('Sentinel-5P / Copernicus')).toBeInTheDocument()
     })
     expect(screen.getByText('Podatki in izvor regije')).toBeInTheDocument()
-    expect(screen.getByText('Sentinel-5P / Copernicus')).toBeInTheDocument()
-    expect(screen.getByText('ID produkta')).toBeInTheDocument()
+    // The removed detail rows no longer appear.
+    expect(screen.queryByText('ID produkta')).not.toBeInTheDocument()
+    expect(screen.queryByText('ID obdelave')).not.toBeInTheDocument()
+    expect(screen.queryByText('Status kakovosti')).not.toBeInTheDocument()
 
-    const exportLink = screen.getByRole('link', { name: 'Izvozi CSV' })
-    expect(exportLink).toHaveAttribute(
-      'href',
-      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
-    )
+    // CSV export covers every region (download link with a data: URL).
+    const exportLink = screen.getByRole('link', { name: 'Izvozi vse regije (CSV)' })
+    expect(exportLink).toHaveAttribute('download', 'airwatch-regije.csv')
+    const href = exportLink.getAttribute('href')
+    expect(href).toMatch(/^data:text\/csv/)
+    const csv = decodeURIComponent(href.replace(/^data:text\/csv;charset=utf-8,/, ''))
+    expect(csv).toContain('SI031')
+    expect(csv).toContain('SI032')
 
     await user.click(screen.getByRole('button', { name: /Statistična regija/i }))
     await user.click(await screen.findByRole('option', { name: /Pomurska/i }))
@@ -338,10 +343,6 @@ describe('Dashboard', () => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
     })
     expect(await screen.findByText(/ni bilo dovolj veljavnih pikslov/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Izvozi CSV' })).toHaveAttribute(
-      'href',
-      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI031/export.csv',
-    )
   })
 
   it('methodology view: renders methodology explanation', async () => {

@@ -42,6 +42,30 @@ const translations = {
       'AirWatch SLO prikazuje zadnjo razpoložljivo obdelano meritev NO₂ po 12 slovenskih statističnih regijah na podlagi satelitskih podatkov Copernicus Sentinel-5P (TROPOMI).',
     aboutText2:
       'Vrednosti so regionalne satelitske ocene – niso meritve v realnem času in ne meritve na ravni ulice. Manjkajoče vrednosti pomenijo, da za regijo ni bilo dovolj veljavnih pikslov.',
+    aboutVisionText:
+      'Jedro rešitve ni le prikaz zemljevida, temveč pretvorba kompleksnih satelitskih (EO) podatkov v razumljive, primerljive in uporabne informacije. Za izbrano regijo lahko hitro preverite stanje, spremljate trende, primerjate regije in izvozite rezultate za nadaljnjo analizo ali poročanje.',
+    aboutUsersTitle: 'Za koga je',
+    aboutUsersResearchers:
+      'Raziskovalci, študenti in okoljski analitiki – hiter vpogled v regionalne razlike, zgodovinske trende in izvoz podatkov.',
+    aboutUsersPublic:
+      'Javne ustanove, občine in okoljske organizacije – razumljiv regionalni pregled za poročila in ozaveščanje.',
+    aboutUsersEducation: 'Srednje šole, univerze in učitelji – poenostavljen prikaz za pedagoško uporabo.',
+    aboutFeaturesTitle: 'Kaj omogoča',
+    aboutFeature1: 'Izberete regijo na zemljevidu in vidite zadnje razpoložljivo stanje NO₂.',
+    aboutFeature2: 'Odprete podroben pregled regije z datumom zadnje meritve in izvornim satelitskim produktom.',
+    aboutFeature3: 'Spremljate zgodovinski trend po regiji in primerjate regije med seboj.',
+    aboutFeature4: 'Izvozite podatke vseh regij v CSV za nadaljnjo analizo ali poročanje.',
+    aboutLimitsTitle: 'Omejitve',
+    aboutLimitsText:
+      'Prostorska ločljivost Sentinel-5P ne omogoča interpretacije na ravni ulice ali posameznega mesta, zato je rešitev namenoma omejena na regionalni nivo. Prikaz ni v realnem času; kadar za izbrani dan ni dovolj kakovostnih podatkov, sistem prikaže zadnji veljavni sloj in jasno označi datum.',
+    aboutScopeTitle: 'Kaj namenoma ni vključeno',
+    aboutScopeText:
+      'Rešitev ne vključuje napovedovanja kakovosti zraka ali strojnih (ML) prognoz, mobilne aplikacije, sistema opozoril ter prikaza na ravni občin, ulic ali posameznih merilnih točk.',
+    aboutDataTitle: 'Vir podatkov in tehnologija',
+    aboutDataText:
+      'Podatki izhajajo iz Copernicus Sentinel-5P (instrument TROPOMI). Agregirane regionalne časovne vrste in metapodatki se hranijo v bazi PostgreSQL/PostGIS, vsaka vrednost pa je sledljiva do izvornega produkta in časa satelitskega preleta.',
+    aboutTeamTitle: 'Ekipa',
+    aboutTeamText: 'AirWatch SLO – ekipa: Maida Ćivić, Matija Čoh in Aleš Fon Cafnik (Projekt IPT).',
     mapViewLead: 'Klik na regijo jo izbere. Barva prikazuje odstopanje NO₂ od povprečja regij.',
     trendViewLead: 'Zgodovinski potek NO₂ za izbrano regijo. Po potrebi omejite časovno obdobje.',
     comparisonViewLead: 'Primerjava zadnjih razpoložljivih vrednosti NO₂ med regijami.',
@@ -245,7 +269,7 @@ const translations = {
     detailsKicker: 'Podatki in izvor regije',
     regionNotSelected: 'Regija ni izbrana',
     regionCode: 'Koda regije',
-    exportCsv: 'Izvozi CSV',
+    exportCsv: 'Izvozi vse regije (CSV)',
     selectRegionForDetails: 'Izberite statistično regijo za prikaz zadnje meritve NO₂.',
     loadingRegionData: 'Nalaganje podatkov za izbrano regijo...',
     detailsLoadErrorTitle: 'Podatkov ni mogoče naložiti',
@@ -265,7 +289,7 @@ const translations = {
     provenanceProcessingError:
       'Obdelava izbrane meritve ni bila uspešna, zato zanesljiva regionalna vrednost NO₂ ni bila zapisana. Zgornji podatki ohranjajo sledljivost do izvornega produkta in zapisa obdelave.',
     provenanceDefault:
-      'Podatek je sledljiv do izvornega Sentinel-5P produkta; čas meritve se nanaša na satelitski prelet, ID obdelave pa na interni processing run zapis.',
+      'Podatek je sledljiv do izvornega Sentinel-5P produkta; čas meritve se nanaša na satelitski prelet.',
     historyKicker: 'Zgodovina meritev',
     trendTitle: 'Zgodovinski trend NO₂',
     historyLoadError:
@@ -352,6 +376,30 @@ const translations = {
       'AirWatch SLO shows the latest available processed NO₂ measurement for the 12 Slovenian statistical regions, based on Copernicus Sentinel-5P (TROPOMI) satellite data.',
     aboutText2:
       'Values are regional satellite estimates — not real-time and not street-level. Missing values mean a region did not have enough valid pixels.',
+    aboutVisionText:
+      'The core of the solution is not just a map, but turning complex satellite (EO) data into understandable, comparable and useful information. For a chosen region you can quickly check the state, follow trends, compare regions and export results for further analysis or reporting.',
+    aboutUsersTitle: 'Who it is for',
+    aboutUsersResearchers:
+      'Researchers, students and environmental analysts — quick insight into regional differences, historical trends and data export.',
+    aboutUsersPublic:
+      'Public institutions, municipalities and environmental organisations — a clear regional overview for reports and awareness.',
+    aboutUsersEducation: 'Secondary schools, universities and teachers — a simplified view for educational use.',
+    aboutFeaturesTitle: 'What you can do',
+    aboutFeature1: 'Pick a region on the map and see its latest available NO₂ state.',
+    aboutFeature2: 'Open a detailed region view with the last measurement date and the source satellite product.',
+    aboutFeature3: 'Follow the historical trend per region and compare regions with each other.',
+    aboutFeature4: 'Export the data for all regions to CSV for further analysis or reporting.',
+    aboutLimitsTitle: 'Limitations',
+    aboutLimitsText:
+      'Sentinel-5P spatial resolution does not allow street- or single-city-level interpretation, so the solution is intentionally limited to the regional level. The display is not real-time; when there is not enough good-quality data for a given day, the system shows the last valid layer and clearly marks its date.',
+    aboutScopeTitle: 'Intentionally out of scope',
+    aboutScopeText:
+      'The solution does not include air-quality forecasting or machine-learning predictions, a mobile app, an alerting system, or display at the municipality, street or individual measuring-point level.',
+    aboutDataTitle: 'Data source and technology',
+    aboutDataText:
+      'Data comes from Copernicus Sentinel-5P (the TROPOMI instrument). Aggregated regional time series and metadata are stored in a PostgreSQL/PostGIS database, and every value is traceable to its source product and satellite overpass time.',
+    aboutTeamTitle: 'Team',
+    aboutTeamText: 'AirWatch SLO — team: Maida Ćivić, Matija Čoh and Aleš Fon Cafnik (Projekt IPT).',
     mapViewLead: 'Click a region to select it. Color shows NO2 deviation from the regional average.',
     trendViewLead: 'Historical NO2 over time for the selected region. Narrow the period if needed.',
     comparisonViewLead: 'Comparison of the latest available NO2 values across regions.',
@@ -553,7 +601,7 @@ const translations = {
     detailsKicker: 'Region data and source',
     regionNotSelected: 'Region not selected',
     regionCode: 'Region code',
-    exportCsv: 'Export CSV',
+    exportCsv: 'Export all regions (CSV)',
     selectRegionForDetails: 'Select a statistical region to show the latest NO2 measurement.',
     loadingRegionData: 'Loading data for the selected region...',
     detailsLoadErrorTitle: 'Data cannot be loaded',
@@ -573,7 +621,7 @@ const translations = {
     provenanceProcessingError:
       'Processing for the selected measurement was not successful, so no reliable regional NO2 value was stored. The fields above keep traceability to the source product and processing record.',
     provenanceDefault:
-      'The value is traceable to the source Sentinel-5P product; measurement time refers to the satellite overpass, and processing ID refers to the internal processing run record.',
+      'The value is traceable to the source Sentinel-5P product; measurement time refers to the satellite overpass.',
     historyKicker: 'Measurement history',
     trendTitle: 'Historical NO2 trend',
     historyLoadError:
@@ -660,6 +708,30 @@ const translations = {
       'AirWatch SLO zeigt die neueste verfügbare verarbeitete NO₂-Messung für die 12 slowenischen statistischen Regionen auf Basis von Copernicus Sentinel-5P (TROPOMI) Satellitendaten.',
     aboutText2:
       'Die Werte sind regionale Satellitenschätzungen – nicht in Echtzeit und nicht auf Straßenebene. Fehlende Werte bedeuten, dass eine Region nicht genug gültige Pixel hatte.',
+    aboutVisionText:
+      'Der Kern der Lösung ist nicht nur eine Karte, sondern die Umwandlung komplexer Satelliten-(EO-)Daten in verständliche, vergleichbare und nützliche Informationen. Für eine gewählte Region können Sie schnell den Zustand prüfen, Trends verfolgen, Regionen vergleichen und Ergebnisse für weitere Analysen oder Berichte exportieren.',
+    aboutUsersTitle: 'Für wen es ist',
+    aboutUsersResearchers:
+      'Forschende, Studierende und Umweltanalysten – schneller Einblick in regionale Unterschiede, historische Trends und Datenexport.',
+    aboutUsersPublic:
+      'Öffentliche Einrichtungen, Gemeinden und Umweltorganisationen – ein verständlicher regionaler Überblick für Berichte und Aufklärung.',
+    aboutUsersEducation: 'Schulen, Universitäten und Lehrkräfte – eine vereinfachte Ansicht für den Unterricht.',
+    aboutFeaturesTitle: 'Was möglich ist',
+    aboutFeature1: 'Eine Region auf der Karte wählen und ihren neuesten verfügbaren NO₂-Zustand sehen.',
+    aboutFeature2: 'Eine Detailansicht der Region mit dem letzten Messdatum und dem Quell-Satellitenprodukt öffnen.',
+    aboutFeature3: 'Den historischen Trend pro Region verfolgen und Regionen miteinander vergleichen.',
+    aboutFeature4: 'Die Daten aller Regionen als CSV für weitere Analysen oder Berichte exportieren.',
+    aboutLimitsTitle: 'Einschränkungen',
+    aboutLimitsText:
+      'Die räumliche Auflösung von Sentinel-5P erlaubt keine Interpretation auf Straßen- oder Einzelstadtebene, daher ist die Lösung bewusst auf die regionale Ebene beschränkt. Die Anzeige ist nicht in Echtzeit; wenn für einen Tag nicht genug qualitativ gute Daten vorliegen, zeigt das System die letzte gültige Ebene und kennzeichnet ihr Datum klar.',
+    aboutScopeTitle: 'Bewusst nicht enthalten',
+    aboutScopeText:
+      'Die Lösung umfasst keine Luftqualitätsprognosen oder ML-Vorhersagen, keine mobile App, kein Alarmsystem und keine Anzeige auf Gemeinde-, Straßen- oder einzelner Messpunktebene.',
+    aboutDataTitle: 'Datenquelle und Technologie',
+    aboutDataText:
+      'Die Daten stammen von Copernicus Sentinel-5P (Instrument TROPOMI). Aggregierte regionale Zeitreihen und Metadaten werden in einer PostgreSQL/PostGIS-Datenbank gespeichert, und jeder Wert ist bis zum Quellprodukt und zur Satellitenüberflugzeit nachvollziehbar.',
+    aboutTeamTitle: 'Team',
+    aboutTeamText: 'AirWatch SLO – Team: Maida Ćivić, Matija Čoh und Aleš Fon Cafnik (Projekt IPT).',
     mapViewLead: 'Klicken Sie auf eine Region, um sie auszuwählen. Die Farbe zeigt die NO2-Abweichung vom Regionsdurchschnitt.',
     trendViewLead: 'Historischer NO2-Verlauf für die ausgewählte Region. Schränken Sie bei Bedarf den Zeitraum ein.',
     comparisonViewLead: 'Vergleich der neuesten verfügbaren NO2-Werte zwischen Regionen.',
@@ -861,7 +933,7 @@ const translations = {
     detailsKicker: 'Regionsdaten und Quelle',
     regionNotSelected: 'Region nicht ausgewählt',
     regionCode: 'Regionscode',
-    exportCsv: 'CSV exportieren',
+    exportCsv: 'Alle Regionen exportieren (CSV)',
     selectRegionForDetails: 'Wählen Sie eine statistische Region, um die neueste NO2-Messung anzuzeigen.',
     loadingRegionData: 'Daten für die ausgewählte Region werden geladen...',
     detailsLoadErrorTitle: 'Daten können nicht geladen werden',
@@ -881,7 +953,7 @@ const translations = {
     provenanceProcessingError:
       'Die Verarbeitung der ausgewählten Messung war nicht erfolgreich, daher wurde kein verlässlicher regionaler NO2-Wert gespeichert. Die Felder oben erhalten die Nachvollziehbarkeit zur Quelle und zum Verarbeitungsdatensatz.',
     provenanceDefault:
-      'Der Wert ist bis zum Sentinel-5P-Quellprodukt nachvollziehbar; die Messzeit bezieht sich auf den Satellitenüberflug, die Verarbeitungs-ID auf den internen Processing-Run-Datensatz.',
+      'Der Wert ist bis zum Sentinel-5P-Quellprodukt nachvollziehbar; die Messzeit bezieht sich auf den Satellitenüberflug.',
     historyKicker: 'Messhistorie',
     trendTitle: 'Historischer NO2-Trend',
     historyLoadError:

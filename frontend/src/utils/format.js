@@ -13,3 +13,33 @@ export function formatNo2Value(value, locale, fallback = '') {
   const mantissa = numberValue / 10 ** exponent
   return `${mantissa.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
+
+// Columns exported for the "all regions" CSV (stable, machine-readable keys).
+const REGION_CSV_COLUMNS = [
+  'region_code',
+  'region_name',
+  'value_mean',
+  'unit',
+  'pixel_count_valid',
+  'quality_status',
+  'measurement_end_time',
+]
+
+function csvCell(value) {
+  if (value === null || value === undefined) return ''
+  const text = String(value)
+  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+}
+
+// Build a CSV string with one row per region from the loaded latest summaries.
+export function buildRegionsCsv(regions = []) {
+  const header = REGION_CSV_COLUMNS.join(',')
+  const rows = regions.map(region => REGION_CSV_COLUMNS.map(column => csvCell(region?.[column])).join(','))
+  return [header, ...rows].join('\n')
+}
+
+// Data URL for downloading the all-regions CSV (empty string when no regions).
+export function regionsCsvDataUrl(regions = []) {
+  if (!regions.length) return ''
+  return `data:text/csv;charset=utf-8,${encodeURIComponent(buildRegionsCsv(regions))}`
+}
