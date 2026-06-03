@@ -193,6 +193,11 @@ jobs:
         run: echo "::warning::SONAR_TOKEN is not configured; skipping SonarQube analysis."
 
       - name: Run SonarQube Cloud scan
+        # The SonarScanner CLI's JRE-provisioning call is occasionally flaky and
+        # fails the step transiently. Don't let that break the whole CI run; the
+        # SonarCloud Quality Gate is reported as its own status check and updates
+        # whenever a scan succeeds.
+        continue-on-error: true
         if: env.SONAR_TOKEN != '' && env.SONAR_ORGANIZATION != ''
         uses: SonarSource/sonarqube-scan-action@v7
         with:
