@@ -9,19 +9,24 @@ const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f'
 const MISSING_COLOR = '#cfd6dc'
 const LEGEND_STEP_COUNT = 7
 
-// Capital city reference point (decoration only — not a measurement).
-const LJUBLJANA = { lat: 46.0569, lng: 14.5058 }
+// Major Slovenian cities for orientation (decoration only — not measurements).
+const MAJOR_CITIES = [
+  { name: 'Ljubljana', lat: 46.0569, lng: 14.5058 },
+  { name: 'Maribor', lat: 46.5547, lng: 15.6459 },
+  { name: 'Celje', lat: 46.2309, lng: 15.2604 },
+  { name: 'Kranj', lat: 46.2389, lng: 14.3556 },
+  { name: 'Koper', lat: 45.5481, lng: 13.7302 },
+  { name: 'Novo mesto', lat: 45.801, lng: 15.171 },
+  { name: 'Velenje', lat: 46.3592, lng: 15.1107 },
+  { name: 'Nova Gorica', lat: 45.956, lng: 13.6483 },
+  { name: 'Murska Sobota', lat: 46.6625, lng: 16.1664 },
+  { name: 'Ptuj', lat: 46.4199, lng: 15.87 },
+]
 
-// Tooltip + click/keyboard/hover wiring for one region polygon. Kept at module
-// level so the map-building effect stays simple.
-function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef, translationRef }) {
+// Click/keyboard/hover wiring for one region polygon. Kept at module level so
+// the map-building effect stays simple. No text on hover — only a highlight.
+function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef }) {
   const regionCode = feature.properties.region_code
-
-  layer.bindTooltip(buildRegionTooltip(feature.properties, translationRef.current), {
-    direction: 'top',
-    opacity: 1,
-    sticky: true,
-  })
 
   layer.on({
     click: () => onRegionSelect(regionCode),
@@ -95,38 +100,37 @@ function ensureResetControl(map, resetControlRef, boundsRef, label) {
   resetControlRef.current = control
 }
 
-// Small div-icon for the capital: a dot plus an always-on "Ljubljana" label.
-function buildCapitalIcon(t) {
+// Small div-icon for a city: a dot plus an always-on name label.
+function buildCityIcon(name) {
   return L.divIcon({
-    className: 'capital-marker-icon',
+    className: 'city-marker-icon',
     html:
-      '<span class="capital-dot" aria-hidden="true"></span>' +
-      `<span class="capital-label"><strong>Ljubljana</strong><span class="capital-sub">${escapeHtml(t('capitalCity'))}</span></span>`,
-    iconAnchor: [5, 5],
+      '<span class="city-dot" aria-hidden="true"></span>' +
+      `<span class="city-label">${escapeHtml(name)}</span>`,
+    iconAnchor: [4, 4],
     iconSize: null,
   })
 }
 
-// Add a small, non-interactive marker for the capital so clicks still reach
-// the region polygon underneath. Created once; only its label is refreshed.
-function ensureCapitalMarker(map, capitalMarkerRef, t) {
-  if (capitalMarkerRef.current) {
-    capitalMarkerRef.current.setIcon(buildCapitalIcon(t))
-    return
-  }
+// Add small, non-interactive markers for the major cities so clicks still
+// reach the region polygon underneath. Created once and kept on top.
+function ensureCityMarkers(map, cityLayerRef) {
+  if (cityLayerRef.current) return
 
-  const marker = L.marker([LJUBLJANA.lat, LJUBLJANA.lng], {
-    icon: buildCapitalIcon(t),
-    interactive: false,
-    keyboard: false,
-  })
-  marker.addTo(map)
-  capitalMarkerRef.current = marker
+  cityLayerRef.current = L.layerGroup(
+    MAJOR_CITIES.map(city =>
+      L.marker([city.lat, city.lng], {
+        icon: buildCityIcon(city.name),
+        interactive: false,
+        keyboard: false,
+      }),
+    ),
+  ).addTo(map)
 }
 
 // (Re)build the region polygons layer and fit the map to it on first render.
 function renderRegionLayer(map, refs, params) {
-  const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef, capitalMarkerRef } = refs
+  const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef, cityLayerRef } = refs
   const { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t } = params
 
   if (geoJsonLayerRef.current) {
@@ -138,12 +142,12 @@ function renderRegionLayer(map, refs, params) {
     {
       style: feature => getRegionStyle(feature.properties, selectedRegionRef.current),
       onEachFeature: (feature, layer) =>
-        bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef, translationRef }),
+        bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef }),
     },
   ).addTo(map)
 
   geoJsonLayerRef.current.eachLayer(layer => emphasizeIfSelected(layer, selectedRegionRef.current))
-  ensureCapitalMarker(map, capitalMarkerRef, t)
+  ensureCityMarkers(map, cityLayerRef)
 
   const bounds = geoJsonLayerRef.current.getBounds()
   if (bounds.isValid()) {
@@ -210,9 +214,8 @@ function RegionalMap({
   const fittedGeometryKeyRef = useRef(null)
   const boundsRef = useRef(null)
   const resetControlRef = useRef(null)
-  const capitalMarkerRef = useRef(null)
+  const cityLayerRef = useRef(null)
   const selectedRegionRef = useRef(selectedRegionCode)
-  const translationRef = useRef(t)
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const mapGeometryKey = useMemo(() => buildMapGeometryKey(mapRegions), [mapRegions])
   const mapScale = useMemo(() => buildMapScale(mapRegions), [mapRegions])
@@ -226,19 +229,6 @@ function RegionalMap({
   }, [selectedRegionCode])
 
   useEffect(() => {
-    translationRef.current = t
-
-    if (!geoJsonLayerRef.current) return
-
-    geoJsonLayerRef.current.eachLayer(layer => {
-      if (layer.getTooltip()) {
-        layer.setTooltipContent(buildRegionTooltip(layer.feature?.properties, t))
-      }
-    })
-    capitalMarkerRef.current?.setIcon(buildCapitalIcon(t))
-  }, [t])
-
-  useEffect(() => {
     if (isLoading || error || mapRegions.length === 0 || !mapElementRef.current) {
       return undefined
     }
@@ -246,7 +236,7 @@ function RegionalMap({
     const map = ensureLeafletMap(mapElementRef.current, mapRef, baseLayerRef)
     renderRegionLayer(
       map,
-      { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, translationRef, boundsRef, resetControlRef, capitalMarkerRef },
+      { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef, cityLayerRef },
       { mapRegions, mapScale, mapGeometryKey, onRegionSelect, t },
     )
     setTimeout(() => {
@@ -265,7 +255,7 @@ function RegionalMap({
         mapRef.current.remove()
         mapRef.current = null
         resetControlRef.current = null
-        capitalMarkerRef.current = null
+        cityLayerRef.current = null
       }
     },
     [],
@@ -418,7 +408,6 @@ function getResponsiveFitBoundsOptions(mapElement) {
 
 function buildFeatureCollection(regions, mapOptions) {
   const { maxMicromol, minMicromol } = mapOptions
-  const ranking = buildRegionRanks(regions)
 
   return {
     type: 'FeatureCollection',
@@ -434,23 +423,9 @@ function buildFeatureCollection(regions, mapOptions) {
         min_micromol: minMicromol,
         pixel_count_valid: region.pixel_count_valid,
         unit: region.unit,
-        rank: ranking.ranks.get(region.region_code) ?? null,
-        rank_total: ranking.total,
       },
     })),
   }
-}
-
-// Rank valid regions by NO₂ value (highest = #1) from the loaded measurements.
-// No fabricated values: regions without a valid value are simply unranked.
-function buildRegionRanks(regions) {
-  const valid = regions
-    .filter(region => region.quality_status === 'valid' && Number.isFinite(Number(region.value_mean)))
-    .sort((a, b) => Number(b.value_mean) - Number(a.value_mean))
-
-  const ranks = new Map()
-  valid.forEach((region, index) => ranks.set(region.region_code, index + 1))
-  return { ranks, total: valid.length }
 }
 
 function hasGeometry(geometry) {
@@ -520,103 +495,6 @@ function getColorFromScale(ratio, colors) {
   const safeRatio = Math.min(Math.max(Number(ratio), 0), 1)
   const index = Math.min(Math.floor(safeRatio * colors.length), colors.length - 1)
   return colors[index]
-}
-
-function buildRegionTooltip(properties, t) {
-  const name = escapeHtml(properties?.region_name || t('selectedRegion'))
-  const code = escapeHtml(properties?.region_code || '')
-
-  if (isMissingTooltipData(properties)) {
-    return buildNoDataTooltip(name, code, properties?.quality_status, t)
-  }
-  return buildValidTooltip(name, code, properties, t)
-}
-
-function isMissingTooltipData(properties) {
-  return (
-    properties?.quality_status !== 'valid' ||
-    !Number.isFinite(Number(properties?.value_mean)) ||
-    Number(properties?.pixel_count_valid) === 0
-  )
-}
-
-function buildValidTooltip(name, code, properties, t) {
-  const value = formatMicromolValue(properties?.value_mean, t)
-  const pixels = formatInteger(properties?.pixel_count_valid, t)
-  const statusLabel = formatQualityStatus(properties?.quality_status, t)
-  const dotClass = `map-tooltip-dot ${getTooltipDotClass(properties?.quality_status)}`
-
-  return `
-    <div class="map-tooltip">
-      <strong>${name}</strong>
-      <span class="map-tooltip-code">${code}</span>
-      <span class="map-tooltip-row">${escapeHtml(t('latestNo2Value'))}: ${escapeHtml(value)}</span>
-      <span class="map-tooltip-row">
-        <span class="${dotClass}" aria-hidden="true"></span>
-        ${escapeHtml(statusLabel)} &middot; ${escapeHtml(t('validPixels'))}: ${escapeHtml(pixels)}
-      </span>
-      ${buildRankRow(properties, t)}
-    </div>
-  `
-}
-
-function buildNoDataTooltip(name, code, status, t) {
-  const dotClass = `map-tooltip-dot ${getTooltipDotClass(status)}`
-
-  return `
-    <div class="map-tooltip">
-      <strong>${name}</strong>
-      <span class="map-tooltip-code">${code}</span>
-      <span class="map-tooltip-row">
-        <span class="${dotClass}" aria-hidden="true"></span>
-        ${escapeHtml(formatQualityStatus(status, t))}
-      </span>
-      <span class="map-tooltip-note">${escapeHtml(t('tooltipNoDataNote'))}</span>
-    </div>
-  `
-}
-
-function buildRankRow(properties, t) {
-  const rank = Number(properties?.rank)
-  const total = Number(properties?.rank_total)
-  if (!Number.isFinite(rank) || rank <= 0 || !Number.isFinite(total) || total <= 0) {
-    return ''
-  }
-  return `<span class="map-tooltip-row map-tooltip-rank">${escapeHtml(t('regionRank'))}: #${rank} / ${total}</span>`
-}
-
-function getTooltipDotClass(status) {
-  if (status === 'valid') return 'map-tooltip-dot--valid'
-  if (status === 'no_valid_pixels') return 'map-tooltip-dot--empty'
-  if (status === 'processing_error') return 'map-tooltip-dot--error'
-  return 'map-tooltip-dot--unknown'
-}
-
-function formatQualityStatus(status, t) {
-  if (status === 'valid') return t('valid')
-  if (status === 'no_valid_pixels') return t('noValidPixels')
-  if (status === 'processing_error') return t('processingError')
-  return t('unknown')
-}
-
-function formatMicromolValue(value, t) {
-  const formattedValue = formatMicromolNumber(value, t)
-  if (formattedValue === t('noData')) return formattedValue
-  return `${formattedValue} ${getMicromolUnit()}`
-}
-
-function formatMicromolNumber(value, t) {
-  if (value === null || value === undefined || value === '') return t('noData')
-
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return String(value)
-  return (numberValue * 1_000_000).toFixed(1)
-}
-
-function formatInteger(value, t) {
-  const numberValue = Number(value)
-  if (!Number.isFinite(numberValue)) return t('noData')
-  return String(Math.trunc(numberValue))
 }
 
 function molToMicromol(value) {
