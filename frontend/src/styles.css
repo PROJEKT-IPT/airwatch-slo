@@ -205,13 +205,34 @@ select {
   background: rgba(245, 246, 243, 0.05);
 }
 
-.accessibility-panel h2 {
-  margin: 0;
+/* Collapsible "Dostopnost" dropdown header */
+.accessibility-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: rgba(245, 246, 243, 0.9);
+  font: inherit;
   font-size: 0.84rem;
   font-weight: 850;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  cursor: pointer;
+}
+
+.accessibility-chevron {
+  display: grid;
+  place-items: center;
+  color: rgba(245, 246, 243, 0.6);
+  transition: transform 0.15s ease;
+}
+
+.accessibility-toggle[aria-expanded='true'] .accessibility-chevron {
+  transform: rotate(180deg);
 }
 
 .accessibility-options {
@@ -1347,30 +1368,6 @@ select {
   background: #d95858;
 }
 
-/* Short provenance note with an info badge */
-.metric-note {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 0;
-  color: var(--stem-grey);
-  font-size: 0.92rem;
-  line-height: 1.5;
-}
-
-.metric-note-icon {
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: rgba(47, 110, 72, 0.12);
-  color: var(--success-text);
-  font-size: 0.95rem;
-  font-weight: 800;
-  font-style: italic;
-}
 
 /* Discreet "last measurement" timestamp under the value/note. */
 .metric-timestamp {
@@ -2528,12 +2525,18 @@ html.a11y-high-contrast .test-region-badge {
     min-height: 0;
   }
 
-  /* Keep the nav to a single swipeable row so the header stays short. */
+  /* Keep the nav to a single swipeable row so the header stays short.
+     Scrolling stays enabled, but the scrollbar is hidden. */
   .sidebar-nav {
     flex-wrap: nowrap;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: thin;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    display: none;
   }
 
   .sidebar-nav .nav-item {

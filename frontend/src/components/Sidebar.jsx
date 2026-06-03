@@ -118,6 +118,12 @@ function Icon({ name }) {
           <path d="M18 7l-5 5 5 5" />
         </svg>
       )
+    case 'chevron':
+      return (
+        <svg {...props}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      )
     default:
       return null
   }
@@ -126,6 +132,7 @@ function Icon({ name }) {
 function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onToggleCollapse }) {
   const { language, setLanguage, t } = useLanguage()
   const [accessibilitySettings, setAccessibilitySettings] = useState(readAccessibilitySettings)
+  const [accessibilityOpen, setAccessibilityOpen] = useState(false)
 
   useEffect(() => {
     const root = document.documentElement
@@ -188,9 +195,20 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
         ))}
       </div>
 
-      <section className="accessibility-panel" aria-labelledby="accessibility-title">
-        <h2 id="accessibility-title">{t('accessibilityTitle')}</h2>
-        <div className="accessibility-options">
+      <section className="accessibility-panel" aria-label={t('accessibilityTitle')}>
+        <button
+          type="button"
+          className="accessibility-toggle"
+          aria-expanded={accessibilityOpen}
+          aria-controls="accessibility-options"
+          onClick={() => setAccessibilityOpen(open => !open)}
+        >
+          <span>{t('accessibilityTitle')}</span>
+          <span className="accessibility-chevron" aria-hidden="true">
+            <Icon name="chevron" />
+          </span>
+        </button>
+        <div className="accessibility-options" id="accessibility-options" hidden={!accessibilityOpen}>
           <label className="accessibility-option">
             <input
               type="checkbox"

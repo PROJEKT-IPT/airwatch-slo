@@ -52,11 +52,6 @@ function LatestMeasurementCard({
 
         <div className="context-divider" />
 
-        <p className="metric-note">
-          <span className="metric-note-icon" aria-hidden="true">i</span>
-          {t('measurementNote')}
-        </p>
-
         <MeasurementTimestamp value={measurement.measurement_end_time} t={t} locale={locale} />
       </>
     )

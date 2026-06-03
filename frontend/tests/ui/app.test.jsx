@@ -126,6 +126,7 @@ describe('App navigation', () => {
     render(<App />)
 
     await screen.findByRole('heading', { name: /pregled no/i })
+    await user.click(screen.getByRole('button', { name: 'Dostopnost' }))
     await user.click(screen.getByRole('checkbox', { name: 'Večje besedilo' }))
     await user.click(screen.getByRole('checkbox', { name: 'Visok kontrast' }))
     await user.click(screen.getByRole('checkbox', { name: 'Manj gibanja' }))

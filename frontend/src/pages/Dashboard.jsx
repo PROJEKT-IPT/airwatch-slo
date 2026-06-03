@@ -210,7 +210,7 @@ function Dashboard({ activeView = 'overview' }) {
     data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
     methodology: { title: t('navMethodology'), lead: t('methodologyViewLead') },
     suggestions: { title: t('navSuggestions'), lead: '' },
-    satellite: { title: t('navSatellite'), lead: t('satelliteViewLead') },
+    satellite: { title: t('navSatellite') },
     about: { title: t('navAbout'), lead: t('aboutLead') },
   }
   const meta = viewMeta[activeView] || viewMeta.overview
