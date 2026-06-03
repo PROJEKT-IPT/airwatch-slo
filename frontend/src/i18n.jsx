@@ -45,6 +45,15 @@ const translations = {
     methodologyViewLead: 'Kaj pomenijo podatki Sentinel-5P, kakovostni filter in omejitve.',
     navSatellite: 'Satelit',
     satelliteViewLead: 'Kratka in razumljiva predstavitev satelita, ki je vir naših podatkov o NO₂.',
+    satLiveTitle: 'Kje je Sentinel-5P trenutno?',
+    satLiveText:
+      'Spodnji prikaz sproti preračuna približno trenutno pod-satelitsko točko Sentinel-5P iz javnih orbitalnih elementov TLE. To je lokacija satelita, ne meritev NO₂ v realnem času.',
+    satLatitude: 'Zemljepisna širina',
+    satLongitude: 'Zemljepisna dolžina',
+    satAltitude: 'Višina',
+    satVelocity: 'Hitrost',
+    satLiveSource:
+      'Preračunano ob {time} UTC iz TLE elementov z epoho {epoch} UTC. Prikaz je informativen in se posodobi približno vsakih 15 sekund.',
     satWhatTitle: 'Kaj je naš satelit?',
     satIntro:
       'AirWatch SLO ne upravlja lastnega satelita – podatke črpa iz evropskega satelita Sentinel-5P (program Copernicus, ESA/EU). Ta z instrumentom TROPOMI iz vesolja meri onesnaževala v ozračju, med njimi tudi dušikov dioksid (NO₂), ki ga prikazujemo po slovenskih statističnih regijah.',
@@ -59,6 +68,11 @@ const translations = {
     satWhereTitle: 'Kje se nahaja in kako kroži',
     satWhereText:
       'Sentinel-5P kroži okoli Zemlje v sončno-sinhroni orbiti na višini približno 824 km. Čez isto območje preleti enkrat dnevno, vedno ob približno enakem lokalnem času (okoli 13:30), zato so dnevni posnetki med seboj primerljivi. V enem dnevu prečka celoten planet in tako zajame tudi vso Slovenijo.',
+    satTropomiTitle: 'Aparat TROPOMI',
+    satTropomiText:
+      'TROPOMI (TROPOspheric Monitoring Instrument) je spektrometer na satelitu Sentinel-5P. Zaznava, kako ozračje absorbira in razprši sončno svetlobo, iz teh spektralnih odtisov pa se izračunajo stolpci plinov v atmosferi.',
+    satTropomiNo2:
+      'Za AirWatch SLO je ključen produkt NO₂: najprej vzamemo satelitske piksle nad Slovenijo, odstranimo meritve slabše kakovosti in nato izračunamo regionalna povprečja. Zato aplikacija prikazuje sledljive regionalne ocene, ne neposrednih talnih senzorjev.',
     satDataTitle: 'Kakšne podatke zajema',
     satDataText:
       'Instrument TROPOMI meri sončno svetlobo, ki se odbije skozi ozračje, in iz nje izračuna količine več plinov in onesnaževal v zraku:',
@@ -299,6 +313,15 @@ const translations = {
     methodologyViewLead: 'What the Sentinel-5P data means, the quality filter, and limitations.',
     navSatellite: 'Satellite',
     satelliteViewLead: 'A short, clear introduction to the satellite behind our NO₂ data.',
+    satLiveTitle: 'Where is Sentinel-5P right now?',
+    satLiveText:
+      'The display below continuously estimates Sentinel-5P’s current sub-satellite point from public TLE orbital elements. It shows the satellite location, not real-time NO₂ pollution.',
+    satLatitude: 'Latitude',
+    satLongitude: 'Longitude',
+    satAltitude: 'Altitude',
+    satVelocity: 'Velocity',
+    satLiveSource:
+      'Calculated at {time} UTC from TLE elements with epoch {epoch} UTC. This is an informative display and updates about every 15 seconds.',
     satWhatTitle: 'What is our satellite?',
     satIntro:
       'AirWatch SLO does not operate its own satellite – it draws its data from the European Sentinel-5P satellite (the Copernicus programme, ESA/EU). Using the TROPOMI instrument, it measures pollutants in the atmosphere from space, including nitrogen dioxide (NO₂), which we display across Slovenia’s statistical regions.',
@@ -313,6 +336,11 @@ const translations = {
     satWhereTitle: 'Where it is and how it orbits',
     satWhereText:
       'Sentinel-5P circles the Earth in a sun-synchronous orbit at an altitude of about 824 km. It passes over the same area once a day at roughly the same local time (around 13:30), which keeps daily snapshots comparable. In a single day it crosses the whole planet and so also covers all of Slovenia.',
+    satTropomiTitle: 'The TROPOMI instrument',
+    satTropomiText:
+      'TROPOMI (TROPOspheric Monitoring Instrument) is the spectrometer carried by Sentinel-5P. It detects how the atmosphere absorbs and scatters sunlight, and those spectral fingerprints are used to derive atmospheric gas columns.',
+    satTropomiNo2:
+      'For AirWatch SLO, the key product is NO₂: we take satellite pixels over Slovenia, remove lower-quality retrievals and calculate regional averages. The app therefore shows traceable regional estimates, not direct ground-sensor readings.',
     satDataTitle: 'What data it captures',
     satDataText:
       'The TROPOMI instrument measures sunlight reflected through the atmosphere and derives the amounts of several gases and air pollutants:',
@@ -551,6 +579,15 @@ const translations = {
     methodologyViewLead: 'Was die Sentinel-5P-Daten bedeuten, der Qualitaetsfilter und Einschraenkungen.',
     navSatellite: 'Satellit',
     satelliteViewLead: 'Eine kurze, verstaendliche Vorstellung des Satelliten hinter unseren NO₂-Daten.',
+    satLiveTitle: 'Wo ist Sentinel-5P gerade?',
+    satLiveText:
+      'Die Anzeige unten schaetzt den aktuellen Subsatellitenpunkt von Sentinel-5P fortlaufend aus oeffentlichen TLE-Orbitalelementen. Sie zeigt die Satellitenposition, nicht NO₂-Verschmutzung in Echtzeit.',
+    satLatitude: 'Breitengrad',
+    satLongitude: 'Laengengrad',
+    satAltitude: 'Hoehe',
+    satVelocity: 'Geschwindigkeit',
+    satLiveSource:
+      'Berechnet um {time} UTC aus TLE-Elementen mit Epoche {epoch} UTC. Die Anzeige ist informativ und aktualisiert sich etwa alle 15 Sekunden.',
     satWhatTitle: 'Was ist unser Satellit?',
     satIntro:
       'AirWatch SLO betreibt keinen eigenen Satelliten – die Daten stammen vom europaeischen Satelliten Sentinel-5P (Programm Copernicus, ESA/EU). Mit dem Instrument TROPOMI misst er aus dem Weltraum Schadstoffe in der Atmosphaere, darunter Stickstoffdioxid (NO₂), das wir fuer die statistischen Regionen Sloweniens darstellen.',
@@ -565,6 +602,11 @@ const translations = {
     satWhereTitle: 'Wo er sich befindet und wie er kreist',
     satWhereText:
       'Sentinel-5P umkreist die Erde in einer sonnensynchronen Umlaufbahn in etwa 824 km Hoehe. Er ueberfliegt dasselbe Gebiet einmal taeglich zur ungefaehr gleichen Ortszeit (gegen 13:30 Uhr), wodurch taegliche Aufnahmen vergleichbar bleiben. An einem Tag ueberquert er den gesamten Planeten und erfasst so auch ganz Slowenien.',
+    satTropomiTitle: 'Das Instrument TROPOMI',
+    satTropomiText:
+      'TROPOMI (TROPOspheric Monitoring Instrument) ist das Spektrometer an Bord von Sentinel-5P. Es erkennt, wie die Atmosphaere Sonnenlicht absorbiert und streut; aus diesen spektralen Fingerabdruecken werden atmosphaerische Gassaeulen abgeleitet.',
+    satTropomiNo2:
+      'Fuer AirWatch SLO ist das NO₂-Produkt entscheidend: Wir nehmen Satellitenpixel ueber Slowenien, entfernen Messungen geringerer Qualitaet und berechnen regionale Mittelwerte. Die App zeigt daher nachvollziehbare regionale Schaetzungen, keine direkten Bodensensorwerte.',
     satDataTitle: 'Welche Daten er erfasst',
     satDataText:
       'Das Instrument TROPOMI misst das durch die Atmosphaere reflektierte Sonnenlicht und leitet daraus die Mengen mehrerer Gase und Luftschadstoffe ab:',
