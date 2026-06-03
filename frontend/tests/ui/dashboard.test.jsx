@@ -249,7 +249,7 @@ describe('Dashboard', () => {
     expect(screen.getByRole('button', { name: /Statistična regija/i })).toHaveTextContent('SI031')
   })
 
-  it('overview: defaults to dynamic NO2 values and toggles to mean deviations', async () => {
+  it('overview: switches the map between NO₂ value and data-quality modes', async () => {
     const user = userEvent.setup()
     const { container } = renderDashboard('overview')
 
@@ -259,16 +259,20 @@ describe('Dashboard', () => {
 
     const legend = container.querySelector('.map-legend')
     expect(legend).toBeInTheDocument()
-    expect(within(legend).getByText('NO₂ vrednost')).toBeInTheDocument()
-    expect(within(legend).getByText('dinamični pragovi')).toBeInTheDocument()
+    // Default: NO₂ value mode shows the relative gradient scale + explanation.
+    expect(within(legend).getByText('relativna lestvica')).toBeInTheDocument()
     expect(within(legend).getByText('µmol/m²')).toBeInTheDocument()
     expect(within(legend).getByText('Ni veljavne vrednosti')).toBeInTheDocument()
+    expect(within(legend).getByText(/Temnejša barva pomeni višjo vrednost/)).toBeInTheDocument()
 
-    await user.click(within(legend).getByRole('button', { name: 'Prikaži odstopanja' }))
+    // Switch to data-quality mode -> status legend.
+    await user.click(within(legend).getByRole('button', { name: 'Kakovost podatkov' }))
+    expect(within(legend).getByText('Veljavno')).toBeInTheDocument()
+    expect(within(legend).getByText('Ni veljavnih pikslov')).toBeInTheDocument()
 
-    expect(within(legend).getByText('Δ NO₂ od srednje vrednosti')).toBeInTheDocument()
-    expect(within(legend).getByText('srednja vrednost: 31.0 µmol/m²')).toBeInTheDocument()
-    expect(within(legend).getByRole('button', { name: 'Prikaži vrednosti' })).toBeInTheDocument()
+    // Switch back to value mode.
+    await user.click(within(legend).getByRole('button', { name: 'NO₂ vrednost' }))
+    expect(within(legend).getByText('relativna lestvica')).toBeInTheDocument()
   })
 
   it('comparison view: renders rows and selects a region from the comparison', async () => {

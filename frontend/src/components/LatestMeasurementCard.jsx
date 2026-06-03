@@ -36,6 +36,11 @@ function LatestMeasurementCard({
 
     return (
       <>
+        <p className="metric-active-tag">
+          <span className="metric-active-dot" aria-hidden="true" />
+          {t('activeOnMap')}
+        </p>
+
         <div className="metric-summary-row">
           <div className="metric-value-block">
             <No2Value value={measurement.value_mean} t={t} locale={locale} />
