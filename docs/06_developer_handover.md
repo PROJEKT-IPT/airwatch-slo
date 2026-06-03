@@ -57,20 +57,20 @@ seed podatkov. Pipeline testi uporabljajo sintetične podatke.
 
 ## Frontend jeziki
 
-UI podpira slovenscino, anglescino in nemscino. Slovenscina je privzeti jezik.
+UI podpira slovenščino, angleščino in nemščino. Slovenščina je privzeti jezik.
 
 | Datoteka | Vloga |
 |---|---|
 | `frontend/src/i18n.jsx` | Enotni vir za `supportedLanguages`, locale mapping in prevode. |
-| `frontend/src/components/Sidebar.jsx` | Renderira language switcher iz `supportedLanguages`; gumbov ne hardcodaj rocno. |
+| `frontend/src/components/Sidebar.jsx` | Renderira language switcher iz `supportedLanguages`; gumbov ne hardcodaj ročno. |
 | `frontend/tests/ui/app.test.jsx` | Preverja slovenski default in preklop v ned-default jezike. |
 
 Pravila za spremembe:
 
-- Nov ali spremenjen uporabniski tekst mora iti skozi `t(...)`.
-- Za vsak nov kljuc dodaj prevod za vse podprte jezike.
+- Nov ali spremenjen uporabniški tekst mora iti skozi `t(...)`.
+- Za vsak nov ključ dodaj prevod za vse podprte jezike.
 - Nov jezik dodaj v `supportedLanguages`, `locales` in `translations` v `i18n.jsx`.
-- Pri spremembah navigacije, naslovov, gumbov ali statusov razsiri UI teste za
+- Pri spremembah navigacije, naslovov, gumbov ali statusov razširi UI teste za
   language switcher.
 
 ## CI

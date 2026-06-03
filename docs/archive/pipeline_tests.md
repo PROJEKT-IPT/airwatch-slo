@@ -10,7 +10,7 @@ Iz korena projekta:
 python -m pytest data_pipeline/tests
 ```
 
-Ce `pytest` ni nameščen:
+Če `pytest` ni nameščen:
 
 ```bash
 python -m pip install -r data_pipeline/requirements-dev.txt

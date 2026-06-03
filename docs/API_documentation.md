@@ -334,7 +334,7 @@ Ti endpointi predstavljajo osnovo za dashboard funkcije: izbira regije, prikaz z
 
 ## Endpoint: Latest Regional NO2 Measurements
 
-Vrne najnovejso razpolozljivo `NO2` meritev za vsako slovensko statisticno regijo.
+Vrne najnovejšo razpoložljivo `NO2` meritev za vsako slovensko statistično regijo.
 
 ```http
 GET /api/v1/regions/latest-measurements
@@ -370,20 +370,20 @@ Primer odgovora:
 
 Pravila filtriranja:
 
-- vkljucene so samo regije z `region_type = statistical_region`,
-- `SI_BBOX` in druge testne regije so izkljucene iz javnega pregleda,
+- vključene so samo regije z `region_type = statistical_region`,
+- `SI_BBOX` in druge testne regije so izključene iz javnega pregleda,
 - regije brez `NO2` meritve niso vrnjene,
-- rezultat je deterministicno urejen po `region_code`.
+- rezultat je deterministično urejen po `region_code`.
 
 Pravila za izbor "latest" meritve:
 
 - primarni kriterij je `measurement_end_time DESC`,
-- pri izenacenju sledi `measurement_start_time DESC`,
+- pri izenačenju sledi `measurement_start_time DESC`,
 - zadnji tie-breaker je `id_region_measurement DESC`.
 
 ## Endpoint: Region Details
 
-Vrne metapodatke regije in njeno najnovejso `NO2` meritev.
+Vrne metapodatke regije in njeno najnovejšo `NO2` meritev.
 
 ```http
 GET /api/v1/regions/{region_code}
@@ -425,18 +425,18 @@ Primer odgovora:
 
 Opombe:
 
-- endpoint privzeto vrne samo statisticne regije,
+- endpoint privzeto vrne samo statistične regije,
 - za testne regije je potreben `?include_test_region=true`,
-- ce regija ne obstaja, API vrne `404 Region not found.`,
-- ce regija obstaja, a nima `NO2` meritve, API vrne
+- če regija ne obstaja, API vrne `404 Region not found.`,
+- če regija obstaja, a nima `NO2` meritve, API vrne
   `404 No NO2 measurement found for the requested region.`,
-- `geometry` se vrne kot GeoJSON objekt, ce je v bazi na voljo.
+- `geometry` se vrne kot GeoJSON objekt, če je v bazi na voljo.
 
 ## Omejitve in predpostavke
 
-- Endpointa trenutno vracata samo najnovejso `NO2` meritev. Zgodovinski grafi in
+- Endpointa trenutno vračata samo najnovejšo `NO2` meritev. Zgodovinski grafi in
   trende bodo gradili nadaljnji endpointi na istem modelu `region_measurement`.
 - Regije brez podatkov niso del `latest-measurements` seznama. Frontend mora ta
-  primer obravnavati kot "ni se podatkov".
+  primer obravnavati kot "ni še podatkov".
 - Javni regionalni overview namerno ne prikazuje `SI_BBOX`, ker gre za Sprint 1
   testno regijo in ne za statistično regijo Slovenije.
