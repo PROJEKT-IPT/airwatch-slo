@@ -9,18 +9,21 @@ const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f'
 const MISSING_COLOR = '#cfd6dc'
 const LEGEND_STEP_COUNT = 7
 
-// Major Slovenian cities for orientation (decoration only — not measurements).
-const MAJOR_CITIES = [
-  { name: 'Ljubljana', lat: 46.0569, lng: 14.5058 },
-  { name: 'Maribor', lat: 46.5547, lng: 15.6459 },
-  { name: 'Celje', lat: 46.2309, lng: 15.2604 },
-  { name: 'Kranj', lat: 46.2389, lng: 14.3556 },
-  { name: 'Koper', lat: 45.5481, lng: 13.7302 },
-  { name: 'Novo mesto', lat: 45.801, lng: 15.171 },
-  { name: 'Velenje', lat: 46.3592, lng: 15.1107 },
-  { name: 'Nova Gorica', lat: 45.956, lng: 13.6483 },
-  { name: 'Murska Sobota', lat: 46.6625, lng: 16.1664 },
-  { name: 'Ptuj', lat: 46.4199, lng: 15.87 },
+// Regional centre of each of the 12 Slovenian statistical regions, so every
+// region has its main city marked (decoration only — not measurements).
+const REGION_CAPITALS = [
+  { name: 'Ljubljana', lat: 46.0569, lng: 14.5058 }, // Osrednjeslovenska
+  { name: 'Maribor', lat: 46.5547, lng: 15.6459 }, // Podravska
+  { name: 'Celje', lat: 46.2309, lng: 15.2604 }, // Savinjska
+  { name: 'Kranj', lat: 46.2389, lng: 14.3556 }, // Gorenjska
+  { name: 'Koper', lat: 45.5481, lng: 13.7302 }, // Obalno-kraška
+  { name: 'Novo mesto', lat: 45.8038, lng: 15.169 }, // Jugovzhodna Slovenija
+  { name: 'Nova Gorica', lat: 45.956, lng: 13.6483 }, // Goriška
+  { name: 'Murska Sobota', lat: 46.6625, lng: 16.1664 }, // Pomurska
+  { name: 'Slovenj Gradec', lat: 46.5103, lng: 15.0808 }, // Koroška
+  { name: 'Krško', lat: 45.959, lng: 15.4897 }, // Posavska
+  { name: 'Trbovlje', lat: 46.1551, lng: 15.053 }, // Zasavska
+  { name: 'Postojna', lat: 45.7749, lng: 14.2136 }, // Primorsko-notranjska
 ]
 
 // Click/keyboard/hover wiring for one region polygon. Kept at module level so
@@ -35,11 +38,17 @@ function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegion
       if (key === 'Enter' || key === ' ') onRegionSelect(regionCode)
     },
     mouseout: event => event.target.setStyle(getRegionStyle(feature.properties, selectedRegionRef.current)),
-    mouseover: event => event.target.setStyle({ color: '#16291d', fillOpacity: 0.95, weight: 2.4 }),
+    mouseover: event => event.target.setStyle({ color: '#16291d', fillOpacity: 0.78, weight: 3.2 }),
   })
 }
 
-// Create the Leaflet map + base tile layer once; return the map instance.
+const CARTO_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+
+// Create the Leaflet map, a real (labelled) base map, and a labels-on-top pane
+// once; return the map instance. The labels pane sits above the choropleth fill
+// (z-index 450) but below our region-capital markers (markerPane, z-index 600),
+// so town names stay readable while the capitals stay on top.
 function ensureLeafletMap(element, mapRef, baseLayerRef) {
   if (!mapRef.current) {
     mapRef.current = L.map(element, {
@@ -54,20 +63,22 @@ function ensureLeafletMap(element, mapRef, baseLayerRef) {
     if (mapRef.current.attributionControl) {
       mapRef.current.attributionControl.setPosition('topright')
     }
+    const labelsPane = mapRef.current.createPane('regionLabels')
+    labelsPane.style.zIndex = 450
+    labelsPane.style.pointerEvents = 'none'
   }
 
   const map = mapRef.current
   if (!baseLayerRef.current) {
     baseLayerRef.current = L.tileLayer(
-      'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',
-      {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-        className: 'regional-map-base-layer',
-        maxZoom: 18,
-        opacity: 0.42,
-      },
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
+      { attribution: CARTO_ATTRIBUTION, className: 'regional-map-base-layer', maxZoom: 18 },
     ).addTo(map)
+    // Place/road labels drawn on top of the coloured regions.
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+      maxZoom: 18,
+      pane: 'regionLabels',
+    }).addTo(map)
   }
   return map
 }
@@ -112,13 +123,13 @@ function buildCityIcon(name) {
   })
 }
 
-// Add small, non-interactive markers for the major cities so clicks still
+// Add small, non-interactive markers for every region capital so clicks still
 // reach the region polygon underneath. Created once and kept on top.
 function ensureCityMarkers(map, cityLayerRef) {
   if (cityLayerRef.current) return
 
   cityLayerRef.current = L.layerGroup(
-    MAJOR_CITIES.map(city =>
+    REGION_CAPITALS.map(city =>
       L.marker([city.lat, city.lng], {
         icon: buildCityIcon(city.name),
         interactive: false,
@@ -446,13 +457,13 @@ function getRegionStyle(properties, selectedRegionCode) {
   const isSelected = properties?.region_code === selectedRegionCode
 
   return {
-    color: isSelected ? '#16291d' : 'rgba(47, 58, 85, 0.42)',
+    color: isSelected ? '#16291d' : '#2f3a4f',
     fillColor: getFillColor(properties),
-    fillOpacity: isSelected ? 0.95 : 0.74,
+    fillOpacity: isSelected ? 0.82 : 0.6,
     lineCap: 'round',
     lineJoin: 'round',
     opacity: 1,
-    weight: isSelected ? 4 : 1.1,
+    weight: isSelected ? 4.5 : 2.4,
   }
 }
 

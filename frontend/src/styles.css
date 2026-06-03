@@ -1363,6 +1363,16 @@ select {
   font-style: italic;
 }
 
+/* Discreet "last measurement" timestamp under the value/note. */
+.metric-timestamp {
+  margin: 10px 0 0;
+  color: var(--stem-grey);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0.85;
+}
+
 .card-heading {
   display: flex;
   justify-content: space-between;
@@ -1726,7 +1736,7 @@ select {
 }
 
 .regional-leaflet-map .regional-map-base-layer {
-  filter: saturate(0.55) contrast(0.92);
+  filter: saturate(0.92) contrast(0.98);
 }
 
 .regional-leaflet-map .leaflet-tooltip {
@@ -1758,12 +1768,13 @@ select {
 }
 
 .city-label {
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 4px rgba(22, 41, 29, 0.22);
   color: var(--leaf-deep, #16291d);
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: 0.68rem;
+  font-weight: 800;
   line-height: 1.1;
 }
 

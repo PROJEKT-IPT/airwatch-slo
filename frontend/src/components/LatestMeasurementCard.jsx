@@ -30,6 +30,7 @@ function LatestMeasurementCard({
         <div className="measurement-unavailable" role="status" aria-live="polite">
           <h3>{missingDataState.title}</h3>
           <p>{missingDataState.text}</p>
+          <MeasurementTimestamp value={measurement.measurement_end_time} t={t} locale={locale} />
         </div>
       )
     }
@@ -55,6 +56,8 @@ function LatestMeasurementCard({
           <span className="metric-note-icon" aria-hidden="true">i</span>
           {t('measurementNote')}
         </p>
+
+        <MeasurementTimestamp value={measurement.measurement_end_time} t={t} locale={locale} />
       </>
     )
   }
@@ -117,6 +120,27 @@ function ErrorState({ title, text }) {
       <h2>{title}</h2>
       <p>{text}</p>
     </div>
+  )
+}
+
+// Discreet line showing when the underlying satellite measurement was taken
+// (the Sentinel-5P overpass end time, in UTC). Hidden if the time is missing.
+function MeasurementTimestamp({ value, t, locale }) {
+  if (!value) return null
+
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return null
+
+  const formatted = new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'UTC',
+  }).format(date)
+
+  return (
+    <p className="metric-timestamp">
+      {t('lastMeasurement')}: {formatted} UTC
+    </p>
   )
 }
 
