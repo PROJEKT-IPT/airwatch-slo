@@ -211,7 +211,8 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
         <button
           type="button"
           className="brand-mark brand-settings-trigger"
-          aria-label={t('accessibilityTitle')}
+          aria-label={t('brandMenuLabel')}
+          aria-haspopup="menu"
           aria-expanded={mobileSettingsOpen}
           aria-controls="mobile-brand-popover"
           onClick={() => {
@@ -276,7 +277,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
           <span className="nav-icon">
             <Icon name="data" />
           </span>
-          <span className="nav-label">{t('navDataExport')}</span>
+          <span className="nav-label">{t('mobileNavDataExport')}</span>
         </button>
       </div>
 
