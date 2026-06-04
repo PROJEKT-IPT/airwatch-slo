@@ -46,7 +46,6 @@ function LatestMeasurementCard({
     return (
       <>
         <p className="metric-active-tag">
-          <span className="metric-active-dot" aria-hidden="true" />
           {t('activeOnMap')}
         </p>
 
