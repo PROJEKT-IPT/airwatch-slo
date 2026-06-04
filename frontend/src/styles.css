@@ -3320,6 +3320,12 @@ html.a11y-high-contrast .test-region-badge {
       0 10px 22px rgba(8, 20, 13, 0.22);
   }
 
+  .sidebar-nav .nav-item-active[data-view='overview'],
+  .sidebar-nav .nav-item-active[data-view='overview']:not(:disabled):hover {
+    color: #d8f0e0;
+    background: rgba(74, 158, 110, 0.22);
+  }
+
   .sidebar-nav .nav-item[data-view='overview']::before {
     content: "";
     position: absolute;
@@ -3589,6 +3595,12 @@ html.a11y-high-contrast .test-region-badge {
     color: #d8f0e0;
     background: rgba(74, 158, 110, 0.22);
     box-shadow: 0 10px 22px rgba(8, 20, 13, 0.22);
+  }
+
+  .sidebar-nav .nav-item-active[data-view='overview'],
+  .sidebar-nav .nav-item-active[data-view='overview']:not(:disabled):hover {
+    color: #d8f0e0;
+    background: rgba(74, 158, 110, 0.22);
   }
 
   .sidebar-nav .nav-item[data-view='overview']::before {
