@@ -231,8 +231,18 @@ class FakeSprint1Session:
         if "SELECT DISTINCT" in query and "AS measurement_date" in query:
             return FakeMappingResult(
                 [
-                    {"measurement_date": date(2026, 5, 8)},
-                    {"measurement_date": date(2025, 3, 11)},
+                    {
+                        "measurement_date": date(2026, 5, 8),
+                        "measured_region_count": 1,
+                        "valid_region_count": 1,
+                        "total_region_count": 2,
+                    },
+                    {
+                        "measurement_date": date(2025, 3, 11),
+                        "measured_region_count": 2,
+                        "valid_region_count": 2,
+                        "total_region_count": 2,
+                    },
                 ]
             )
 
@@ -471,7 +481,22 @@ def test_get_region_measurement_dates_returns_available_netcdf_dates(client):
     response = client.get("/api/v1/regions/measurement-dates")
 
     assert response.status_code == 200
-    assert response.json() == ["2026-05-08", "2025-03-11"]
+    assert response.json() == [
+        {
+            "measurement_date": "2026-05-08",
+            "measured_region_count": 1,
+            "valid_region_count": 1,
+            "total_region_count": 2,
+            "has_missing_regions": True,
+        },
+        {
+            "measurement_date": "2025-03-11",
+            "measured_region_count": 2,
+            "valid_region_count": 2,
+            "total_region_count": 2,
+            "has_missing_regions": False,
+        },
+    ]
 
 
 def test_get_region_details_accepts_measurement_date(client):

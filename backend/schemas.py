@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any, Optional
 
 from pydantic import BaseModel
@@ -76,6 +76,14 @@ class RegionLatestMeasurementSummaryResponse(BaseModel):
     measurement_end_time: datetime
     processing_run_id: int
     source_product_name: str
+
+
+class RegionMeasurementDateResponse(BaseModel):
+    measurement_date: date
+    measured_region_count: int
+    valid_region_count: int
+    total_region_count: int
+    has_missing_regions: bool
 
 
 class RegionGeometryResponse(BaseModel):

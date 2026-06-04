@@ -224,7 +224,29 @@ describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    getRegionalMeasurementDates.mockResolvedValue(['2026-05-08', '2026-05-07', '2025-03-11'])
+    getRegionalMeasurementDates.mockResolvedValue([
+      {
+        measurement_date: '2026-05-08',
+        measured_region_count: 1,
+        valid_region_count: 1,
+        total_region_count: 2,
+        has_missing_regions: true,
+      },
+      {
+        measurement_date: '2026-05-07',
+        measured_region_count: 2,
+        valid_region_count: 2,
+        total_region_count: 2,
+        has_missing_regions: false,
+      },
+      {
+        measurement_date: '2025-03-11',
+        measured_region_count: 2,
+        valid_region_count: 1,
+        total_region_count: 2,
+        has_missing_regions: true,
+      },
+    ])
     getRegionalLatestMeasurements.mockImplementation(({ date } = {}) => {
       if (date === '2026-05-08') return Promise.resolve(datedRegionSummaries)
       if (date === '2026-05-07') return Promise.resolve(olderDatedRegionSummaries)
@@ -330,6 +352,8 @@ describe('Dashboard', () => {
     const availableDateButton = within(calendar).getByRole('button', { name: '8' })
 
     expect(availableDateButton).toHaveClass('measurement-calendar-day--available')
+    expect(availableDateButton).toHaveClass('measurement-calendar-day--missing-regions')
+    expect(availableDateButton.querySelector('.measurement-calendar-missing-dot')).toBeInTheDocument()
     await user.click(availableDateButton)
 
     await waitFor(() => {

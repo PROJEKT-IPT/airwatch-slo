@@ -227,7 +227,7 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
   const measurementDatesError = measurementDatesErrorKey ? t(measurementDatesErrorKey) : ''
   const comparisonError = comparisonErrorKey ? t(comparisonErrorKey) : ''
   const detailError = detailErrorKey ? t(detailErrorKey) : ''
-  const latestAvailableMeasurementDate = availableMeasurementDates[0] || null
+  const latestAvailableMeasurementDate = availableMeasurementDates[0]?.measurement_date || null
   const isLatestMeasurementView = !selectedMeasurementDate || selectedMeasurementDate === latestAvailableMeasurementDate
 
   const concentrationLevel = useMemo(() => {
@@ -437,13 +437,41 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
 function normalizeMeasurementDates(dates) {
   if (!Array.isArray(dates)) return []
 
-  return Array.from(
-    new Set(
-      dates
-        .map(date => String(date || '').slice(0, 10))
-        .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date)),
-    ),
-  ).sort((left, right) => right.localeCompare(left))
+  const datesByValue = new Map()
+
+  dates.forEach(item => {
+    const date = typeof item === 'string'
+      ? item.slice(0, 10)
+      : String(item?.measurement_date || item?.date || '').slice(0, 10)
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return
+
+    const current = datesByValue.get(date)
+    const hasMissingRegions = Boolean(
+      current?.has_missing_regions ||
+      current?.hasMissingRegions ||
+      item?.has_missing_regions ||
+      item?.hasMissingRegions,
+    )
+    const validRegionCount = getNumber(item?.valid_region_count ?? item?.validRegionCount)
+    const totalRegionCount = getNumber(item?.total_region_count ?? item?.totalRegionCount)
+
+    datesByValue.set(date, {
+      measurement_date: date,
+      has_missing_regions: hasMissingRegions,
+      valid_region_count: validRegionCount ?? current?.valid_region_count ?? null,
+      total_region_count: totalRegionCount ?? current?.total_region_count ?? null,
+    })
+  })
+
+  return Array.from(datesByValue.values()).sort((left, right) =>
+    right.measurement_date.localeCompare(left.measurement_date),
+  )
+}
+
+function getNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
 }
 
 export default Dashboard

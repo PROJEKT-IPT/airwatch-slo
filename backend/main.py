@@ -25,6 +25,7 @@ from schemas import (
     RegionGeometryResponse,
     RegionHistoryResponse,
     RegionLatestMeasurementSummaryResponse,
+    RegionMeasurementDateResponse,
     RegionResponse,
 )
 from services.region_measurement_service import (
@@ -274,7 +275,7 @@ def get_latest_region_measurements(
 
 @app.get(
     "/api/v1/regions/measurement-dates",
-    response_model=list[date],
+    response_model=list[RegionMeasurementDateResponse],
     responses={500: _SERVER_ERROR},
 )
 def get_region_measurement_dates(db: Session = Depends(get_db)):

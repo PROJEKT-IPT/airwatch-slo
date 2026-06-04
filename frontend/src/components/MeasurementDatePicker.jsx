@@ -13,13 +13,21 @@ function MeasurementDatePicker({
 }) {
   const { t, locale } = useLanguage()
   const [open, setOpen] = useState(false)
-  const [visibleMonth, setVisibleMonth] = useState(() => getInitialMonth(selectedDate, availableDates))
+  const [visibleMonth, setVisibleMonth] = useState(() =>
+    getInitialMonth(selectedDate, normalizeAvailableDates(availableDates).map(item => item.date)),
+  )
   const containerRef = useRef(null)
-  const availableSet = useMemo(() => new Set(availableDates), [availableDates])
+  const normalizedDates = useMemo(() => normalizeAvailableDates(availableDates), [availableDates])
+  const availableDateValues = useMemo(() => normalizedDates.map(item => item.date), [normalizedDates])
+  const availableSet = useMemo(() => new Set(availableDateValues), [availableDateValues])
+  const missingRegionsByDate = useMemo(
+    () => new Map(normalizedDates.map(item => [item.date, item.missingRegionCount]).filter(([, count]) => count > 0)),
+    [normalizedDates],
+  )
 
   useEffect(() => {
-    setVisibleMonth(getInitialMonth(selectedDate, availableDates))
-  }, [availableDates, selectedDate])
+    setVisibleMonth(getInitialMonth(selectedDate, availableDateValues))
+  }, [availableDateValues, selectedDate])
 
   useEffect(() => {
     if (!open) return undefined
@@ -63,7 +71,7 @@ function MeasurementDatePicker({
     setVisibleMonth({ year: next.getUTCFullYear(), month: next.getUTCMonth() + 1 })
   }
 
-  const hasDates = availableDates.length > 0
+  const hasDates = normalizedDates.length > 0
 
   return (
     <div className="measurement-date-picker" ref={containerRef}>
@@ -103,16 +111,21 @@ function MeasurementDatePicker({
 
               const isAvailable = availableSet.has(day.date)
               const isSelected = day.date === selectedDate
+              const missingRegionCount = missingRegionsByDate.get(day.date) || 0
+              const hasMissingRegions = missingRegionCount > 0
               return (
                 <button
                   key={day.date}
                   type="button"
-                  className={`measurement-calendar-day${isAvailable ? ' measurement-calendar-day--available' : ''}${isSelected ? ' measurement-calendar-day--selected' : ''}`}
+                  className={`measurement-calendar-day${isAvailable ? ' measurement-calendar-day--available' : ''}${hasMissingRegions ? ' measurement-calendar-day--missing-regions' : ''}${isSelected ? ' measurement-calendar-day--selected' : ''}`}
                   disabled={!isAvailable}
                   aria-pressed={isSelected}
                   onClick={() => selectDate(day.date)}
                 >
-                  {day.day}
+                  <span>{day.day}</span>
+                  {hasMissingRegions ? (
+                    <span className="measurement-calendar-missing-dot" aria-hidden="true" />
+                  ) : null}
                 </button>
               )
             })}
@@ -137,6 +150,36 @@ function getInitialMonth(selectedDate, availableDates) {
     year: Number.isFinite(year) ? year : new Date().getUTCFullYear(),
     month: Number.isFinite(month) ? month : new Date().getUTCMonth() + 1,
   }
+}
+
+function normalizeAvailableDates(availableDates) {
+  if (!Array.isArray(availableDates)) return []
+
+  return availableDates
+    .map(item => {
+      if (typeof item === 'string') {
+        return { date: item.slice(0, 10), missingRegionCount: 0 }
+      }
+
+      const date = String(item?.measurement_date || item?.date || '').slice(0, 10)
+      const validRegionCount = getNumber(item?.valid_region_count ?? item?.validRegionCount)
+      const totalRegionCount = getNumber(item?.total_region_count ?? item?.totalRegionCount)
+      const hasMissingRegions = Boolean(item?.has_missing_regions || item?.hasMissingRegions)
+      const missingRegionCount = validRegionCount !== null && totalRegionCount !== null
+        ? Math.max(0, totalRegionCount - validRegionCount)
+        : Number(hasMissingRegions)
+
+      return {
+        date,
+        missingRegionCount,
+      }
+    })
+    .filter(item => /^\d{4}-\d{2}-\d{2}$/.test(item.date))
+}
+
+function getNumber(value) {
+  const number = Number(value)
+  return Number.isFinite(number) ? number : null
 }
 
 function buildMonthDays({ year, month }) {

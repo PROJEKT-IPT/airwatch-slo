@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import date
-
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -11,23 +9,32 @@ STATISTICAL_REGION_TYPE = "statistical_region"
 EXCLUDED_PUBLIC_REGION_CODE = "SI_BBOX"
 
 
-def get_no2_measurement_dates_for_statistical_regions(db: Session) -> list[date]:
+def get_no2_measurement_dates_for_statistical_regions(db: Session) -> list[dict]:
     rows = db.execute(
         text(
             """
+            WITH public_regions AS (
+                SELECT id_region
+                FROM region
+                WHERE region_type = :region_type
+                    AND region_code <> :excluded_region_code
+            )
             SELECT DISTINCT
-                (rm.measurement_end_time AT TIME ZONE 'UTC')::date AS measurement_date
+                (rm.measurement_end_time AT TIME ZONE 'UTC')::date AS measurement_date,
+                COUNT(DISTINCT rm.fk_region) AS measured_region_count,
+                COUNT(DISTINCT rm.fk_region)
+                    FILTER (WHERE rm.pixel_count_valid > 0) AS valid_region_count,
+                (SELECT COUNT(*) FROM public_regions) AS total_region_count
             FROM region_measurement rm
             JOIN indicator i ON i.id_indicator = rm.fk_indicator
-            JOIN region r ON r.id_region = rm.fk_region
+            JOIN public_regions pr ON pr.id_region = rm.fk_region
             JOIN source_file sf ON sf.id_source_file = rm.fk_source_file
             WHERE i.indicator_code = :indicator_code
-                AND r.region_type = :region_type
-                AND r.region_code <> :excluded_region_code
                 AND (
                     LOWER(sf.file_format) = 'netcdf'
                     OR LOWER(sf.product_name) LIKE '%.nc'
                 )
+            GROUP BY (rm.measurement_end_time AT TIME ZONE 'UTC')::date
             ORDER BY measurement_date DESC
             """
         ),
@@ -37,7 +44,13 @@ def get_no2_measurement_dates_for_statistical_regions(db: Session) -> list[date]
             "excluded_region_code": EXCLUDED_PUBLIC_REGION_CODE,
         },
     ).mappings().all()
-    return [row["measurement_date"] for row in rows]
+    return [
+        {
+            **dict(row),
+            "has_missing_regions": row["valid_region_count"] < row["total_region_count"],
+        }
+        for row in rows
+    ]
 
 
 def get_latest_no2_measurements_for_statistical_regions(

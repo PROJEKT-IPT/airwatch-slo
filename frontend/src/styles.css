@@ -1716,6 +1716,10 @@ select {
 }
 
 .measurement-calendar-day {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
@@ -1731,6 +1735,17 @@ select {
   cursor: pointer;
 }
 
+.measurement-calendar-missing-dot {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(180, 83, 9, 0.92);
+  pointer-events: none;
+}
+
 .measurement-calendar-day--available:hover,
 .measurement-calendar-day--available:focus-visible {
   border-color: rgba(47, 158, 99, 0.72);
@@ -1743,6 +1758,10 @@ select {
   background: var(--accent-green);
   color: #ffffff;
   box-shadow: 0 0 0 3px rgba(47, 158, 99, 0.18);
+}
+
+.measurement-calendar-day--selected .measurement-calendar-missing-dot {
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .measurement-calendar-day:disabled {
