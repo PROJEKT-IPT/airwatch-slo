@@ -462,6 +462,14 @@ function getResponsiveFitBoundsOptions(mapElement) {
   const rect = mapElement?.getBoundingClientRect()
   const width = rect?.width || 360
   const height = rect?.height || 260
+  const isMobileViewport = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+
+  if (isMobileViewport) {
+    const horizontalPadding = Math.round(Math.min(Math.max(width * 0.13, 36), 64))
+    const verticalPadding = Math.round(Math.min(Math.max(height * 0.1, 52), 96))
+    return { paddingTopLeft: [horizontalPadding, verticalPadding], paddingBottomRight: [horizontalPadding, verticalPadding] }
+  }
+
   const shortSide = Math.min(width, height)
   const padding = Math.round(Math.min(Math.max(shortSide * 0.065, 8), 34))
 
