@@ -1,5 +1,5 @@
 import { useLanguage } from '../i18n'
-import { formatNo2Value as formatNo2, regionsCsvDataUrl } from '../utils/format'
+import { formatNo2Value as formatNo2 } from '../utils/format'
 
 function RegionDetailsCard({
   measurement,
@@ -7,16 +7,17 @@ function RegionDetailsCard({
   isLoading,
   error,
   hasRegion,
-  regions = [],
+  latestRegionCsvExportUrl = '',
+  regionHistoryCsvExportUrl = '',
+  allRegionsCsvExportUrl = '',
 }) {
   const { t, locale } = useLanguage()
   const regionName = measurement?.region_name || selectedRegion?.region_name || t('selectedRegion')
   const regionCode = measurement?.region_code || selectedRegion?.region_code || ''
   const qualityStatus = getQualityStatus(measurement?.quality_status, t)
   const missingDataState = measurement ? getMissingDataState(measurement, t) : null
-  // CSV always exports every region; PDF prints the current detail view.
-  const csvDataUrl = regionsCsvDataUrl(regions)
-  const isCsvDisabled = !csvDataUrl
+  const isRegionExportDisabled = !hasRegion || isLoading || Boolean(error)
+  const isAllRegionsExportDisabled = !allRegionsCsvExportUrl
   const isPdfDisabled = !measurement || isLoading || Boolean(error)
 
   return (
@@ -33,17 +34,21 @@ function RegionDetailsCard({
               {qualityStatus.label}
             </span>
           ) : null}
-          <a
-            className={`export-button${isCsvDisabled ? ' export-button-disabled' : ''}`}
-            href={isCsvDisabled ? undefined : csvDataUrl}
-            download="airwatch-regije.csv"
-            aria-disabled={isCsvDisabled}
-            onClick={event => {
-              if (isCsvDisabled) event.preventDefault()
-            }}
-          >
-            {t('exportCsv')}
-          </a>
+          <ExportLink
+            href={latestRegionCsvExportUrl}
+            disabled={isRegionExportDisabled || !latestRegionCsvExportUrl}
+            label={t('exportRegionLatestCsv')}
+          />
+          <ExportLink
+            href={regionHistoryCsvExportUrl}
+            disabled={isRegionExportDisabled || !regionHistoryCsvExportUrl}
+            label={t('exportRegionHistoryCsv')}
+          />
+          <ExportLink
+            href={allRegionsCsvExportUrl}
+            disabled={isAllRegionsExportDisabled}
+            label={t('exportCsv')}
+          />
           <button
             type="button"
             className={`export-button${isPdfDisabled ? ' export-button-disabled' : ''}`}
@@ -67,6 +72,21 @@ function RegionDetailsCard({
         locale={locale}
       />
     </section>
+  )
+}
+
+function ExportLink({ href, disabled, label }) {
+  return (
+    <a
+      className={`export-button${disabled ? ' export-button-disabled' : ''}`}
+      href={disabled ? undefined : href}
+      aria-disabled={disabled}
+      onClick={event => {
+        if (disabled) event.preventDefault()
+      }}
+    >
+      {label}
+    </a>
   )
 }
 
@@ -135,8 +155,11 @@ function MeasurementDetails({ measurement, t, locale, includeValue }) {
       ) : null}
       <DetailRow label={t('validPixels')} value={formatInteger(measurement.pixel_count_valid, t, locale)} t={t} />
       <DetailRow label={t('qaThreshold')} value={formatNumber(measurement.qa_threshold, t, locale)} t={t} />
+      <DetailRow label={t('qualityStatus')} value={getQualityStatus(measurement.quality_status, t).label} t={t} />
       <DetailRow label={t('measurementStart')} value={formatDateTime(measurement.measurement_start_time, t, locale)} t={t} />
       <DetailRow label={t('measurementEnd')} value={formatDateTime(measurement.measurement_end_time, t, locale)} t={t} />
+      <DetailRow label={t('processingRunId')} value={measurement.processing_run_id} t={t} />
+      <DetailRow label={t('productId')} value={measurement.source_product_id} t={t} />
       <DetailRow label={t('dataSource')} value="Sentinel-5P / Copernicus" t={t} />
       <DetailRow
         label={t('productSource')}

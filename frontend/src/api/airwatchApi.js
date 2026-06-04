@@ -93,6 +93,15 @@ export function getRegionCsvExportUrl(regionCode) {
   return `${getApiBaseUrl()}/api/v1/regions/${safeCode}/export.csv`
 }
 
+export function getRegionHistoryCsvExportUrl(regionCode) {
+  const safeCode = encodeURIComponent(regionCode)
+  return `${getApiBaseUrl()}/api/v1/regions/${safeCode}/history/export.csv`
+}
+
+export function getAllRegionsCsvExportUrl() {
+  return `${getApiBaseUrl()}/api/v1/regions/export.csv`
+}
+
 export async function getRegionHistory(regionCode, { startDate, endDate } = {}) {
   const safeCode = encodeURIComponent(regionCode)
   const params = new URLSearchParams()

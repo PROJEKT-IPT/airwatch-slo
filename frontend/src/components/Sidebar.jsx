@@ -150,7 +150,6 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
     { id: 'trend', icon: 'trend', label: t('navTrend') },
     { id: 'comparison', icon: 'comparison', label: t('navComparison') },
     { id: 'data', icon: 'data', label: t('navDataExport') },
-    { id: 'methodology', icon: 'methodology', label: t('navMethodology') },
     { id: 'suggestions', icon: 'suggestions', label: t('navSuggestions') },
   ]
 

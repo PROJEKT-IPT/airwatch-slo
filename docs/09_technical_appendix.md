@@ -79,7 +79,9 @@ alembic upgrade head                      # migracije (proti nastavljeni bazi)
 | GET | `/api/v1/regions/{region_code}` | podrobnosti regije + zadnja meritev |
 | GET | `/api/v1/regions/{region_code}/history` | zgodovinske meritve (trend) |
 | GET | `/api/v1/regions/compare` | primerjava 2–12 regij |
+| GET | `/api/v1/regions/export.csv` | CSV izvoz zadnjih meritev vseh regij |
 | GET | `/api/v1/regions/{region_code}/export.csv` | CSV izvoz zadnje meritve |
+| GET | `/api/v1/regions/{region_code}/history/export.csv` | CSV izvoz zgodovine regije |
 | GET | `/processing/status` | zadnji + zadnji uspešni zagon obdelave |
 | GET | `/processing/history` | zgodovina zagonov obdelave |
 

@@ -34,8 +34,10 @@ skrivnosti.
 | GET | `/api/v1/regions/latest-measurements` | da |
 | GET | `/api/v1/regions/geometries` | da |
 | GET | `/api/v1/regions/compare` | da |
+| GET | `/api/v1/regions/export.csv` | da |
 | GET | `/api/v1/regions/{region_code}` | da |
 | GET | `/api/v1/regions/{region_code}/history` | da |
+| GET | `/api/v1/regions/{region_code}/history/export.csv` | da |
 | GET | `/api/v1/regions/{region_code}/export.csv` | da |
 | GET | `/processing/status` | da (Admin/debug) |
 | GET | `/processing/history` | da (Admin/debug) |
@@ -115,6 +117,16 @@ Zgodovinske meritve za eno regijo (trend graf), urejene **naraščajoče** po
   `YYYY-MM-DD` ali ISO), `include_test_region`. `limit` ni podprt.
 - **Napake:** `404` (regija ali zgodovina ne obstaja).
 
+### `GET /api/v1/regions/export.csv`
+
+Zadnja meritev za vse javne statistične regije kot CSV (ena glava + do 12
+vrstic), urejeno po `region_code`. Ime datoteke: `airwatch-regions-latest.csv`.
+`404`, če v bazi ni nobene javne regionalne meritve.
+
+```bash
+curl -OJ http://localhost:8000/api/v1/regions/export.csv
+```
+
 ### `GET /api/v1/regions/{region_code}/export.csv`
 
 Zadnja meritev regije kot CSV (ena glava + ena vrstica). Ime datoteke:
@@ -123,6 +135,17 @@ nima meritve.
 
 ```bash
 curl -OJ http://localhost:8000/api/v1/regions/SI032/export.csv
+```
+
+### `GET /api/v1/regions/{region_code}/history/export.csv`
+
+Celotna zgodovina meritev izbrane regije kot CSV (ena glava + več vrstic),
+urejeno **naraščajoče** po `measurement_end_time`. Ime datoteke:
+`airwatch-region-<region_code>-history.csv`. `404`, če regija ali zgodovina ne
+obstaja.
+
+```bash
+curl -OJ http://localhost:8000/api/v1/regions/SI032/history/export.csv
 ```
 
 ### `GET /processing/status`
@@ -159,6 +182,8 @@ curl http://localhost:8000/api/v1/regions/latest-measurements
 curl http://localhost:8000/api/v1/regions/SI041
 curl http://localhost:8000/api/v1/regions/geometries
 curl "http://localhost:8000/api/v1/regions/compare?region_codes=SI041&region_codes=SI032"
+curl -OJ http://localhost:8000/api/v1/regions/export.csv
 curl -OJ http://localhost:8000/api/v1/regions/SI041/export.csv
+curl -OJ http://localhost:8000/api/v1/regions/SI041/history/export.csv
 curl http://localhost:8000/processing/status
 ```

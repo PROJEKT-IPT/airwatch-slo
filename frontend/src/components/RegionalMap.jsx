@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLanguage } from '../i18n'
+import MapZoomSlider from './MapZoomSlider'
 
 // Softer, environmental ramp: light yellow -> amber -> coral -> muted red.
 const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f', '#cb5f4b', '#a8453d']
@@ -38,17 +39,13 @@ const CARTO_ATTRIBUTION =
 function ensureLeafletMap(element, mapRef, baseLayerRef) {
   if (!mapRef.current) {
     mapRef.current = L.map(element, {
-      attributionControl: true,
+      attributionControl: false,
       doubleClickZoom: true,
       dragging: true,
       keyboard: true,
       scrollWheelZoom: true,
-      zoomControl: true,
+      zoomControl: false,
     })
-    // Keep the attribution clear of the floating panel (bottom-right).
-    if (mapRef.current.attributionControl) {
-      mapRef.current.attributionControl.setPosition('topright')
-    }
     const labelsPane = mapRef.current.createPane('regionLabels')
     labelsPane.style.zIndex = 450
     labelsPane.style.pointerEvents = 'none'
@@ -190,6 +187,7 @@ function RegionalMap({
   const resetControlRef = useRef(null)
   const selectedRegionRef = useRef(selectedRegionCode)
   const [showDeviations, setShowDeviations] = useState(false)
+  const [zoomState, setZoomState] = useState({ max: 18, min: 0, ready: false, value: 0 })
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const mapGeometryKey = useMemo(() => buildMapGeometryKey(mapRegions), [mapRegions])
   const mapScale = useMemo(() => buildMapScale(mapRegions), [mapRegions])
@@ -213,15 +211,28 @@ function RegionalMap({
       { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef },
       { mapRegions, mapScale, mapGeometryKey, onRegionSelect, showDeviations, t },
     )
+
+    const syncZoomState = () => setZoomState(readLeafletZoomState(map))
+    syncZoomState()
+    map.on('zoomend zoomlevelschange', syncZoomState)
+
     setTimeout(() => {
       map.invalidateSize()
       // Re-apply the selected emphasis once the SVG paths are in the DOM
       // (getElement() can be null immediately after the layer is added).
       geoJsonLayerRef.current?.eachLayer(layer => emphasizeIfSelected(layer, selectedRegionRef.current))
+      syncZoomState()
     }, 0)
 
-    return undefined
+    return () => {
+      map.off('zoomend zoomlevelschange', syncZoomState)
+    }
   }, [error, isLoading, mapGeometryKey, mapRegions, mapScale, onRegionSelect, showDeviations, t])
+
+  function handleZoomChange(nextZoom) {
+    setZoomState(currentState => ({ ...currentState, value: nextZoom }))
+    mapRef.current?.setZoom(nextZoom)
+  }
 
   useEffect(
     () => () => {
@@ -242,7 +253,6 @@ function RegionalMap({
             <p className="section-kicker">{t('spatialOverview')}</p>
             <h2>{t('mapTitle')}</h2>
           </div>
-          <span className="map-tag">Leaflet</span>
         </div>
       ) : null}
 
@@ -267,6 +277,15 @@ function RegionalMap({
                 </button>
               ))}
             </div>
+            {zoomState.ready ? (
+              <MapZoomSlider
+                label={t('mapZoomLabel')}
+                max={zoomState.max}
+                min={zoomState.min}
+                value={zoomState.value}
+                onChange={handleZoomChange}
+              />
+            ) : null}
           </>
         ) : (
           <MapStateMessage isLoading={isLoading} error={error} t={t} />
@@ -347,6 +366,19 @@ function getLegendView(showDeviations, mapScale, t) {
     metric: t('mapModeValue'),
     scale: t('mapLegendRelativeScale'),
   }
+}
+
+function readLeafletZoomState(map) {
+  return {
+    max: normalizeZoomLimit(map.getMaxZoom(), 18),
+    min: normalizeZoomLimit(map.getMinZoom(), 0),
+    ready: true,
+    value: normalizeZoomLimit(map.getZoom(), 0),
+  }
+}
+
+function normalizeZoomLimit(value, fallback) {
+  return Number.isFinite(value) ? value : fallback
 }
 
 function buildMapRegions(regions, geometries) {

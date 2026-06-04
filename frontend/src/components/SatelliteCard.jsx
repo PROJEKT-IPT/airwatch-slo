@@ -3,6 +3,7 @@ import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLanguage } from '../i18n'
+import MapZoomSlider from './MapZoomSlider'
 
 // Key facts shown as compact tiles in the hero (label + value pairs from i18n).
 const FACTS = [
@@ -193,11 +194,13 @@ function getPrimary(satellites) {
 }
 
 function SatellitePositionMap({ ariaLabel, now, satellites }) {
+  const { t } = useLanguage()
   const mapElementRef = useRef(null)
   const mapRef = useRef(null)
   const markersRef = useRef(new Map())
   const groundTrackRef = useRef([])
   const satellitesRef = useRef(satellites)
+  const [zoomState, setZoomState] = useState({ max: 6, min: 1, ready: false, value: 1 })
 
   const groundTrackSegments = useMemo(() => buildGroundTrackSegments(now), [now])
 
@@ -211,18 +214,16 @@ function SatellitePositionMap({ ariaLabel, now, satellites }) {
 
     // Fully interactive: scroll/drag/zoom enabled so the user can explore.
     const map = L.map(mapElementRef.current, {
-      attributionControl: true,
+      attributionControl: false,
       maxZoom: 6,
       minZoom: 1,
       worldCopyJump: true,
-      zoomControl: true,
+      zoomControl: false,
     })
 
     map.setView([initial.position.latitude, initial.position.longitude], getSatelliteMapZoom(mapElementRef.current), {
       animate: false,
     })
-    map.attributionControl.setPosition('bottomright')
-
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -242,9 +243,13 @@ function SatellitePositionMap({ ariaLabel, now, satellites }) {
     })
 
     mapRef.current = map
+    const syncZoomState = () => setZoomState(readLeafletZoomState(map, { max: 6, min: 1 }))
+    syncZoomState()
+    map.on('zoomend zoomlevelschange', syncZoomState)
 
     setTimeout(() => {
       map.invalidateSize()
+      syncZoomState()
     }, 0)
 
     const resizeObserver =
@@ -252,7 +257,9 @@ function SatellitePositionMap({ ariaLabel, now, satellites }) {
     resizeObserver?.observe(mapElementRef.current)
     mapRef.current.resizeObserver = resizeObserver
 
-    return undefined
+    return () => {
+      map.off('zoomend zoomlevelschange', syncZoomState)
+    }
   }, [])
 
   // Move the markers + redraw the primary ground track as time advances, but
@@ -294,14 +301,43 @@ function SatellitePositionMap({ ariaLabel, now, satellites }) {
     [],
   )
 
+  function handleZoomChange(nextZoom) {
+    setZoomState(currentState => ({ ...currentState, value: nextZoom }))
+    mapRef.current?.setZoom(nextZoom)
+  }
+
   return (
-    <div
-      ref={mapElementRef}
-      className="satellite-map satellite-leaflet-map"
-      role="application"
-      aria-label={ariaLabel}
-    />
+    <div className="satellite-map">
+      <div
+        ref={mapElementRef}
+        className="satellite-leaflet-map"
+        role="application"
+        aria-label={ariaLabel}
+      />
+      {zoomState.ready ? (
+        <MapZoomSlider
+          label={t('mapZoomLabel')}
+          max={zoomState.max}
+          min={zoomState.min}
+          value={zoomState.value}
+          onChange={handleZoomChange}
+        />
+      ) : null}
+    </div>
   )
+}
+
+function readLeafletZoomState(map, fallback = { max: 18, min: 0 }) {
+  return {
+    max: normalizeZoomLimit(map.getMaxZoom(), fallback.max),
+    min: normalizeZoomLimit(map.getMinZoom(), fallback.min),
+    ready: true,
+    value: normalizeZoomLimit(map.getZoom(), fallback.min),
+  }
+}
+
+function normalizeZoomLimit(value, fallback) {
+  return Number.isFinite(value) ? value : fallback
 }
 
 function buildGroundTrackSegments(now) {
@@ -521,11 +557,6 @@ function SatelliteCard() {
         </section>
       </div>
 
-      <section className="card">
-        <h2>{t('satProcessTitle')}</h2>
-        <p className="muted-text">{t('satProcessText')}</p>
-        <p className="provenance-note">{t('satNotRealTime')}</p>
-      </section>
     </section>
   )
 }

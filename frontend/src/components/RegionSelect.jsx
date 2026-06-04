@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { useLanguage } from '../i18n'
 import { formatNo2Value } from '../utils/format'
@@ -14,9 +14,13 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
   const { t, locale } = useLanguage()
   const hasRegions = regions.length > 0
   const [open, setOpen] = useState(false)
+  const [openDirection, setOpenDirection] = useState(dropUp ? 'up' : 'down')
+  const [searchTerm, setSearchTerm] = useState('')
   const containerRef = useRef(null)
+  const searchInputRef = useRef(null)
 
   const selected = regions.find(region => region.region_code === selectedRegionCode) || null
+  const filteredRegions = useMemo(() => filterRegions(regions, searchTerm), [regions, searchTerm])
 
   // Close on outside click or Esc.
   useEffect(() => {
@@ -36,14 +40,24 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
     }
   }, [open])
 
+  useEffect(() => {
+    if (!open) return
+
+    setOpenDirection(resolveOpenDirection(containerRef.current, dropUp))
+    const focusTimer = window.setTimeout(() => searchInputRef.current?.focus(), 80)
+
+    return () => window.clearTimeout(focusTimer)
+  }, [dropUp, open])
+
   function selectRegion(code) {
     onRegionChange(code)
     setOpen(false)
+    setSearchTerm('')
   }
 
   return (
     <div
-      className={`region-picker${embedded ? ' region-picker--embedded' : ''}${dropUp ? ' region-picker--up' : ''}`}
+      className={`region-picker${embedded ? ' region-picker--embedded' : ''}${openDirection === 'up' ? ' region-picker--up' : ''}${open ? ' region-picker--open' : ''}`}
       ref={containerRef}
     >
       <span className="region-picker-label" id="rp-label">{t('regionLabel')}</span>
@@ -79,12 +93,25 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
 
       {open ? (
         <div className="region-picker-popover" id="rp-popover" role="dialog" aria-label={t('pickerTitle')}>
-          <p className="rp-title">{t('pickerTitle')}</p>
+          <div className="rp-popover-header">
+            <p className="rp-title">{t('pickerTitle')}</p>
+            <input
+              ref={searchInputRef}
+              className="rp-search"
+              type="search"
+              value={searchTerm}
+              placeholder={t('searchPlaceholder')}
+              aria-label={t('searchPlaceholder')}
+              onChange={event => setSearchTerm(event.target.value)}
+            />
+          </div>
           {regions.length === 0 ? (
             <p className="rp-empty">{t('regionsUnavailable')}</p>
+          ) : filteredRegions.length === 0 ? (
+            <p className="rp-empty">{t('noRegionsFound')}</p>
           ) : (
             <ul className="rp-list" role="listbox" aria-label={t('regionLabel')}>
-              {regions.map(region => {
+              {filteredRegions.map(region => {
                 const value = region.quality_status === 'valid' ? formatNo2Value(region.value_mean, locale) : ''
                 const isSelected = region.region_code === selectedRegionCode
                 return (
@@ -125,6 +152,30 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
       ) : null}
     </div>
   )
+}
+
+function filterRegions(regions, searchTerm) {
+  const term = searchTerm.trim().toLowerCase()
+  if (!term) return regions
+
+  return regions.filter(region => {
+    const name = String(region.region_name || '').toLowerCase()
+    const code = String(region.region_code || '').toLowerCase()
+    return name.includes(term) || code.includes(term)
+  })
+}
+
+function resolveOpenDirection(element, preferUp) {
+  if (preferUp) return 'up'
+  if (!element || typeof window === 'undefined') return 'down'
+
+  const rect = element.getBoundingClientRect()
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0
+  const expectedPopoverHeight = 420
+  const spaceBelow = viewportHeight - rect.bottom
+  const spaceAbove = rect.top
+
+  return spaceBelow < expectedPopoverHeight && spaceAbove > spaceBelow ? 'up' : 'down'
 }
 
 export default RegionSelect

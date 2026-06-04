@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
+  getAllRegionsCsvExportUrl,
   getRegionComparison,
+  getRegionCsvExportUrl,
   getRegionDetails,
   getRegionGeometries,
+  getRegionHistoryCsvExportUrl,
   getRegionalLatestMeasurements,
 } from '../api/airwatchApi'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
@@ -178,6 +181,9 @@ function Dashboard({ activeView = 'overview' }) {
     () => regionSummaries.find(item => item.region_code === selectedRegionCode) || null,
     [regionSummaries, selectedRegionCode],
   )
+  const latestRegionCsvExportUrl = selectedRegionCode ? getRegionCsvExportUrl(selectedRegionCode) : ''
+  const regionHistoryCsvExportUrl = selectedRegionCode ? getRegionHistoryCsvExportUrl(selectedRegionCode) : ''
+  const allRegionsCsvExportUrl = getAllRegionsCsvExportUrl()
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
@@ -206,7 +212,6 @@ function Dashboard({ activeView = 'overview' }) {
     trend: { title: t('navTrend'), lead: t('trendViewLead') },
     comparison: { title: t('navComparison'), lead: t('comparisonViewLead') },
     data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
-    methodology: { title: t('navMethodology'), lead: t('methodologyViewLead') },
     suggestions: { title: t('navSuggestions'), lead: '' },
     satellite: { title: t('navSatellite') },
     about: { title: t('navAbout'), lead: t('aboutLead') },
@@ -301,22 +306,23 @@ function Dashboard({ activeView = 'overview' }) {
             isLoading={isLoadingDetail}
             error={detailError}
             hasRegion={Boolean(selectedRegionCode)}
-            regions={regionSummaries}
+            latestRegionCsvExportUrl={latestRegionCsvExportUrl}
+            regionHistoryCsvExportUrl={regionHistoryCsvExportUrl}
+            allRegionsCsvExportUrl={allRegionsCsvExportUrl}
           />
         </section>
       )}
 
-      {activeView === 'methodology' && (
-        <section className="dashboard-view" aria-label={t('navMethodology')}>
+      {activeView === 'satellite' && (
+        <>
+          <SatelliteCard />
           <MethodologyCard />
-        </section>
+        </>
       )}
 
       {activeView === 'suggestions' && (
         <section className="dashboard-view" aria-label={t('navSuggestions')} />
       )}
-
-      {activeView === 'satellite' && <SatelliteCard />}
 
       {activeView === 'about' && (
         <section className="dashboard-view about-view" aria-label={t('navAbout')}>

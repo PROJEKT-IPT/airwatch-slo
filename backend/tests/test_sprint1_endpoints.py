@@ -180,6 +180,19 @@ SAMPLE_REGION_CSV_EXPORT_ROW = {
     ),
 }
 
+SAMPLE_REGION_HISTORY_CSV_EXPORT_ROWS = [
+    {
+        **SAMPLE_REGION_CSV_EXPORT_ROW,
+        **measurement,
+        "region_code": SAMPLE_REGION_CSV_EXPORT_ROW["region_code"],
+        "region_name": SAMPLE_REGION_CSV_EXPORT_ROW["region_name"],
+        "region_type": SAMPLE_REGION_CSV_EXPORT_ROW["region_type"],
+        "indicator_code": SAMPLE_REGION_CSV_EXPORT_ROW["indicator_code"],
+        "indicator_name": SAMPLE_REGION_CSV_EXPORT_ROW["indicator_name"],
+    }
+    for measurement in SAMPLE_REGION_HISTORY_MEASUREMENTS
+]
+
 
 class FakeMappingResult:
     def __init__(self, rows):
@@ -202,6 +215,9 @@ class FakeSprint1Session:
 
         if "FROM region" in query and "ORDER BY region_name" in query:
             return FakeMappingResult([SAMPLE_REGION])
+
+        if "WITH latest_region_measurements AS" in query and "i.indicator_name" in query:
+            return FakeMappingResult([SAMPLE_REGION_CSV_EXPORT_ROW])
 
         if "WITH latest_region_measurements AS" in query:
             return FakeMappingResult([SAMPLE_REGION_LATEST_MEASUREMENT])
@@ -270,6 +286,12 @@ class FakeSprint1Session:
 
         if "sf.external_product_id AS source_product_id" in query:
             if params.get("region_id") == SAMPLE_STATISTICAL_REGION["id_region"]:
+                if (
+                    "r.region_code" in query
+                    and "i.indicator_name" in query
+                    and "rm.measurement_end_time ASC" in query
+                ):
+                    return FakeMappingResult(SAMPLE_REGION_HISTORY_CSV_EXPORT_ROWS)
                 if "rm.measurement_end_time ASC" in query:
                     # Support optional start_date / end_date filtering in tests
                     start_date = params.get("start_date")
@@ -525,3 +547,36 @@ def test_export_region_csv_returns_latest_measurement_csv(client):
     assert csv_lines[0].startswith("region_code,region_name,region_type,indicator_code")
     assert "SI032,Podravska,statistical_region,NO2,Nitrogen dioxide" in csv_lines[1]
     assert "2025-03-11T13:18:05Z" in csv_lines[1]
+
+
+def test_export_region_history_csv_returns_all_region_measurements(client):
+    response = client.get("/api/v1/regions/SI032/history/export.csv")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert (
+        response.headers["content-disposition"]
+        == 'attachment; filename="airwatch-region-si032-history.csv"'
+    )
+
+    csv_lines = response.text.strip().splitlines()
+    assert csv_lines[0].startswith("region_code,region_name,region_type,indicator_code")
+    assert len(csv_lines) == 3
+    assert "2025-03-11T13:18:05Z" in csv_lines[1]
+    assert "2026-05-08T13:01:35Z" in csv_lines[2]
+
+
+def test_export_latest_regions_csv_returns_one_latest_row_per_region(client):
+    response = client.get("/api/v1/regions/export.csv")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/csv")
+    assert (
+        response.headers["content-disposition"]
+        == 'attachment; filename="airwatch-regions-latest.csv"'
+    )
+
+    csv_lines = response.text.strip().splitlines()
+    assert csv_lines[0].startswith("region_code,region_name,region_type,indicator_code")
+    assert len(csv_lines) == 2
+    assert "SI032,Podravska,statistical_region,NO2,Nitrogen dioxide" in csv_lines[1]

@@ -13,14 +13,9 @@ function MethodologyCard() {
 
   return (
     <div className="dashboard-view methodology-view">
-      <section className="card methodology-card">
-        <p className="section-kicker">{t('methodology')}</p>
-        <h2>{t('methAppTitle')}</h2>
-        <p className="muted-text">{t('methAppText')}</p>
-      </section>
-
       <div className="methodology-grid">
         <section className="card methodology-card">
+          <p className="section-kicker">{t('methodology')}</p>
           <h2>{t('methNo2Title')}</h2>
           <p className="muted-text">{t('methNo2Text')}</p>
           <p className="muted-text">{t('methNo2Effects')}</p>

@@ -3,23 +3,27 @@ import userEvent from '@testing-library/user-event'
 
 import App from '../../src/App'
 import {
+  getAllRegionsCsvExportUrl,
   getProcessingHistory,
   getProcessingStatus,
   getRegionCsvExportUrl,
   getRegionComparison,
   getRegionDetails,
   getRegionGeometries,
+  getRegionHistoryCsvExportUrl,
   getRegionHistory,
   getRegionalLatestMeasurements,
 } from '../../src/api/airwatchApi'
 
 vi.mock('../../src/api/airwatchApi', () => ({
+  getAllRegionsCsvExportUrl: vi.fn(),
   getProcessingHistory: vi.fn(),
   getProcessingStatus: vi.fn(),
   getRegionCsvExportUrl: vi.fn(),
   getRegionComparison: vi.fn(),
   getRegionDetails: vi.fn(),
   getRegionGeometries: vi.fn(),
+  getRegionHistoryCsvExportUrl: vi.fn(),
   getRegionHistory: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
 }))
@@ -80,6 +84,12 @@ describe('App navigation', () => {
     })
     getRegionCsvExportUrl.mockReturnValue(
       'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/export.csv',
+    )
+    getRegionHistoryCsvExportUrl.mockReturnValue(
+      'https://airwatch-slo-production.up.railway.app/api/v1/regions/SI032/history/export.csv',
+    )
+    getAllRegionsCsvExportUrl.mockReturnValue(
+      'https://airwatch-slo-production.up.railway.app/api/v1/regions/export.csv',
     )
     getRegionHistory.mockResolvedValue({ measurements: [] })
     getProcessingStatus.mockResolvedValue({

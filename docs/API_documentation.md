@@ -381,6 +381,24 @@ Pravila za izbor "latest" meritve:
 - pri izenačenju sledi `measurement_start_time DESC`,
 - zadnji tie-breaker je `id_region_measurement DESC`.
 
+## Endpoint: All Regions Latest CSV Export
+
+Vrne najnovejšo razpoložljivo `NO2` meritev za vse javne statistične regije kot
+CSV.
+
+```http
+GET /api/v1/regions/export.csv
+```
+
+Primer:
+
+```bash
+curl -OJ http://localhost:8000/api/v1/regions/export.csv
+```
+
+CSV vsebuje eno glavo in po eno vrstico na regijo, urejeno po `region_code`.
+Ime datoteke je `airwatch-regions-latest.csv`.
+
 ## Endpoint: Region Details
 
 Vrne metapodatke regije in njeno najnovejšo `NO2` meritev.
@@ -432,10 +450,45 @@ Opombe:
   `404 No NO2 measurement found for the requested region.`,
 - `geometry` se vrne kot GeoJSON objekt, če je v bazi na voljo.
 
+## Endpoint: Region History
+
+Vrne zgodovinske `NO2` meritve za eno statistično regijo, urejene naraščajoče po
+`measurement_end_time`.
+
+```http
+GET /api/v1/regions/{region_code}/history
+```
+
+Primer:
+
+```bash
+curl http://localhost:8000/api/v1/regions/SI032/history
+```
+
+Podprta sta neobvezna filtra `start_date` in `end_date` (`YYYY-MM-DD` ali ISO).
+
+## Endpoint: Region History CSV Export
+
+Vrne celotno zgodovino izbrane regije kot CSV.
+
+```http
+GET /api/v1/regions/{region_code}/history/export.csv
+```
+
+Primer:
+
+```bash
+curl -OJ http://localhost:8000/api/v1/regions/SI032/history/export.csv
+```
+
+Ime datoteke je `airwatch-region-<region_code>-history.csv`.
+
 ## Omejitve in predpostavke
 
-- Endpointa trenutno vračata samo najnovejšo `NO2` meritev. Zgodovinski grafi in
-  trende bodo gradili nadaljnji endpointi na istem modelu `region_measurement`.
+- Javni regionalni endpointi vračajo statistične regije; testna regija
+  `SI_BBOX` je privzeto izločena.
+- Zgodovinski endpoint in CSV izvoz temeljita na istem modelu
+  `region_measurement`.
 - Regije brez podatkov niso del `latest-measurements` seznama. Frontend mora ta
   primer obravnavati kot "ni še podatkov".
 - Javni regionalni overview namerno ne prikazuje `SI_BBOX`, ker gre za Sprint 1
