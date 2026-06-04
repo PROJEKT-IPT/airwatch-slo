@@ -278,6 +278,21 @@ describe('Dashboard', () => {
     expect(within(legend).getByText(/Temnejša barva pomeni višjo vrednost/)).toBeInTheDocument()
   })
 
+  it('overview: toggles the legend to deviation-from-average mode', async () => {
+    const user = userEvent.setup()
+    const { container } = renderDashboard('overview')
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
+    })
+
+    const legend = container.querySelector('.map-legend')
+    await user.click(within(legend).getByRole('button', { name: 'Prikaži odstopanja' }))
+
+    expect(within(legend).getByText('Δ NO₂ od srednje vrednosti')).toBeInTheDocument()
+    expect(within(legend).getByRole('button', { name: 'Prikaži vrednosti' })).toBeInTheDocument()
+  })
+
   it('comparison view: renders rows and selects a region from the comparison', async () => {
     const user = userEvent.setup()
     renderDashboard('comparison')
