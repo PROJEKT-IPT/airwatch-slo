@@ -35,6 +35,9 @@ function ensureLeafletMap(element, mapRef, baseLayerRef) {
       keyboard: true,
       scrollWheelZoom: true,
       zoomControl: false,
+      // Continuous (fractional) zoom so the slider/wheel scale smoothly
+      // instead of snapping to integer levels.
+      zoomSnap: 0,
     })
     const labelsPane = mapRef.current.createPane('regionLabels')
     labelsPane.style.zIndex = 450

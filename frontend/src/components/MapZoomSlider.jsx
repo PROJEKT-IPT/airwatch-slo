@@ -7,9 +7,9 @@ function bindMapControl(element) {
 }
 
 function MapZoomSlider({ label, max, min, onChange, value }) {
-  const safeMin = Number.isFinite(min) ? Math.ceil(min) : 0
-  const safeMax = Number.isFinite(max) ? Math.floor(max) : 18
-  const safeValue = Number.isFinite(value) ? Math.round(value) : safeMin
+  const safeMin = Number.isFinite(min) ? min : 0
+  const safeMax = Number.isFinite(max) ? max : 18
+  const safeValue = Number.isFinite(value) ? value : safeMin
 
   if (safeMax <= safeMin) return null
 
@@ -20,7 +20,7 @@ function MapZoomSlider({ label, max, min, onChange, value }) {
         type="range"
         min={safeMin}
         max={safeMax}
-        step="1"
+        step="any"
         value={Math.min(Math.max(safeValue, safeMin), safeMax)}
         aria-label={label}
         onChange={event => onChange(Number(event.target.value))}

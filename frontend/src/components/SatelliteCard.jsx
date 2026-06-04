@@ -216,6 +216,9 @@ function SatellitePositionMap({ ariaLabel, now, satellites }) {
       minZoom: 1,
       worldCopyJump: true,
       zoomControl: false,
+      // Continuous (fractional) zoom so the slider/wheel scale smoothly
+      // instead of snapping to integer levels.
+      zoomSnap: 0,
     })
 
     map.setView([initial.position.latitude, initial.position.longitude], getSatelliteMapZoom(mapElementRef.current), {
