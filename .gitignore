@@ -1,3 +1,8 @@
+# Local artifacts that must not be committed (anchored to repo root so the
+# app's frontend/public/logo_airwatch.png stays tracked).
+/logo_airwatch.png
+/vizija_final.docx
+
 # Python
 __pycache__/
 *.py[cod]
