@@ -82,15 +82,6 @@ function Icon({ name }) {
           <path d="M21 5.5A2.5 2.5 0 0 0 18.5 3H13v16h5.5A2.5 2.5 0 0 1 21 21.5z" />
         </svg>
       )
-    case 'suggestions':
-      return (
-        <svg {...props}>
-          <path d="M7 4h10" />
-          <path d="M7 8h10" />
-          <path d="M7 12h6" />
-          <path d="M5 20l2.5-5H17a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h1" />
-        </svg>
-      )
     case 'satellite':
       return (
         <svg {...props}>
@@ -129,8 +120,16 @@ function Icon({ name }) {
   }
 }
 
-function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onToggleCollapse }) {
-  const { language, setLanguage, t } = useLanguage()
+// Localized date for the discreet "data updated" footer line (empty if absent).
+function formatUpdatedDate(value, locale) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
+}
+
+function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onToggleCollapse, dataUpdatedAt = null }) {
+  const { language, setLanguage, t, locale } = useLanguage()
   const [accessibilitySettings, setAccessibilitySettings] = useState(readAccessibilitySettings)
   const [accessibilityOpen, setAccessibilityOpen] = useState(false)
 
@@ -149,7 +148,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
     { id: 'trend', icon: 'trend', label: t('navTrend') },
     { id: 'comparison', icon: 'comparison', label: t('navComparison') },
     { id: 'data', icon: 'data', label: t('navDataExport') },
-    { id: 'suggestions', icon: 'suggestions', label: t('navSuggestions') },
+    { id: 'learn', icon: 'methodology', label: t('navLearn') },
   ]
 
   function navClass(id) {
@@ -254,6 +253,12 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
 
       <div className="sidebar-footer">
         <div className="sidebar-divider" />
+        {formatUpdatedDate(dataUpdatedAt, locale) ? (
+          <p className="sidebar-data-updated" title={t('dataUpdatedHint')}>
+            <span className="sidebar-data-updated-label">{t('dataUpdated')}</span>
+            <span>{formatUpdatedDate(dataUpdatedAt, locale)}</span>
+          </p>
+        ) : null}
         <button
           type="button"
           className={`nav-item nav-footer-item ${activeView === 'about' ? 'nav-item-active' : ''}`}

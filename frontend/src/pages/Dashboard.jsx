@@ -10,6 +10,7 @@ import {
   getRegionalLatestMeasurements,
 } from '../api/airwatchApi'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
+import LearnCard from '../components/LearnCard'
 import MethodologyCard from '../components/MethodologyCard'
 import RegionComparisonCard from '../components/RegionComparisonCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
@@ -19,7 +20,7 @@ import SatelliteCard from '../components/SatelliteCard'
 import TrendChart from '../components/TrendChart'
 import { useLanguage } from '../i18n'
 
-function Dashboard({ activeView = 'overview' }) {
+function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
   const { t } = useLanguage()
   const tRef = useRef(t)
   const [regionSummaries, setRegionSummaries] = useState([])
@@ -205,12 +206,24 @@ function Dashboard({ activeView = 'overview' }) {
     return 'high'
   }, [measurement, regionSummaries])
 
+  // Report the most recent measurement date (ISO sorts chronologically) so the
+  // sidebar can show a discreet "data updated" line.
+  useEffect(() => {
+    if (!onDataUpdatedAt) return
+    const latest = regionSummaries
+      .map(region => region.measurement_end_time)
+      .filter(Boolean)
+      .sort()
+      .at(-1)
+    onDataUpdatedAt(latest || null)
+  }, [regionSummaries, onDataUpdatedAt])
+
   const viewMeta = {
     overview: { title: t('dashboardTitle'), lead: t('dashboardSubtitle') },
     trend: { title: t('navTrend'), lead: t('trendViewLead') },
     comparison: { title: t('navComparison'), lead: t('comparisonViewLead') },
     data: { title: t('navDataExport'), lead: t('dataMethodologyLead') },
-    suggestions: { title: t('navSuggestions'), lead: '' },
+    learn: { title: t('navLearn'), lead: t('learnViewLead') },
     satellite: { title: t('navSatellite') },
     about: { title: t('navAbout'), lead: t('aboutLead') },
   }
@@ -318,9 +331,7 @@ function Dashboard({ activeView = 'overview' }) {
         </>
       )}
 
-      {activeView === 'suggestions' && (
-        <section className="dashboard-view" aria-label={t('navSuggestions')} />
-      )}
+      {activeView === 'learn' && <LearnCard />}
 
       {activeView === 'about' && (
         <section className="dashboard-view about-view" aria-label={t('navAbout')}>

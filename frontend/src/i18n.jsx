@@ -33,7 +33,23 @@ const translations = {
     navDataExport: 'Podatki & izvoz',
     navMap: 'Karta regij',
     navMethodology: 'Metodologija',
-    navSuggestions: 'Predloge',
+    navLearn: 'Razloženo',
+    learnViewLead: 'Preprosta razlaga, kaj prikaz pomeni in kako ga brati.',
+    learnKicker: 'Za šole in razlago',
+    learnWhatTitle: 'Kaj sploh gledamo?',
+    learnWhatText:
+      'Zemljevid prikazuje dušikov dioksid (NO₂) – plin, ki nastaja predvsem pri prometu, kurjenju in industriji. Satelit Sentinel-5P ga izmeri iz vesolja, mi pa povprečje prikažemo za vsako od 12 slovenskih statističnih regij.',
+    learnReadTitle: 'Kako berem zemljevid?',
+    learnReadText:
+      'Barva pokaže, kako visoka je vrednost v regiji v primerjavi z drugimi: svetlejša pomeni nižjo, temnejša (rdeča) pa višjo vrednost. Gre za primerjavo med regijami ob istem preletu, ne za oceno nevarnosti za zdravje.',
+    learnExampleTitle: 'Primer: kaj nam pove?',
+    learnExampleText:
+      'Recimo, da je Podravska obarvana temneje kot Gorenjska. To pomeni, da je imela ob zadnjem preletu višjo povprečno koncentracijo NO₂. Ne pomeni pa, da je zrak na neki ulici nevaren – vrednost velja za celotno regijo in ni meritev v realnem času.',
+    learnLimitsTitle: 'Na kaj moramo paziti?',
+    learnLimitsText:
+      'Prikaz ni v realnem času (podatki pridejo z nekajdnevnim zamikom) in ni meritev na ravni ulice. Kadar je nad regijo preveč oblakov ali premalo kakovostnih podatkov, je regija označena kot »ni podatkov«.',
+    dataUpdated: 'Podatki osveženi',
+    dataUpdatedHint: 'Datum zadnjega satelitskega preleta z razpoložljivimi podatki.',
     navAbout: 'O aplikaciji',
     collapseSidebar: 'Skrči',
     expandSidebar: 'Razširi stranski meni',
@@ -371,7 +387,23 @@ const translations = {
     navDataExport: 'Data & export',
     navMap: 'Region map',
     navMethodology: 'Methodology',
-    navSuggestions: 'Suggestions',
+    navLearn: 'Explained',
+    learnViewLead: 'A plain-language explanation of what the display means and how to read it.',
+    learnKicker: 'For schools & explanation',
+    learnWhatTitle: 'What are we looking at?',
+    learnWhatText:
+      'The map shows nitrogen dioxide (NO₂) – a gas produced mainly by traffic, heating and industry. The Sentinel-5P satellite measures it from space, and we show the average for each of Slovenia’s 12 statistical regions.',
+    learnReadTitle: 'How do I read the map?',
+    learnReadText:
+      'The colour shows how high a region’s value is compared with the others: lighter means lower, darker (red) means higher. It is a comparison between regions for the same overpass, not a health-risk rating.',
+    learnExampleTitle: 'Example: what does it tell us?',
+    learnExampleText:
+      'Say Podravska is darker than Gorenjska. That means it had a higher average NO₂ concentration at the last overpass. It does NOT mean the air on a particular street is dangerous – the value is for the whole region and is not real-time.',
+    learnLimitsTitle: 'What to keep in mind?',
+    learnLimitsText:
+      'The display is not real-time (data arrives with a few days’ delay) and is not a street-level measurement. When there are too many clouds or not enough good data over a region, it is marked as “no data”.',
+    dataUpdated: 'Data updated',
+    dataUpdatedHint: 'Date of the latest satellite overpass with available data.',
     navAbout: 'About',
     collapseSidebar: 'Collapse',
     expandSidebar: 'Expand sidebar',
@@ -707,7 +739,23 @@ const translations = {
     navDataExport: 'Daten & Export',
     navMap: 'Regionenkarte',
     navMethodology: 'Methodik',
-    navSuggestions: 'Vorschläge',
+    navLearn: 'Erklärt',
+    learnViewLead: 'Eine einfache Erklaerung, was die Anzeige bedeutet und wie man sie liest.',
+    learnKicker: 'Fuer Schulen & Erklaerung',
+    learnWhatTitle: 'Was sehen wir hier?',
+    learnWhatText:
+      'Die Karte zeigt Stickstoffdioxid (NO₂) – ein Gas, das vor allem durch Verkehr, Heizen und Industrie entsteht. Der Satellit Sentinel-5P misst es aus dem All, und wir zeigen den Durchschnitt fuer jede der 12 slowenischen statistischen Regionen.',
+    learnReadTitle: 'Wie lese ich die Karte?',
+    learnReadText:
+      'Die Farbe zeigt, wie hoch der Wert einer Region im Vergleich zu den anderen ist: heller bedeutet niedriger, dunkler (rot) hoeher. Es ist ein Vergleich zwischen Regionen beim selben Ueberflug, keine Bewertung des Gesundheitsrisikos.',
+    learnExampleTitle: 'Beispiel: Was sagt es uns?',
+    learnExampleText:
+      'Angenommen, Podravska ist dunkler als Gorenjska. Das bedeutet, sie hatte beim letzten Ueberflug eine hoehere durchschnittliche NO₂-Konzentration. Es bedeutet NICHT, dass die Luft in einer bestimmten Strasse gefaehrlich ist – der Wert gilt fuer die ganze Region und ist nicht in Echtzeit.',
+    learnLimitsTitle: 'Worauf muss man achten?',
+    learnLimitsText:
+      'Die Anzeige ist nicht in Echtzeit (Daten kommen mit einigen Tagen Verzoegerung) und ist keine Messung auf Strassenebene. Wenn ueber einer Region zu viele Wolken oder zu wenige gute Daten vorliegen, wird sie als „keine Daten“ markiert.',
+    dataUpdated: 'Daten aktualisiert',
+    dataUpdatedHint: 'Datum des letzten Satellitenueberflugs mit verfuegbaren Daten.',
     navAbout: 'Über die App',
     collapseSidebar: 'Einklappen',
     expandSidebar: 'Seitenleiste ausklappen',

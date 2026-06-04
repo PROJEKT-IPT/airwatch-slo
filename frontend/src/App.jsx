@@ -26,6 +26,7 @@ function readSidebarCollapsed() {
 function App() {
   const [activeView, setActiveView] = useState(readViewFromHash)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
+  const [dataUpdatedAt, setDataUpdatedAt] = useState(null)
 
   useEffect(() => {
     function syncFromHash() {
@@ -48,11 +49,12 @@ function App() {
           onViewChange={setActiveView}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(value => !value)}
+          dataUpdatedAt={dataUpdatedAt}
         />
         {activeView === 'admin' ? (
           <AdminProcessingStatusPage />
         ) : (
-          <Dashboard activeView={activeView} />
+          <Dashboard activeView={activeView} onDataUpdatedAt={setDataUpdatedAt} />
         )}
       </div>
     </LanguageProvider>

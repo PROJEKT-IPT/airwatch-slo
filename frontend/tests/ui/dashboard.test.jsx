@@ -389,6 +389,13 @@ describe('Dashboard', () => {
     expect(await screen.findByRole('heading', { name: 'Kako brati rezultat' })).toBeInTheDocument()
   })
 
+  it('learn view: shows the plain-language explanation with a worked example', async () => {
+    renderDashboard('learn')
+
+    expect(await screen.findByRole('heading', { name: 'Primer: kaj nam pove?' })).toBeInTheDocument()
+    expect(screen.getByText(/Ne pomeni pa, da je zrak na neki ulici nevaren/)).toBeInTheDocument()
+  })
+
   it('satellite view: explains how the live orbit display works', async () => {
     renderDashboard('satellite')
 
