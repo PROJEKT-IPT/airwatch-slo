@@ -237,7 +237,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
         <div className="mobile-language-switcher" role="group" aria-label={t('languageToggleLabel')}>
           {supportedLanguages.map((option, index) => (
             <Fragment key={option.code}>
-              {index > 0 ? <span className="language-sep" aria-hidden="true">Â·</span> : null}
+              {index > 0 ? <span className="language-sep" aria-hidden="true" /> : null}
               <button
                 type="button"
                 className={language === option.code ? 'language-option language-option-active' : 'language-option'}
@@ -301,7 +301,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
       <div className="language-switcher" role="group" aria-label={t('languageToggleLabel')}>
         {supportedLanguages.map((option, index) => (
           <Fragment key={option.code}>
-            {index > 0 ? <span className="language-sep" aria-hidden="true">·</span> : null}
+            {index > 0 ? <span className="language-sep" aria-hidden="true" /> : null}
             <button
               type="button"
               className={language === option.code ? 'language-option language-option-active' : 'language-option'}
