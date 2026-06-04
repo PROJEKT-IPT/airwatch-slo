@@ -88,6 +88,7 @@ select {
 .sidebar {
   position: sticky;
   top: 0;
+  width: 256px;
   height: 100vh;
   padding: 28px 22px;
   background: var(--forest-deep);
@@ -96,6 +97,7 @@ select {
   flex-direction: column;
   gap: 20px;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .brand-block {
@@ -113,6 +115,7 @@ select {
   width: 46px;
   height: 46px;
   flex: 0 0 auto;
+  padding: 0;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -126,6 +129,18 @@ select {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.brand-settings-trigger {
+  cursor: pointer;
+}
+
+.mobile-brand-popover {
+  display: none;
+}
+
+.mobile-brand-popover[hidden] {
+  display: none;
 }
 
 .brand-block h1 {
@@ -335,12 +350,24 @@ select {
 }
 
 .sidebar--collapsed {
+  width: 76px;
   padding: 24px 14px;
   align-items: center;
+  scrollbar-gutter: auto;
 }
 
 .sidebar--collapsed .brand-block {
+  width: auto;
+  align-self: stretch;
+  gap: 0;
+  align-items: center;
   justify-content: center;
+}
+
+.sidebar--collapsed .brand-mark {
+  width: 48px;
+  height: 48px;
+  margin-inline: auto;
 }
 
 .sidebar--collapsed .brand-text,
@@ -2531,6 +2558,7 @@ select {
 .comparison-row:focus-visible,
 .region-select select:focus-visible,
 .trend-filter-item select:focus-visible,
+.brand-settings-trigger:focus-visible,
 .language-option:focus-visible,
 .accessibility-option input:focus-visible {
   outline: 2px solid var(--berry-bloom);
@@ -2895,6 +2923,7 @@ html.a11y-high-contrast .test-region-badge {
 
   .sidebar {
     position: static;
+    width: auto;
     height: auto;
     padding: 20px 22px;
   }
@@ -2954,6 +2983,13 @@ html.a11y-high-contrast .test-region-badge {
 }
 
 @media (max-width: 720px) {
+  :root {
+    --mobile-nav-side: 12px;
+    --mobile-nav-top: max(12px, env(safe-area-inset-top));
+    --mobile-nav-bottom: max(10px, env(safe-area-inset-bottom));
+    --mobile-popover-top: max(78px, calc(env(safe-area-inset-top) + 78px));
+  }
+
   .dashboard-main {
     padding: 22px;
   }
@@ -3033,12 +3069,10 @@ html.a11y-high-contrast .test-region-badge {
   .history-metric {
     justify-items: start;
   }
-}
 
-/* Small phones: tighten spacing and keep the overview map usable. */
-@media (max-width: 520px) {
   .dashboard-main {
-    padding: 16px;
+    padding-top: 96px;
+    padding-bottom: calc(104px + env(safe-area-inset-bottom));
   }
 
   .dashboard-main--map {
@@ -3046,8 +3080,522 @@ html.a11y-high-contrast .test-region-badge {
   }
 
   .sidebar {
-    padding: 16px;
-    gap: 16px;
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    width: 100%;
+    min-height: 100svh;
+    height: 100dvh;
+    padding: 0;
+    background: transparent;
+    color: var(--plate-white);
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .brand-settings-trigger,
+  .mobile-brand-popover button,
+  .sidebar-nav .nav-item {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  html.a11y-high-contrast .sidebar {
+    background: transparent;
+  }
+
+  .sidebar-divider,
+  .language-switcher,
+  .accessibility-panel,
+  .sidebar-data-updated,
+  .sidebar-collapse-toggle,
+  .sidebar-nav .nav-item[data-view='data'] {
+    display: none;
+  }
+
+  .brand-block {
+    position: fixed;
+    top: var(--mobile-nav-top);
+    left: var(--mobile-nav-side);
+    z-index: 1304;
+    min-height: 54px;
+    padding: 6px;
+    border: 1px solid rgba(245, 246, 243, 0.16);
+    border-radius: 999px;
+    background: rgba(22, 41, 29, 0.95);
+    box-shadow: 0 16px 36px rgba(18, 34, 24, 0.2);
+    pointer-events: auto;
+  }
+
+  .brand-mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .mobile-brand-popover {
+    position: fixed;
+    top: var(--mobile-popover-top);
+    left: var(--mobile-nav-side);
+    z-index: 1307;
+    display: grid;
+    width: max-content;
+    min-width: 220px;
+    max-width: calc(100vw - 24px);
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(245, 246, 243, 0.16);
+    border-radius: 12px;
+    background: rgba(22, 41, 29, 0.98);
+    box-shadow: 0 18px 44px rgba(18, 34, 24, 0.28);
+    pointer-events: auto;
+  }
+
+  .mobile-accessibility-panel {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mobile-accessibility-options {
+    display: grid;
+    gap: 9px;
+    padding: 10px;
+    border: 1px solid rgba(245, 246, 243, 0.14);
+    border-radius: 8px;
+    background: rgba(245, 246, 243, 0.04);
+  }
+
+  .mobile-accessibility-options[hidden] {
+    display: none;
+  }
+
+  .mobile-accessibility-toggle {
+    min-height: 38px;
+    padding: 0;
+  }
+
+  .mobile-brand-popover .accessibility-option {
+    color: rgba(245, 246, 243, 0.84);
+  }
+
+  .mobile-brand-popover .accessibility-option span,
+  .mobile-about-button .nav-label {
+    white-space: nowrap;
+  }
+
+  .mobile-brand-popover .accessibility-option:has(input:checked) {
+    color: var(--plate-white);
+  }
+
+  html.a11y-high-contrast .brand-block,
+  html.a11y-high-contrast .mobile-brand-popover,
+  html.a11y-high-contrast .sidebar-nav {
+    border-color: #ffffff;
+    background: #000000;
+    box-shadow: none;
+  }
+
+  html.a11y-high-contrast .mobile-about-button {
+    border: 1px solid #ffffff;
+    background: #000000;
+    color: #ffffff;
+  }
+
+  html.a11y-high-contrast .mobile-accessibility-options {
+    border-color: #ffffff;
+    background: #000000;
+  }
+
+  html.a11y-high-contrast .sidebar-nav .nav-item[data-view='overview'] {
+    border-color: #ffffff;
+    box-shadow: none;
+  }
+
+  html.a11y-high-contrast .sidebar-nav .nav-item[data-view='overview']::before {
+    background: #000000;
+  }
+
+  .mobile-about-button {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 12px;
+    border-radius: 8px;
+    color: rgba(245, 246, 243, 0.78);
+    background: rgba(245, 246, 243, 0.05);
+  }
+
+  .sidebar-footer {
+    display: contents;
+  }
+
+  .sidebar-footer .nav-footer-item[data-view='about'] {
+    display: none;
+  }
+
+  .sidebar-nav {
+    position: fixed;
+    right: var(--mobile-nav-side);
+    bottom: var(--mobile-nav-bottom);
+    left: var(--mobile-nav-side);
+    z-index: 1306;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 7px;
+    padding: 6px;
+    border: 1px solid rgba(245, 246, 243, 0.14);
+    border-radius: 999px;
+    background: rgba(22, 41, 29, 0.96);
+    box-shadow: 0 16px 44px rgba(18, 34, 24, 0.26);
+    overflow: visible;
+    pointer-events: auto;
+  }
+
+  .sidebar-nav .nav-item {
+    width: 100%;
+    min-width: 0;
+    min-height: 50px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 999px;
+    gap: 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .sidebar-nav .nav-item[data-view='trend'] {
+    order: 1;
+  }
+
+  .sidebar-nav .nav-item[data-view='comparison'] {
+    order: 2;
+  }
+
+  .sidebar-nav .nav-item[data-view='overview'] {
+    order: 3;
+  }
+
+  .sidebar-nav .nav-item[data-view='satellite'] {
+    order: 4;
+  }
+
+  .sidebar-nav .nav-item[data-view='learn'] {
+    order: 5;
+  }
+
+  .sidebar-nav .nav-item[data-view='overview'] {
+    min-height: 58px;
+    transform: translateY(-10px);
+    border: 1px solid rgba(245, 246, 243, 0.18);
+    color: #d8f0e0;
+    background: rgba(74, 158, 110, 0.22);
+    box-shadow:
+      0 10px 22px rgba(8, 20, 13, 0.22);
+  }
+
+  .sidebar-nav .nav-item[data-view='overview']::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -7px -2px -5px;
+    border-radius: 999px;
+    background: rgba(22, 41, 29, 0.96);
+  }
+
+  .sidebar-nav .nav-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .sidebar-nav .nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1080px) {
+  :root {
+    --mobile-nav-side: 18px;
+    --mobile-nav-top: max(16px, env(safe-area-inset-top));
+    --mobile-nav-bottom: max(16px, env(safe-area-inset-bottom));
+    --mobile-popover-top: max(82px, calc(env(safe-area-inset-top) + 82px));
+  }
+
+  .dashboard-main {
+    padding-top: 104px;
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .dashboard-main--map {
+    padding: 0;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    width: 100%;
+    min-height: 100svh;
+    height: 100dvh;
+    padding: 0;
+    background: transparent;
+    color: var(--plate-white);
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  html.a11y-high-contrast .sidebar {
+    background: transparent;
+  }
+
+  .sidebar-divider,
+  .language-switcher,
+  .accessibility-panel,
+  .sidebar-data-updated,
+  .sidebar-collapse-toggle,
+  .sidebar-nav .nav-item[data-view='data'] {
+    display: none;
+  }
+
+  .brand-block {
+    position: fixed;
+    top: var(--mobile-nav-top);
+    left: var(--mobile-nav-side);
+    z-index: 1304;
+    min-height: 56px;
+    padding: 6px;
+    border: 1px solid rgba(245, 246, 243, 0.16);
+    border-radius: 999px;
+    background: rgba(22, 41, 29, 0.95);
+    box-shadow: 0 16px 36px rgba(18, 34, 24, 0.2);
+    pointer-events: auto;
+  }
+
+  .brand-mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .mobile-brand-popover {
+    position: fixed;
+    top: var(--mobile-popover-top);
+    left: var(--mobile-nav-side);
+    z-index: 1307;
+    display: grid;
+    width: max-content;
+    min-width: 220px;
+    max-width: calc(100vw - 36px);
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid rgba(245, 246, 243, 0.16);
+    border-radius: 12px;
+    background: rgba(22, 41, 29, 0.98);
+    box-shadow: 0 18px 44px rgba(18, 34, 24, 0.28);
+    pointer-events: auto;
+  }
+
+  .mobile-accessibility-panel {
+    display: grid;
+    gap: 10px;
+  }
+
+  .mobile-accessibility-options {
+    display: grid;
+    gap: 9px;
+    padding: 10px;
+    border: 1px solid rgba(245, 246, 243, 0.14);
+    border-radius: 8px;
+    background: rgba(245, 246, 243, 0.04);
+  }
+
+  .mobile-accessibility-options[hidden] {
+    display: none;
+  }
+
+  .mobile-accessibility-toggle {
+    min-height: 38px;
+    padding: 0;
+  }
+
+  .mobile-brand-popover .accessibility-option {
+    color: rgba(245, 246, 243, 0.84);
+  }
+
+  .mobile-brand-popover .accessibility-option span,
+  .mobile-about-button .nav-label {
+    white-space: nowrap;
+  }
+
+  .mobile-brand-popover .accessibility-option:has(input:checked) {
+    color: var(--plate-white);
+  }
+
+  html.a11y-high-contrast .brand-block,
+  html.a11y-high-contrast .mobile-brand-popover,
+  html.a11y-high-contrast .sidebar-nav {
+    border-color: #ffffff;
+    background: #000000;
+    box-shadow: none;
+  }
+
+  html.a11y-high-contrast .mobile-about-button,
+  html.a11y-high-contrast .mobile-accessibility-options {
+    border-color: #ffffff;
+    background: #000000;
+    color: #ffffff;
+  }
+
+  .mobile-about-button {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 12px;
+    border-radius: 8px;
+    color: rgba(245, 246, 243, 0.78);
+    background: rgba(245, 246, 243, 0.05);
+  }
+
+  .brand-settings-trigger,
+  .mobile-brand-popover button,
+  .sidebar-nav .nav-item {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
+
+  .sidebar-footer {
+    display: contents;
+  }
+
+  .sidebar-footer .nav-footer-item[data-view='about'] {
+    display: none;
+  }
+
+  .sidebar-nav {
+    position: fixed;
+    bottom: var(--mobile-nav-bottom);
+    left: 50%;
+    z-index: 1306;
+    display: grid;
+    width: 520px;
+    max-width: calc(100vw - 36px);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 9px;
+    padding: 7px;
+    border: 1px solid rgba(245, 246, 243, 0.14);
+    border-radius: 999px;
+    background: rgba(22, 41, 29, 0.96);
+    box-shadow: 0 16px 44px rgba(18, 34, 24, 0.26);
+    overflow: visible;
+    pointer-events: auto;
+    transform: translateX(-50%);
+  }
+
+  .sidebar-nav .nav-item {
+    width: 100%;
+    min-width: 0;
+    min-height: 52px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 999px;
+    gap: 0;
+    text-align: center;
+    position: relative;
+  }
+
+  .sidebar-nav .nav-item[data-view='trend'] {
+    order: 1;
+  }
+
+  .sidebar-nav .nav-item[data-view='comparison'] {
+    order: 2;
+  }
+
+  .sidebar-nav .nav-item[data-view='overview'] {
+    order: 3;
+  }
+
+  .sidebar-nav .nav-item[data-view='satellite'] {
+    order: 4;
+  }
+
+  .sidebar-nav .nav-item[data-view='learn'] {
+    order: 5;
+  }
+
+  .sidebar-nav .nav-item[data-view='overview'] {
+    min-height: 60px;
+    transform: translateY(-10px);
+    border: 1px solid rgba(245, 246, 243, 0.18);
+    color: #d8f0e0;
+    background: rgba(74, 158, 110, 0.22);
+    box-shadow: 0 10px 22px rgba(8, 20, 13, 0.22);
+  }
+
+  .sidebar-nav .nav-item[data-view='overview']::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -7px -2px -5px;
+    border-radius: 999px;
+    background: rgba(22, 41, 29, 0.96);
+  }
+
+  html.a11y-high-contrast .sidebar-nav .nav-item[data-view='overview'] {
+    border-color: #ffffff;
+    box-shadow: none;
+  }
+
+  html.a11y-high-contrast .sidebar-nav .nav-item[data-view='overview']::before {
+    background: #000000;
+  }
+
+  .sidebar-nav .nav-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .sidebar-nav .nav-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+/* Small phones: tighten spacing and keep the overview map usable. */
+@media (max-width: 520px) {
+  .dashboard-main {
+    padding: 92px 16px calc(100px + env(safe-area-inset-bottom));
+  }
+
+  .dashboard-main--map {
+    padding: 0;
+  }
+
+  .sidebar {
+    padding: 0;
+    gap: 0;
   }
 
   .card {

@@ -132,6 +132,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
   const { language, setLanguage, t, locale } = useLanguage()
   const [accessibilitySettings, setAccessibilitySettings] = useState(readAccessibilitySettings)
   const [accessibilityOpen, setAccessibilityOpen] = useState(false)
+  const [mobileSettingsOpen, setMobileSettingsOpen] = useState(false)
 
   useEffect(() => {
     const root = document.documentElement
@@ -141,6 +142,17 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
     root.classList.toggle('a11y-reduce-motion', accessibilitySettings.reduceMotion)
     window.localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify(accessibilitySettings))
   }, [accessibilitySettings])
+
+  useEffect(() => {
+    function closeOnEscape(event) {
+      if (event.key === 'Escape') {
+        setMobileSettingsOpen(false)
+      }
+    }
+
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [])
 
   const navigationItems = [
     { id: 'satellite', icon: 'satellite', label: t('navSatellite') },
@@ -162,16 +174,110 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
     }))
   }
 
+  function renderAccessibilityOptions() {
+    return (
+      <>
+        <label className="accessibility-option">
+          <input
+            type="checkbox"
+            checked={accessibilitySettings.largeText}
+            onChange={() => toggleAccessibilitySetting('largeText')}
+          />
+          <span>{t('accessibilityLargeText')}</span>
+        </label>
+        <label className="accessibility-option">
+          <input
+            type="checkbox"
+            checked={accessibilitySettings.highContrast}
+            onChange={() => toggleAccessibilitySetting('highContrast')}
+          />
+          <span>{t('accessibilityHighContrast')}</span>
+        </label>
+        <label className="accessibility-option">
+          <input
+            type="checkbox"
+            checked={accessibilitySettings.reduceMotion}
+            onChange={() => toggleAccessibilitySetting('reduceMotion')}
+          />
+          <span>{t('accessibilityReduceMotion')}</span>
+        </label>
+      </>
+    )
+  }
+
   return (
     <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="brand-block">
-        <div className="brand-mark">
+        <button
+          type="button"
+          className="brand-mark brand-settings-trigger"
+          aria-label={t('accessibilityTitle')}
+          aria-expanded={mobileSettingsOpen}
+          aria-controls="mobile-brand-popover"
+          onClick={() => {
+            setMobileSettingsOpen(open => {
+              const nextOpen = !open
+              if (nextOpen) {
+                setAccessibilityOpen(false)
+              }
+              return nextOpen
+            })
+          }}
+        >
           <img src="/logo_airwatch.png" alt="AirWatch SLO" width="46" height="46" />
-        </div>
+        </button>
         <div className="brand-text">
           <h1>AirWatch SLO</h1>
           <p>{t('brandSubtitle')}</p>
         </div>
+      </div>
+
+      <div className="mobile-brand-popover" id="mobile-brand-popover" hidden={!mobileSettingsOpen}>
+        <section className="mobile-accessibility-panel" aria-label={t('accessibilityTitle')}>
+          <button
+            type="button"
+            className="accessibility-toggle mobile-accessibility-toggle"
+            aria-expanded={accessibilityOpen}
+            aria-controls="mobile-accessibility-options"
+            onClick={() => setAccessibilityOpen(open => !open)}
+          >
+            <span>{t('accessibilityTitle')}</span>
+            <span className="accessibility-chevron" aria-hidden="true">
+              <Icon name="chevron" />
+            </span>
+          </button>
+          <div className="mobile-accessibility-options" id="mobile-accessibility-options" hidden={!accessibilityOpen}>
+            {renderAccessibilityOptions()}
+          </div>
+        </section>
+        <button
+          type="button"
+          className={`nav-item mobile-about-button ${activeView === 'about' ? 'nav-item-active' : ''}`}
+          aria-current={activeView === 'about' ? 'page' : undefined}
+          onClick={() => {
+            setMobileSettingsOpen(false)
+            onViewChange?.('about')
+          }}
+        >
+          <span className="nav-icon">
+            <Icon name="about" />
+          </span>
+          <span className="nav-label">{t('navAbout')}</span>
+        </button>
+        <button
+          type="button"
+          className={`nav-item mobile-about-button ${activeView === 'data' ? 'nav-item-active' : ''}`}
+          aria-current={activeView === 'data' ? 'page' : undefined}
+          onClick={() => {
+            setMobileSettingsOpen(false)
+            onViewChange?.('data')
+          }}
+        >
+          <span className="nav-icon">
+            <Icon name="data" />
+          </span>
+          <span className="nav-label">{t('navDataExport')}</span>
+        </button>
       </div>
 
       <div className="sidebar-divider" />
@@ -206,30 +312,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
           </span>
         </button>
         <div className="accessibility-options" id="accessibility-options" hidden={!accessibilityOpen}>
-          <label className="accessibility-option">
-            <input
-              type="checkbox"
-              checked={accessibilitySettings.largeText}
-              onChange={() => toggleAccessibilitySetting('largeText')}
-            />
-            <span>{t('accessibilityLargeText')}</span>
-          </label>
-          <label className="accessibility-option">
-            <input
-              type="checkbox"
-              checked={accessibilitySettings.highContrast}
-              onChange={() => toggleAccessibilitySetting('highContrast')}
-            />
-            <span>{t('accessibilityHighContrast')}</span>
-          </label>
-          <label className="accessibility-option">
-            <input
-              type="checkbox"
-              checked={accessibilitySettings.reduceMotion}
-              onChange={() => toggleAccessibilitySetting('reduceMotion')}
-            />
-            <span>{t('accessibilityReduceMotion')}</span>
-          </label>
+          {renderAccessibilityOptions()}
         </div>
       </section>
 
@@ -239,6 +322,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
             key={item.id}
             type="button"
             className={navClass(item.id)}
+            data-view={item.id}
             aria-current={item.id === activeView ? 'page' : undefined}
             title={collapsed ? item.label : undefined}
             onClick={() => onViewChange?.(item.id)}
@@ -262,6 +346,7 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
         <button
           type="button"
           className={`nav-item nav-footer-item ${activeView === 'about' ? 'nav-item-active' : ''}`}
+          data-view="about"
           aria-current={activeView === 'about' ? 'page' : undefined}
           title={collapsed ? t('navAbout') : undefined}
           onClick={() => onViewChange?.('about')}

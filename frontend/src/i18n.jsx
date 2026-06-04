@@ -30,7 +30,7 @@ const translations = {
     navOverview: 'Pregled',
     navTrend: 'Zgodovinski trend',
     navComparison: 'Primerjava regij',
-    navDataExport: 'Podatki & izvoz',
+    navDataExport: 'Podatki in izvoz',
     navMap: 'Karta regij',
     navMethodology: 'Metodologija',
     navLearn: 'Razloženo',
