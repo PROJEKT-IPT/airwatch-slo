@@ -1,0 +1,7 @@
+alembic
+fastapi==0.136.3
+psycopg2-binary
+python-dotenv>=1.2.2
+sqlalchemy
+starlette>=0.47.2
+uvicorn[standard]

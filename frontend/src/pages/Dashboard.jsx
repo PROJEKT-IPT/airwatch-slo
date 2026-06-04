@@ -187,8 +187,6 @@ function Dashboard({ activeView = 'overview' }) {
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
 
-  // Relative NO₂ level of the selected region vs. the other valid regions
-  // (low / moderate / high), consistent with the map's relative coloring.
   const concentrationLevel = useMemo(() => {
     if (!measurement || measurement.quality_status !== 'valid') return null
     const current = Number(measurement.value_mean)

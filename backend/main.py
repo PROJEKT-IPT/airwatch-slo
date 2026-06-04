@@ -55,9 +55,6 @@ def _safe_log(value: object) -> str:
 REGION_NOT_FOUND_DETAIL = "Region not found."
 NO_NO2_MEASUREMENT_DETAIL = "No NO2 measurement found for the requested region."
 
-# Reusable OpenAPI error-response docs so every endpoint documents the
-# HTTPException status codes it can return (Sonar python:S6855). Literal
-# integer keys are required for the documentation to be recognized.
 _BAD_REQUEST = {"description": "Invalid request parameters."}
 _NOT_FOUND = {"description": "The requested region or measurement was not found."}
 _SERVER_ERROR = {"description": "Unexpected error while querying the database."}
@@ -87,8 +84,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=get_cors_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Admin-Token"],
 )
 
 
@@ -155,14 +152,11 @@ def get_latest_measurement(
         )
 
     selected_id_region = id_region if id_region is not None else fk_region
-    region_filter = (
-        "region_code = :region_code" if region_code else "id_region = :id_region"
-    )
     params = {"region_code": region_code, "id_region": selected_id_region}
 
     row = db.execute(
         text(
-            f"""
+            """
             SELECT
                 r.id_region,
                 r.region_code,
@@ -209,7 +203,10 @@ def get_latest_measurement(
                     rm.id_region_measurement DESC
                 LIMIT 1
             ) latest ON TRUE
-            WHERE {region_filter}
+            WHERE (
+                (:region_code IS NOT NULL AND r.region_code = :region_code)
+                OR (:id_region IS NOT NULL AND r.id_region = :id_region)
+            )
             """
         ),
         params,

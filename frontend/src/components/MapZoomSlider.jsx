@@ -1,8 +1,5 @@
 import L from 'leaflet'
 
-// Keep slider interaction (drag, wheel, click) from reaching the Leaflet map
-// underneath, using Leaflet's own helpers rather than click handlers on a
-// non-interactive element (which would need a keyboard handler too).
 function bindMapControl(element) {
   if (!element) return
   L.DomEvent.disableClickPropagation(element)

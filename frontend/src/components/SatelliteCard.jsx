@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLanguage } from '../i18n'
 import MapZoomSlider from './MapZoomSlider'
 
-// Key facts shown as compact tiles in the hero (label + value pairs from i18n).
 const FACTS = [
   ['satFactInstrumentLabel', 'satFactInstrumentValue'],
   ['satFactLaunchLabel', 'satFactLaunchValue'],
@@ -178,7 +177,6 @@ function formatLocalTime(date, locale) {
   }).format(date)
 }
 
-// Small div-icon for a satellite: a dot plus an always-on name label.
 function buildSatelliteIcon(satellite) {
   const variant = satellite.primary ? 'satellite-marker--primary' : 'satellite-marker--other'
   return L.divIcon({
@@ -212,7 +210,6 @@ function SatellitePositionMap({ ariaLabel, now, satellites }) {
     if (!mapElementRef.current || mapRef.current) return undefined
     const initial = getPrimary(satellitesRef.current)
 
-    // Fully interactive: scroll/drag/zoom enabled so the user can explore.
     const map = L.map(mapElementRef.current, {
       attributionControl: false,
       maxZoom: 6,
@@ -262,8 +259,6 @@ function SatellitePositionMap({ ariaLabel, now, satellites }) {
     }
   }, [])
 
-  // Move the markers + redraw the primary ground track as time advances, but
-  // never re-center: that would fight the user's own pan/zoom.
   useEffect(() => {
     const map = mapRef.current
     if (!map) return

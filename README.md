@@ -596,6 +596,7 @@ Frontend:
 
 ```bash
 cd frontend
+nvm use
 npm ci
 npm run lint
 npm test
@@ -656,8 +657,8 @@ uspeti, preden je koda sprejemljiva.
 - teste: `backend/tests`, `data_pipeline/tests`, `frontend/tests`,
 - Python coverage XML,
 - JavaScript LCOV,
-- izključitve za `node_modules`, `.venv`, `dist`, surove podatke in velike
-  outpute.
+- izključitve za `node_modules`, `.venv`, `dist`, Alembic migracije, surove
+  podatke in velike outpute.
 
 ### Kako ravnati s Sonar problemi
 

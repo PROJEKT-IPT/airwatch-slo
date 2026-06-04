@@ -5,16 +5,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLanguage } from '../i18n'
 import MapZoomSlider from './MapZoomSlider'
 
-// Softer, environmental ramp: light yellow -> amber -> coral -> muted red.
 const SEQUENTIAL_COLORS = ['#eef3c8', '#e3e08a', '#e8c65a', '#e3a23e', '#dd7f4f', '#cb5f4b', '#a8453d']
-// Diverging ramp for the "deviation from the average" mode: blue below the
-// regional mean -> neutral -> red above it.
 const DEVIATION_COLORS = ['#2166ac', '#67a9cf', '#d1e5f0', '#f7f7f7', '#fddbc7', '#ef8a62', '#b2182b']
 const MISSING_COLOR = '#cfd6dc'
 const LEGEND_STEP_COUNT = 7
 
-// Click/keyboard/hover wiring for one region polygon. Kept at module level so
-// the map-building effect stays simple. No text on hover — only a highlight.
 function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegionRef }) {
   const regionCode = feature.properties.region_code
 
@@ -29,13 +24,8 @@ function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegion
   })
 }
 
-const CARTO_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+const CARTO_ATTRIBUTION = 'OpenStreetMap contributors, CARTO'
 
-// Create the Leaflet map, a real (labelled) base map, and a labels-on-top pane
-// once; return the map instance. The labels pane sits above the choropleth fill
-// (z-index 450) but below our region-capital markers (markerPane, z-index 600),
-// so town names stay readable while the capitals stay on top.
 function ensureLeafletMap(element, mapRef, baseLayerRef) {
   if (!mapRef.current) {
     mapRef.current = L.map(element, {
@@ -57,7 +47,6 @@ function ensureLeafletMap(element, mapRef, baseLayerRef) {
       'https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',
       { attribution: CARTO_ATTRIBUTION, className: 'regional-map-base-layer', maxZoom: 18 },
     ).addTo(map)
-    // Place/road labels drawn on top of the coloured regions.
     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
       maxZoom: 18,
       pane: 'regionLabels',
@@ -66,7 +55,6 @@ function ensureLeafletMap(element, mapRef, baseLayerRef) {
   return map
 }
 
-// Add a "reset to full Slovenia" control once; it re-fits the stored bounds.
 function ensureResetControl(map, resetControlRef, boundsRef, label) {
   if (resetControlRef.current) {
     resetControlRef.current.getContainer()?.setAttribute('title', label)
@@ -79,8 +67,7 @@ function ensureResetControl(map, resetControlRef, boundsRef, label) {
     button.type = 'button'
     button.title = label
     button.setAttribute('aria-label', label)
-    button.innerHTML =
-      '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>'
+    appendResetIcon(button)
     L.DomEvent.disableClickPropagation(button)
     L.DomEvent.on(button, 'click', event => {
       L.DomEvent.preventDefault(event)
@@ -94,7 +81,29 @@ function ensureResetControl(map, resetControlRef, boundsRef, label) {
   resetControlRef.current = control
 }
 
-// (Re)build the region polygons layer and fit the map to it on first render.
+function appendResetIcon(button) {
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  svg.setAttribute('width', '16')
+  svg.setAttribute('height', '16')
+  svg.setAttribute('viewBox', '0 0 24 24')
+  svg.setAttribute('fill', 'none')
+  svg.setAttribute('stroke', 'currentColor')
+  svg.setAttribute('stroke-width', '2')
+  svg.setAttribute('stroke-linecap', 'round')
+  svg.setAttribute('stroke-linejoin', 'round')
+  svg.setAttribute('aria-hidden', 'true')
+
+  const roof = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  roof.setAttribute('d', 'M3 10.5 12 3l9 7.5')
+  svg.appendChild(roof)
+
+  const house = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+  house.setAttribute('d', 'M5 9.5V21h14V9.5')
+  svg.appendChild(house)
+
+  button.appendChild(svg)
+}
+
 function renderRegionLayer(map, refs, params) {
   const { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef } = refs
   const { mapRegions, mapScale, mapGeometryKey, onRegionSelect, showDeviations, t } = params
@@ -131,7 +140,6 @@ function renderRegionLayer(map, refs, params) {
   }
 }
 
-// Apply the selected emphasis (glow class + bring to front) to one layer.
 function emphasizeIfSelected(layer, selectedRegionCode) {
   const isSelected = layer.feature?.properties?.region_code === selectedRegionCode
   layer.setStyle(getRegionStyle(layer.feature?.properties, selectedRegionCode))
@@ -140,7 +148,6 @@ function emphasizeIfSelected(layer, selectedRegionCode) {
   if (isSelected) layer.bringToFront()
 }
 
-// Loading / error / empty placeholder shown in place of the Leaflet map.
 function MapStateMessage({ isLoading, error, t }) {
   if (isLoading) {
     return (
@@ -307,8 +314,6 @@ function RegionalMap({
   )
 }
 
-// Color legend with a switch between absolute NO₂ values and deviation from the
-// regional average (relative scale across the shown regions).
 function MapLegend({ fullScreen, mapScale, showDeviations, onToggle, t }) {
   const view = getLegendView(showDeviations, mapScale, t)
 
@@ -345,7 +350,6 @@ function MapLegend({ fullScreen, mapScale, showDeviations, onToggle, t }) {
   )
 }
 
-// Mode-dependent legend content, kept out of the component to stay flat.
 function getLegendView(showDeviations, mapScale, t) {
   if (showDeviations) {
     return {

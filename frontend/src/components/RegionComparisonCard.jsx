@@ -12,7 +12,6 @@ import {
 import { useLanguage } from '../i18n'
 import { formatNo2Value } from '../utils/format'
 
-// Low -> high concentration ramp (green to orange), consistent with the map.
 const BAR_COLORS = ['#2f9e63', '#5cae53', '#94c247', '#d6c63f', '#e3a93b', '#e2843c', '#d2603a']
 
 function colorForRatio(ratio) {
@@ -31,7 +30,6 @@ function RegionComparisonCard({
   const rows = buildComparisonRows(regions)
   const validRows = rows.filter(row => row.hasValue)
 
-  // Values are tiny (mol/m²); show them in µmol/m² to match the map legend.
   const chartData = validRows.map(row => ({ ...row, displayValue: row.valueMean * 1e6 }))
   const displayValues = chartData.map(row => row.displayValue)
   const minValue = displayValues.length ? Math.min(...displayValues) : 0
@@ -122,8 +120,6 @@ function RegionComparisonCard({
             <p className="comparison-axis-unit">{getMicromolUnit()}</p>
           </div>
 
-          {/* Accessible region selection (keyboard + assistive tech); the chart
-              above is the visual representation. */}
           <div className="comparison-controls" aria-label={t('comparisonListAria')}>
             {rows.map(row => (
               <button

@@ -114,7 +114,6 @@ function AdminProcessingStatusPage() {
   )
 }
 
-// State-dependent status card body; flat early-returns keep complexity low.
 function ProcessingStatusBody({
   isLoading,
   error,

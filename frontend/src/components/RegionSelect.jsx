@@ -22,7 +22,6 @@ function RegionSelect({ regions, selectedRegionCode, onRegionChange, isLoading, 
   const selected = regions.find(region => region.region_code === selectedRegionCode) || null
   const filteredRegions = useMemo(() => filterRegions(regions, searchTerm), [regions, searchTerm])
 
-  // Close on outside click or Esc.
   useEffect(() => {
     if (!open) return undefined
 

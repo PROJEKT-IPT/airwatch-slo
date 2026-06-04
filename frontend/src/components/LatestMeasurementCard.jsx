@@ -77,7 +77,6 @@ const CONCENTRATION = {
   high: { className: 'conc-dot--high', labelKey: 'concentrationHigh' },
 }
 
-// Relative NO₂ level (vs. the other regions), shown beside the headline value.
 function ConcentrationBadge({ level, t }) {
   const info = CONCENTRATION[level]
   if (!info) return null
@@ -118,8 +117,6 @@ function ErrorState({ title, text }) {
   )
 }
 
-// Discreet line showing when the underlying satellite measurement was taken
-// (the Sentinel-5P overpass end time, in UTC). Hidden if the time is missing.
 function MeasurementTimestamp({ value, t, locale }) {
   if (!value) return null
 
@@ -159,8 +156,6 @@ function getMissingDataState(measurement, t) {
   return null
 }
 
-// Renders the headline NO₂ value with a real superscript exponent
-// (e.g. 2,7 × 10⁻⁵) instead of an inline "x 10^-5" string.
 function No2Value({ value, t, locale }) {
   if (value === null || value === undefined || value === '') {
     return <span className="metric-value">{t('noData')}</span>

@@ -24,8 +24,6 @@ def upgrade() -> None:
         sa.Column("region_name", sa.String(length=255), nullable=False),
         sa.Column("region_code", sa.String(length=100), nullable=False),
         sa.Column("region_type", sa.String(length=100), nullable=False),
-        # TODO: Replace with PostGIS geometry via GeoAlchemy2
-        # Geometry("MULTIPOLYGON", srid=4326) after GeoAlchemy2 is added.
         sa.Column("geometry", sa.Text(), nullable=True),
         sa.Column("bbox_lat_min", sa.Numeric(9, 6), nullable=True),
         sa.Column("bbox_lat_max", sa.Numeric(9, 6), nullable=True),

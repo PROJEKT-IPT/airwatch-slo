@@ -90,7 +90,6 @@ function ExportLink({ href, disabled, label }) {
   )
 }
 
-// State-dependent body. Flat early-returns keep the branching simple.
 function DetailsBody({ hasRegion, isLoading, error, measurement, missingDataState, t, locale }) {
   if (!hasRegion) {
     return <p className="muted-text">{t('selectRegionForDetails')}</p>
@@ -180,8 +179,6 @@ function DetailRow({ label, value, title, t }) {
   )
 }
 
-// Long Sentinel-5P .nc filenames break the layout; show a friendly label and
-// keep the full name available on hover (title attribute).
 function shortenProduct(name, t) {
   if (!name) return t('noData')
   if (name.includes('S5P') && name.includes('NO2')) return 'Sentinel-5P OFFL L2 NO2'

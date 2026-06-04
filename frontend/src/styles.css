@@ -1,7 +1,4 @@
 :root {
-  /* Green environmental palette. Variable names are kept from the previous
-     theme to avoid churn; --blueberry-skin is now the primary dark green used
-     for headings and emphasis, --forest-deep is the dark sidebar background. */
   --blueberry-skin: #1d3d29;
   --forest-deep: #16291d;
   --berry-bloom: #4a7159;
@@ -98,8 +95,6 @@ select {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  /* Scroll inside the sidebar if its content is taller than the viewport,
-     so it never pushes the page (the overview map view stays non-scrollable). */
   overflow-y: auto;
 }
 
@@ -372,8 +367,6 @@ select {
   overflow: hidden;
 }
 
-/* Full-screen map overview: the map fills the content area beside the sidebar,
-   with the region/measurement panel and legend floating on top. */
 .dashboard-main--map {
   max-width: none;
   height: 100vh;
@@ -427,17 +420,12 @@ select {
   line-height: 1.5;
 }
 
-/* Overview metric card holds the region picker, the latest measurement and a
-   short note, separated by thin dividers. */
 .context-divider {
   height: 1px;
   margin: 16px 0;
   background: var(--line);
 }
 
-/* Region picker rendered without its own card chrome (inside context panel).
-   Higher specificity than the shared .region-picker card rule so the reset
-   wins regardless of source order. */
 .region-picker.region-picker--embedded {
   padding: 0;
   border: 0;
@@ -451,7 +439,6 @@ select {
   right: 0;
 }
 
-/* Open the list upward (used when the picker sits in a panel near the bottom). */
 .region-picker.region-picker--up .region-picker-popover {
   top: auto;
   bottom: 100%;
@@ -957,7 +944,6 @@ select {
   font-weight: 850;
 }
 
-/* Hero: region selector + primary value (left) and the map (right) */
 .dashboard-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.9fr);
@@ -971,14 +957,12 @@ select {
   align-content: start;
 }
 
-/* Single focused screen (trend, comparison, data, methodology, map views) */
 .dashboard-view {
   display: grid;
   gap: 18px;
   align-items: start;
 }
 
-/* About page: two-up cards for users/features, bulleted lists */
 .about-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1004,7 +988,6 @@ select {
   margin-top: 18px;
 }
 
-/* Map-first overview: large central map + compact summary panel */
 .overview {
   display: grid;
   gap: 18px;
@@ -1022,7 +1005,6 @@ select {
   min-height: 480px;
 }
 
-/* Editorial sections with a clear heading and lead-in */
 .dashboard-section {
   margin-top: 38px;
 }
@@ -1061,12 +1043,10 @@ select {
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 }
 
-/* Quiet methodology note, sits beside the data details card */
 .methodology-card p + p {
   margin-top: 12px;
 }
 
-/* Methodology explainer view */
 .methodology-view {
   display: grid;
   gap: 18px;
@@ -1114,7 +1094,6 @@ select {
   font-weight: 800;
 }
 
-/* Satellite explainer view: hero card with key facts + clean section grid */
 .satellite-view .card h2 {
   margin: 0 0 10px;
 }
@@ -1221,7 +1200,6 @@ select {
   line-height: 1.1;
 }
 
-/* Our satellite stands out from the orientation-only ones. */
 .satellite-marker--primary .satellite-marker-dot {
   width: 11px;
   height: 11px;
@@ -1391,8 +1369,6 @@ select {
   align-self: start;
 }
 
-/* Headline value + relative concentration level, split by a vertical rule */
-/* Connects the summary card to the highlighted region on the map */
 .metric-active-tag {
   display: inline-flex;
   align-items: center;
@@ -1430,8 +1406,6 @@ select {
   font-size: clamp(2.1rem, 3.4vw, 3.2rem);
 }
 
-/* Relative level beside the value on wide cards, wrapping cleanly below it on
-   the narrower overview column. */
 .concentration-level {
   display: flex;
   align-items: center;
@@ -1465,7 +1439,6 @@ select {
 }
 
 
-/* Discreet "last measurement" timestamp under the value/note. */
 .metric-timestamp {
   margin: 10px 0 0;
   color: var(--stem-grey);
@@ -1703,9 +1676,6 @@ select {
   box-shadow: 0 14px 36px rgba(29, 61, 41, 0.14);
 }
 
-/* When the sidebar stacks on top, the map can no longer be full viewport
-   height; give it a fixed height and stack the floating boxes (legend on top,
-   panel at the bottom) so they don't collide. */
 @media (max-width: 1080px) {
   .dashboard-main--map {
     height: auto;
@@ -1810,12 +1780,10 @@ select {
   outline: none;
 }
 
-/* Selected region: subtle dark-green halo so it reads instantly (not neon). */
 .regional-leaflet-map path.region-selected {
   filter: drop-shadow(0 0 5px rgba(22, 41, 29, 0.55)) drop-shadow(0 1px 2px rgba(22, 41, 29, 0.35));
 }
 
-/* Reset-to-Slovenia control button (sits with the zoom controls) */
 .regional-leaflet-map .map-reset-btn {
   display: grid;
   place-items: center;
@@ -2573,8 +2541,6 @@ html.a11y-high-contrast .test-region-badge {
     padding: 20px 22px;
   }
 
-  /* Stacked-on-top sidebar: nav becomes a compact wrapped row of chips
-     instead of full-width stacked rows, so it doesn't eat vertical space. */
   .sidebar-nav {
     flex-direction: row;
     flex-wrap: wrap;
@@ -2657,8 +2623,6 @@ html.a11y-high-contrast .test-region-badge {
     min-height: 0;
   }
 
-  /* Keep the nav to a single swipeable row so the header stays short.
-     Scrolling stays enabled, but the scrollbar is hidden. */
   .sidebar-nav {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -2679,7 +2643,6 @@ html.a11y-high-contrast .test-region-badge {
     grid-template-columns: 1fr;
   }
 
-  /* Floating overview boxes must never exceed the (shorter) phone map. */
   .map-card.map-card--full {
     height: 68vh;
   }
@@ -2764,8 +2727,6 @@ html.a11y-high-contrast .test-region-badge {
   }
 }
 
-/* Print / "Export PDF": render a clean one-page report of the current view.
-   The sidebar, the region picker and the export buttons are hidden. */
 @media print {
   .dashboard-shell {
     display: block;

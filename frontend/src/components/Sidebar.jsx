@@ -143,7 +143,6 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
     window.localStorage.setItem(ACCESSIBILITY_STORAGE_KEY, JSON.stringify(accessibilitySettings))
   }, [accessibilitySettings])
 
-  // Each item switches the main content area to a focused view (no scrolling).
   const navigationItems = [
     { id: 'satellite', icon: 'satellite', label: t('navSatellite') },
     { id: 'overview', icon: 'overview', label: t('navOverview') },

@@ -27,8 +27,6 @@ function App() {
   const [activeView, setActiveView] = useState(readViewFromHash)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
 
-  // Admin/debug is an internal view: reachable at #admin for troubleshooting,
-  // but not advertised in the public navigation.
   useEffect(() => {
     function syncFromHash() {
       setActiveView(readViewFromHash())

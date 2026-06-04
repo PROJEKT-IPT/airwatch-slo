@@ -1,5 +1,3 @@
-// Shared formatting helpers (kept in one place to avoid duplication).
-
 // Render a tiny NO₂ value as a compact "mantissa x 10^exponent" string,
 // e.g. 0.000027 -> "2,7 x 10^-5". `fallback` is returned for empty input.
 export function formatNo2Value(value, locale, fallback = '') {
@@ -31,14 +29,12 @@ function csvCell(value) {
   return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
 }
 
-// Build a CSV string with one row per region from the loaded latest summaries.
 export function buildRegionsCsv(regions = []) {
   const header = REGION_CSV_COLUMNS.join(',')
   const rows = regions.map(region => REGION_CSV_COLUMNS.map(column => csvCell(region?.[column])).join(','))
   return [header, ...rows].join('\n')
 }
 
-// Data URL for downloading the all-regions CSV (empty string when no regions).
 export function regionsCsvDataUrl(regions = []) {
   if (!regions.length) return ''
   return `data:text/csv;charset=utf-8,${encodeURIComponent(buildRegionsCsv(regions))}`

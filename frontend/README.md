@@ -5,7 +5,10 @@ Zemljevid regij uporablja Leaflet, trend graf prikazuje zgodovino regije.
 
 ## Zagon
 
+Frontend je pinan na Node.js 20.19+ (`../.nvmrc` in `package.json` `engines`).
+
 ```bash
+nvm use
 npm install
 npm run dev      # dev server na http://localhost:3000
 ```
@@ -45,6 +48,7 @@ src/
 ## Ukazi
 
 ```bash
+nvm use
 npm run dev        # razvojni server
 npm run build      # produkcijska gradnja
 npm run lint       # ESLint

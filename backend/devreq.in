@@ -1,0 +1,4 @@
+-r req.in
+httpx2
+pytest>=9.0.3
+pytest-cov
