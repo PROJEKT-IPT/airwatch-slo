@@ -235,6 +235,12 @@ select {
   gap: 8px;
 }
 
+/* The `hidden` attribute must win over `display: grid`, otherwise the
+   collapsible dropdown never actually closes. */
+.accessibility-options[hidden] {
+  display: none;
+}
+
 .accessibility-option {
   display: flex;
   align-items: center;
