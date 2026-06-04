@@ -188,19 +188,24 @@ jobs:
           name: frontend-coverage
           path: frontend/coverage
 
-      - name: Skip SonarQube scan when token is missing
-        if: env.SONAR_TOKEN == ''
-        run: echo "::warning::SONAR_TOKEN is not configured; skipping SonarQube analysis."
+      - name: Validate SonarQube configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SONAR_TOKEN}" ]; then
+            echo "::error::SONAR_TOKEN is not configured. Add it as a GitHub secret."
+            exit 1
+          fi
+          if [ -z "${SONAR_ORGANIZATION}" ]; then
+            echo "::error::SONAR_ORGANIZATION is not configured. Add it as a GitHub variable or secret."
+            exit 1
+          fi
 
       - name: Run SonarQube Cloud scan
-        # The SonarScanner CLI's JRE-provisioning call is occasionally flaky and
-        # fails the step transiently. Don't let that break the whole CI run; the
-        # SonarCloud Quality Gate is reported as its own status check and updates
-        # whenever a scan succeeds.
-        continue-on-error: true
-        if: env.SONAR_TOKEN != '' && env.SONAR_ORGANIZATION != ''
         uses: SonarSource/sonarqube-scan-action@v7
         with:
           args: >
             -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ env.SONAR_ORGANIZATION }}
+            -Dsonar.qualitygate.wait=true
+            -Dsonar.qualitygate.timeout=300
