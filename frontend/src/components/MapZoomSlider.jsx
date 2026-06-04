@@ -1,5 +1,12 @@
-function stopMapPointerEvent(event) {
-  event.stopPropagation()
+import L from 'leaflet'
+
+// Keep slider interaction (drag, wheel, click) from reaching the Leaflet map
+// underneath, using Leaflet's own helpers rather than click handlers on a
+// non-interactive element (which would need a keyboard handler too).
+function bindMapControl(element) {
+  if (!element) return
+  L.DomEvent.disableClickPropagation(element)
+  L.DomEvent.disableScrollPropagation(element)
 }
 
 function MapZoomSlider({ label, max, min, onChange, value }) {
@@ -10,13 +17,7 @@ function MapZoomSlider({ label, max, min, onChange, value }) {
   if (safeMax <= safeMin) return null
 
   return (
-    <label
-      className="map-zoom-slider"
-      onClick={stopMapPointerEvent}
-      onMouseDown={stopMapPointerEvent}
-      onPointerDown={stopMapPointerEvent}
-      onTouchStart={stopMapPointerEvent}
-    >
+    <label className="map-zoom-slider" ref={bindMapControl}>
       <span className="sr-only">{label}</span>
       <input
         type="range"
