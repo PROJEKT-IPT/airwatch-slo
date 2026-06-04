@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 
-import { getProcessingHistory, getProcessingStatus } from '../api/airwatchApi'
+import {
+  AdminUnauthorizedError,
+  clearAdminAuth,
+  getProcessingHistory,
+  getProcessingStatus,
+} from '../api/airwatchApi'
 import { useLanguage } from '../i18n'
 
 const HISTORY_LIMIT = 20
@@ -29,6 +34,16 @@ function AdminProcessingStatusPage() {
       ])
 
       if (!isMounted) return
+
+      const unauthorized =
+        (statusResult.status === 'rejected' && statusResult.reason instanceof AdminUnauthorizedError) ||
+        (historyResult.status === 'rejected' && historyResult.reason instanceof AdminUnauthorizedError)
+
+      if (unauthorized) {
+        clearAdminAuth()
+        window.location.reload()
+        return
+      }
 
       if (statusResult.status === 'fulfilled') {
         setStatus(statusResult.value)
@@ -67,12 +82,24 @@ function AdminProcessingStatusPage() {
           <h1>{t('adminTitle')}</h1>
           <p className="dashboard-subtitle">{t('adminSubtitle')}</p>
         </div>
-        {status ? (
-          <div className={`header-status processing-header-status ${statusInfo.className}`}>
-            <span className="status-dot" />
-            <span>{statusInfo.label}</span>
-          </div>
-        ) : null}
+        <div className="admin-header-actions">
+          {status ? (
+            <div className={`header-status processing-header-status ${statusInfo.className}`}>
+              <span className="status-dot" />
+              <span>{statusInfo.label}</span>
+            </div>
+          ) : null}
+          <button
+            type="button"
+            className="admin-logout-button"
+            onClick={() => {
+              clearAdminAuth()
+              window.location.reload()
+            }}
+          >
+            {t('adminLogout')}
+          </button>
+        </div>
       </header>
 
       <section className="admin-status-grid">

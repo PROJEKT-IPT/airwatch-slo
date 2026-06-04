@@ -1,3 +1,4 @@
+import hmac
 import logging
 import os
 import re
@@ -5,7 +6,7 @@ import csv
 from io import StringIO
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.exc import SQLAlchemyError
@@ -58,6 +59,26 @@ NO_NO2_MEASUREMENT_DETAIL = "No NO2 measurement found for the requested region."
 _BAD_REQUEST = {"description": "Invalid request parameters."}
 _NOT_FOUND = {"description": "The requested region or measurement was not found."}
 _SERVER_ERROR = {"description": "Unexpected error while querying the database."}
+_ADMIN_UNAUTHORIZED = {"description": "Missing or invalid admin password."}
+_ADMIN_DISABLED = {"description": "Admin endpoints disabled (ADMIN_PASSWORD not set)."}
+
+
+def require_admin_password(
+    x_admin_token: Optional[str] = Header(default=None, alias="X-Admin-Token"),
+) -> None:
+    """Gate admin-only endpoints behind the ADMIN_PASSWORD env secret.
+
+    Fails closed: if ADMIN_PASSWORD is unset the endpoint returns 503 so a
+    misconfigured deploy can never accidentally serve admin data without auth.
+    """
+    expected = os.getenv("ADMIN_PASSWORD", "")
+    if not expected:
+        raise HTTPException(
+            status_code=503,
+            detail="Admin endpoints disabled: ADMIN_PASSWORD not set.",
+        )
+    if not x_admin_token or not hmac.compare_digest(x_admin_token, expected):
+        raise HTTPException(status_code=401, detail="Invalid admin password.")
 
 
 # DEPLOY: uncomment these two lines once `admin_refresh.py`'s deploy
@@ -579,7 +600,12 @@ def _build_csv_response(rows: list[dict], *, filename: str) -> StreamingResponse
 @app.get(
     "/processing/status",
     response_model=ProcessingStatusResponse,
-    responses={404: _NOT_FOUND},
+    responses={
+        401: _ADMIN_UNAUTHORIZED,
+        404: _NOT_FOUND,
+        503: _ADMIN_DISABLED,
+    },
+    dependencies=[Depends(require_admin_password)],
 )
 def get_processing_status(db: Session = Depends(get_db)):
     row = db.execute(
@@ -644,7 +670,15 @@ def get_processing_status(db: Session = Depends(get_db)):
     return response
 
 
-@app.get("/processing/history", response_model=list[ProcessingRunHistoryItem])
+@app.get(
+    "/processing/history",
+    response_model=list[ProcessingRunHistoryItem],
+    responses={
+        401: _ADMIN_UNAUTHORIZED,
+        503: _ADMIN_DISABLED,
+    },
+    dependencies=[Depends(require_admin_password)],
+)
 def get_processing_history(
     limit: int = Query(default=20, ge=1, le=200),
     offset: int = Query(default=0, ge=0),

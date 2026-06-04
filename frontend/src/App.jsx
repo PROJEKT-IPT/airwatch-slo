@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import AdminLoginGate from './components/AdminLoginGate'
 import Sidebar from './components/Sidebar'
 import { LanguageProvider } from './i18n'
 import AdminProcessingStatusPage from './pages/AdminProcessingStatusPage'
@@ -52,7 +53,9 @@ function App() {
           dataUpdatedAt={dataUpdatedAt}
         />
         {activeView === 'admin' ? (
-          <AdminProcessingStatusPage />
+          <AdminLoginGate>
+            <AdminProcessingStatusPage />
+          </AdminLoginGate>
         ) : (
           <Dashboard activeView={activeView} onDataUpdatedAt={setDataUpdatedAt} />
         )}
