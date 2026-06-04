@@ -2042,7 +2042,6 @@ select {
 .regional-map {
   position: relative;
   min-height: 250px;
-  margin-top: 18px;
   padding: 0;
   border-radius: 8px;
   background: rgba(245, 246, 243, 0.7);
