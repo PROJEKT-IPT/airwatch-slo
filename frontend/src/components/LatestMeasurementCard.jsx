@@ -7,6 +7,8 @@ function LatestMeasurementCard({
   hasRegion,
   concentrationLevel = null,
   regionSelect = null,
+  datePicker = null,
+  timestampLabelKey = 'lastMeasurement',
 }) {
   const { t, locale } = useLanguage()
 
@@ -30,7 +32,13 @@ function LatestMeasurementCard({
         <div className="measurement-unavailable" role="status" aria-live="polite">
           <h3>{missingDataState.title}</h3>
           <p>{missingDataState.text}</p>
-          <MeasurementTimestamp value={measurement.measurement_end_time} t={t} locale={locale} />
+          <MeasurementTimestamp
+            value={measurement.measurement_end_time}
+            t={t}
+            locale={locale}
+            datePicker={datePicker}
+            labelKey={timestampLabelKey}
+          />
         </div>
       )
     }
@@ -52,7 +60,13 @@ function LatestMeasurementCard({
 
         <div className="context-divider" />
 
-        <MeasurementTimestamp value={measurement.measurement_end_time} t={t} locale={locale} />
+        <MeasurementTimestamp
+          value={measurement.measurement_end_time}
+          t={t}
+          locale={locale}
+          datePicker={datePicker}
+          labelKey={timestampLabelKey}
+        />
       </>
     )
   }
@@ -117,7 +131,7 @@ function ErrorState({ title, text }) {
   )
 }
 
-function MeasurementTimestamp({ value, t, locale }) {
+function MeasurementTimestamp({ value, t, locale, datePicker = null, labelKey = 'lastMeasurement' }) {
   if (!value) return null
 
   const date = new Date(value)
@@ -128,11 +142,17 @@ function MeasurementTimestamp({ value, t, locale }) {
     timeStyle: 'short',
     timeZone: 'UTC',
   }).format(date)
+  const localFormatted = new Intl.DateTimeFormat(locale, {
+    timeStyle: 'short',
+  }).format(date)
 
   return (
-    <p className="metric-timestamp">
-      {t('lastMeasurement')}: {formatted} UTC
-    </p>
+    <div className="metric-timestamp-row">
+      <p className="metric-timestamp">
+        {t(labelKey)}: {formatted} UTC / {localFormatted} {t('localTime')}
+      </p>
+      {datePicker}
+    </div>
   )
 }
 

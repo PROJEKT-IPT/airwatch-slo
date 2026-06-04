@@ -27,6 +27,15 @@ function bindRegionInteractions(feature, layer, { onRegionSelect, selectedRegion
 const CARTO_ATTRIBUTION = 'OpenStreetMap contributors, CARTO'
 
 function ensureLeafletMap(element, mapRef, baseLayerRef) {
+  let recreated = false
+
+  if (mapRef.current && mapRef.current.getContainer() !== element) {
+    mapRef.current.remove()
+    mapRef.current = null
+    baseLayerRef.current = null
+    recreated = true
+  }
+
   if (!mapRef.current) {
     mapRef.current = L.map(element, {
       attributionControl: false,
@@ -42,6 +51,7 @@ function ensureLeafletMap(element, mapRef, baseLayerRef) {
     const labelsPane = mapRef.current.createPane('regionLabels')
     labelsPane.style.zIndex = 450
     labelsPane.style.pointerEvents = 'none'
+    recreated = true
   }
 
   const map = mapRef.current
@@ -55,7 +65,7 @@ function ensureLeafletMap(element, mapRef, baseLayerRef) {
       pane: 'regionLabels',
     }).addTo(map)
   }
-  return map
+  return { map, recreated }
 }
 
 function ensureResetControl(map, resetControlRef, boundsRef, label) {
@@ -201,6 +211,7 @@ function RegionalMap({
   const mapRegions = useMemo(() => buildMapRegions(regions, geometries), [regions, geometries])
   const mapGeometryKey = useMemo(() => buildMapGeometryKey(mapRegions), [mapRegions])
   const mapScale = useMemo(() => buildMapScale(mapRegions), [mapRegions])
+  const showMapState = isLoading || error || mapRegions.length === 0
 
   useEffect(() => {
     selectedRegionRef.current = selectedRegionCode
@@ -211,11 +222,16 @@ function RegionalMap({
   }, [selectedRegionCode])
 
   useEffect(() => {
-    if (isLoading || error || mapRegions.length === 0 || !mapElementRef.current) {
+    if (error || mapRegions.length === 0 || !mapElementRef.current) {
       return undefined
     }
 
-    const map = ensureLeafletMap(mapElementRef.current, mapRef, baseLayerRef)
+    const { map, recreated } = ensureLeafletMap(mapElementRef.current, mapRef, baseLayerRef)
+    if (recreated) {
+      geoJsonLayerRef.current = null
+      resetControlRef.current = null
+      fittedGeometryKeyRef.current = null
+    }
     renderRegionLayer(
       map,
       { geoJsonLayerRef, fittedGeometryKeyRef, selectedRegionRef, boundsRef, resetControlRef },
@@ -237,7 +253,7 @@ function RegionalMap({
     return () => {
       map.off('zoomend zoomlevelschange', syncZoomState)
     }
-  }, [error, isLoading, mapGeometryKey, mapRegions, mapScale, onRegionSelect, showDeviations, t])
+  }, [error, mapGeometryKey, mapRegions, mapScale, onRegionSelect, showDeviations, t])
 
   function handleZoomChange(nextZoom) {
     setZoomState(currentState => ({ ...currentState, value: nextZoom }))
@@ -267,39 +283,36 @@ function RegionalMap({
       ) : null}
 
       <div className={`regional-map${fullScreen ? ' regional-map--full' : ''}`} aria-label={t('mapAria')}>
-        {!isLoading && !error && mapRegions.length > 0 ? (
-          <>
-            <div
-              ref={mapElementRef}
-              className="regional-leaflet-map"
-              role="application"
-              aria-label={t('interactiveMapAria')}
-            />
-            <div className="map-region-controls" aria-label={t('mapControlsAria')}>
-              {mapRegions.map(region => (
-                <button
-                  key={region.region_code}
-                  type="button"
-                  aria-pressed={region.region_code === selectedRegionCode}
-                  onClick={() => onRegionSelect(region.region_code)}
-                >
-                  {t('selectMapRegion', { region: region.region_name })}
-                </button>
-              ))}
-            </div>
-            {zoomState.ready ? (
-              <MapZoomSlider
-                label={t('mapZoomLabel')}
-                max={zoomState.max}
-                min={zoomState.min}
-                value={zoomState.value}
-                onChange={handleZoomChange}
-              />
-            ) : null}
-          </>
-        ) : (
-          <MapStateMessage isLoading={isLoading} error={error} t={t} />
-        )}
+        <div
+          ref={mapElementRef}
+          className="regional-leaflet-map"
+          role="application"
+          aria-label={t('interactiveMapAria')}
+        />
+        {!error && mapRegions.length > 0 ? (
+          <div className="map-region-controls" aria-label={t('mapControlsAria')}>
+            {mapRegions.map(region => (
+              <button
+                key={region.region_code}
+                type="button"
+                aria-pressed={region.region_code === selectedRegionCode}
+                onClick={() => onRegionSelect(region.region_code)}
+              >
+                {t('selectMapRegion', { region: region.region_name })}
+              </button>
+            ))}
+          </div>
+        ) : null}
+        {!showMapState && zoomState.ready ? (
+          <MapZoomSlider
+            label={t('mapZoomLabel')}
+            max={zoomState.max}
+            min={zoomState.min}
+            value={zoomState.value}
+            onChange={handleZoomChange}
+          />
+        ) : null}
+        {showMapState ? <MapStateMessage isLoading={isLoading} error={error} t={t} /> : null}
       </div>
 
       {!isLoading && !error && mapRegions.length > 0 ? (

@@ -1582,13 +1582,203 @@ select {
 }
 
 
-.metric-timestamp {
+.metric-timestamp-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 10px 0 0;
+}
+
+.metric-timestamp {
+  margin: 0;
   color: var(--stem-grey);
   font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.01em;
   opacity: 0.85;
+}
+
+.measurement-date-picker {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.measurement-date-trigger {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(29, 61, 41, 0.16);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--blueberry-skin);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(29, 61, 41, 0.08);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.measurement-date-trigger:hover,
+.measurement-date-trigger:focus-visible {
+  border-color: rgba(47, 158, 99, 0.5);
+  background: var(--success-bg);
+  color: var(--success-text);
+  outline: none;
+}
+
+.measurement-date-trigger:active {
+  transform: translateY(1px);
+}
+
+.measurement-date-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+  transform: none;
+}
+
+.measurement-date-trigger--active {
+  border-color: rgba(47, 158, 99, 0.58);
+  background: var(--success-bg);
+  color: var(--success-text);
+}
+
+.measurement-calendar-popover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 1200;
+  width: 286px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 18px 46px rgba(29, 61, 41, 0.2);
+}
+
+.measurement-calendar-header {
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.measurement-calendar-header strong {
+  color: var(--blueberry-skin);
+  font-size: 0.94rem;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.measurement-calendar-header button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(29, 61, 41, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--blueberry-skin);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.measurement-calendar-header button:hover,
+.measurement-calendar-header button:focus-visible {
+  border-color: rgba(47, 158, 99, 0.48);
+  background: var(--success-bg);
+  outline: none;
+}
+
+.measurement-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.measurement-calendar-weekday {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.measurement-calendar-empty,
+.measurement-calendar-day {
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.measurement-calendar-day {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(31, 42, 35, 0.42);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.measurement-calendar-day--available {
+  border-color: rgba(47, 158, 99, 0.28);
+  background: #e5f5dc;
+  color: var(--blueberry-skin);
+  cursor: pointer;
+}
+
+.measurement-calendar-day--available:hover,
+.measurement-calendar-day--available:focus-visible {
+  border-color: rgba(47, 158, 99, 0.72);
+  background: #cfeec7;
+  outline: none;
+}
+
+.measurement-calendar-day--selected {
+  border-color: var(--accent-green);
+  background: var(--accent-green);
+  color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(47, 158, 99, 0.18);
+}
+
+.measurement-calendar-day:disabled {
+  cursor: not-allowed;
+}
+
+.measurement-calendar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.measurement-calendar-latest {
+  padding: 7px 10px;
+  border: 1px solid rgba(29, 61, 41, 0.13);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--blueberry-skin);
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.measurement-calendar-latest:hover,
+.measurement-calendar-latest:focus-visible {
+  border-color: rgba(47, 158, 99, 0.5);
+  background: var(--success-bg);
+  outline: none;
+}
+
+.measurement-calendar-footer span {
+  color: var(--error-text);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .card-heading {
@@ -1879,7 +2069,15 @@ select {
 }
 
 .map-state {
+  position: absolute;
+  inset: 0;
+  z-index: 900;
   width: min(100%, 360px);
+  margin: auto;
+  padding: 18px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  align-content: center;
   justify-items: center;
 }
 

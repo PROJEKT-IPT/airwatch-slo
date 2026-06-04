@@ -67,11 +67,24 @@ async function fetchJsonOrNull(url, label) {
   return response.json()
 }
 
-export async function getRegionalLatestMeasurements() {
-  const response = await fetch(`${getApiBaseUrl()}/api/v1/regions/latest-measurements`)
+export async function getRegionalLatestMeasurements({ date } = {}) {
+  const params = new URLSearchParams()
+  if (date) params.append('date', date)
+  const query = params.toString() ? `?${params.toString()}` : ''
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/regions/latest-measurements${query}`)
 
   if (!response.ok) {
     throw new Error(`Failed to load regional latest measurements: ${response.status}`)
+  }
+
+  return response.json()
+}
+
+export async function getRegionalMeasurementDates() {
+  const response = await fetch(`${getApiBaseUrl()}/api/v1/regions/measurement-dates`)
+
+  if (!response.ok) {
+    throw new Error(`Failed to load regional measurement dates: ${response.status}`)
   }
 
   return response.json()
@@ -108,10 +121,14 @@ export async function getRegionComparison(regionCodes) {
   return response.json()
 }
 
-export async function getRegionDetails(regionCode) {
+export async function getRegionDetails(regionCode, { date } = {}) {
   const safeCode = encodeURIComponent(regionCode)
+  const params = new URLSearchParams()
+  if (date) params.append('date', date)
+  const query = params.toString() ? `?${params.toString()}` : ''
+
   return fetchJsonOrNull(
-    `${getApiBaseUrl()}/api/v1/regions/${safeCode}`,
+    `${getApiBaseUrl()}/api/v1/regions/${safeCode}${query}`,
     `region details for ${regionCode}`,
   )
 }

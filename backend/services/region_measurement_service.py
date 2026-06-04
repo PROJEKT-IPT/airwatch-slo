@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -9,7 +11,40 @@ STATISTICAL_REGION_TYPE = "statistical_region"
 EXCLUDED_PUBLIC_REGION_CODE = "SI_BBOX"
 
 
-def get_latest_no2_measurements_for_statistical_regions(db: Session) -> list[dict]:
+def get_no2_measurement_dates_for_statistical_regions(db: Session) -> list[date]:
+    rows = db.execute(
+        text(
+            """
+            SELECT DISTINCT
+                (rm.measurement_end_time AT TIME ZONE 'UTC')::date AS measurement_date
+            FROM region_measurement rm
+            JOIN indicator i ON i.id_indicator = rm.fk_indicator
+            JOIN region r ON r.id_region = rm.fk_region
+            JOIN source_file sf ON sf.id_source_file = rm.fk_source_file
+            WHERE i.indicator_code = :indicator_code
+                AND r.region_type = :region_type
+                AND r.region_code <> :excluded_region_code
+                AND (
+                    LOWER(sf.file_format) = 'netcdf'
+                    OR LOWER(sf.product_name) LIKE '%.nc'
+                )
+            ORDER BY measurement_date DESC
+            """
+        ),
+        {
+            "indicator_code": NO2_INDICATOR_CODE,
+            "region_type": STATISTICAL_REGION_TYPE,
+            "excluded_region_code": EXCLUDED_PUBLIC_REGION_CODE,
+        },
+    ).mappings().all()
+    return [row["measurement_date"] for row in rows]
+
+
+def get_latest_no2_measurements_for_statistical_regions(
+    db: Session,
+    *,
+    measurement_date: date | None = None,
+) -> list[dict]:
     rows = db.execute(
         text(
             """
@@ -32,6 +67,20 @@ def get_latest_no2_measurements_for_statistical_regions(db: Session) -> list[dic
                 WHERE i.indicator_code = :indicator_code
                     AND r.region_type = :region_type
                     AND r.region_code <> :excluded_region_code
+                    AND (
+                        :measurement_date IS NULL
+                        OR (
+                            rm.measurement_end_time >= (
+                                CAST(:measurement_date AS date)::timestamp AT TIME ZONE 'UTC'
+                            )
+                            AND rm.measurement_end_time < (
+                                (
+                                    CAST(:measurement_date AS date)::timestamp
+                                    AT TIME ZONE 'UTC'
+                                ) + INTERVAL '1 day'
+                            )
+                        )
+                    )
                 ORDER BY
                     rm.fk_region,
                     rm.measurement_end_time DESC,
@@ -62,6 +111,7 @@ def get_latest_no2_measurements_for_statistical_regions(db: Session) -> list[dic
             "indicator_code": NO2_INDICATOR_CODE,
             "region_type": STATISTICAL_REGION_TYPE,
             "excluded_region_code": EXCLUDED_PUBLIC_REGION_CODE,
+            "measurement_date": measurement_date,
         },
     ).mappings().all()
     return [dict(row) for row in rows]
@@ -137,7 +187,12 @@ def get_latest_no2_comparison_for_regions(
     return [dict(row) for row in rows]
 
 
-def get_latest_no2_measurement_for_region(db: Session, region_id: int) -> dict | None:
+def get_latest_no2_measurement_for_region(
+    db: Session,
+    region_id: int,
+    *,
+    measurement_date: date | None = None,
+) -> dict | None:
     row = db.execute(
         text(
             """
@@ -159,6 +214,20 @@ def get_latest_no2_measurement_for_region(db: Session, region_id: int) -> dict |
             JOIN source_file sf ON sf.id_source_file = rm.fk_source_file
             WHERE rm.fk_region = :region_id
                 AND i.indicator_code = :indicator_code
+                AND (
+                    :measurement_date IS NULL
+                    OR (
+                        rm.measurement_end_time >= (
+                            CAST(:measurement_date AS date)::timestamp AT TIME ZONE 'UTC'
+                        )
+                        AND rm.measurement_end_time < (
+                            (
+                                CAST(:measurement_date AS date)::timestamp
+                                AT TIME ZONE 'UTC'
+                            ) + INTERVAL '1 day'
+                        )
+                    )
+                )
             ORDER BY
                 rm.measurement_end_time DESC,
                 rm.measurement_start_time DESC,
@@ -166,7 +235,11 @@ def get_latest_no2_measurement_for_region(db: Session, region_id: int) -> dict |
             LIMIT 1
             """
         ),
-        {"region_id": region_id, "indicator_code": NO2_INDICATOR_CODE},
+        {
+            "region_id": region_id,
+            "indicator_code": NO2_INDICATOR_CODE,
+            "measurement_date": measurement_date,
+        },
     ).mappings().first()
     return dict(row) if row is not None else None
 

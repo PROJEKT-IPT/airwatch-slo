@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import csv
+from datetime import date
 from io import StringIO
 from typing import Optional
 
@@ -32,6 +33,7 @@ from services.region_measurement_service import (
     get_latest_no2_csv_export_row_for_region,
     get_latest_no2_measurement_for_region,
     get_latest_no2_measurements_for_statistical_regions,
+    get_no2_measurement_dates_for_statistical_regions,
     get_no2_history_csv_export_rows_for_region,
     get_no2_measurement_history_for_region,
 )
@@ -253,14 +255,36 @@ def get_latest_measurement(
     response_model=list[RegionLatestMeasurementSummaryResponse],
     responses={500: _SERVER_ERROR},
 )
-def get_latest_region_measurements(db: Session = Depends(get_db)):
+def get_latest_region_measurements(
+    measurement_date: Optional[date] = Query(default=None, alias="date"),
+    db: Session = Depends(get_db),
+):
     try:
-        return get_latest_no2_measurements_for_statistical_regions(db)
+        return get_latest_no2_measurements_for_statistical_regions(
+            db,
+            measurement_date=measurement_date,
+        )
     except SQLAlchemyError as exc:
         logger.exception("Failed to fetch latest regional NO2 measurements")
         raise HTTPException(
             status_code=500,
             detail="Failed to fetch latest regional measurements.",
+        ) from exc
+
+
+@app.get(
+    "/api/v1/regions/measurement-dates",
+    response_model=list[date],
+    responses={500: _SERVER_ERROR},
+)
+def get_region_measurement_dates(db: Session = Depends(get_db)):
+    try:
+        return get_no2_measurement_dates_for_statistical_regions(db)
+    except SQLAlchemyError as exc:
+        logger.exception("Failed to fetch regional NO2 measurement dates")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to fetch regional measurement dates.",
         ) from exc
 
 
@@ -405,6 +429,7 @@ def export_latest_regions_csv(db: Session = Depends(get_db)):
 def get_region_details(
     region_code: str,
     include_test_region: bool = Query(default=False),
+    measurement_date: Optional[date] = Query(default=None, alias="date"),
     db: Session = Depends(get_db),
 ):
     normalized_region_code = region_code.strip()
@@ -418,7 +443,11 @@ def get_region_details(
         if region is None:
             raise HTTPException(status_code=404, detail=REGION_NOT_FOUND_DETAIL)
 
-        latest_measurement = get_latest_no2_measurement_for_region(db, region["id_region"])
+        latest_measurement = get_latest_no2_measurement_for_region(
+            db,
+            region["id_region"],
+            measurement_date=measurement_date,
+        )
         if latest_measurement is None:
             raise HTTPException(
                 status_code=404,

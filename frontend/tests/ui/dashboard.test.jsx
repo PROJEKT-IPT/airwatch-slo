@@ -11,6 +11,7 @@ import {
   getRegionGeometries,
   getRegionHistoryCsvExportUrl,
   getRegionHistory,
+  getRegionalMeasurementDates,
   getRegionalLatestMeasurements,
 } from '../../src/api/airwatchApi'
 
@@ -22,6 +23,7 @@ vi.mock('../../src/api/airwatchApi', () => ({
   getRegionGeometries: vi.fn(),
   getRegionHistoryCsvExportUrl: vi.fn(),
   getRegionHistory: vi.fn(),
+  getRegionalMeasurementDates: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
 }))
 
@@ -45,6 +47,22 @@ const regionSummaries = [
     quality_status: 'valid',
     unit: 'mol/m²',
     measurement_end_time: '2025-03-11T13:18:05+00:00',
+  },
+]
+
+const datedRegionSummaries = [
+  {
+    ...regionSummaries[1],
+    value_mean: 0.000044,
+    measurement_end_time: '2026-05-08T13:01:35+00:00',
+  },
+]
+
+const olderDatedRegionSummaries = [
+  {
+    ...regionSummaries[1],
+    value_mean: 0.000029,
+    measurement_end_time: '2026-05-07T13:00:35+00:00',
   },
 ]
 
@@ -124,6 +142,34 @@ const regionDetails = {
   },
 }
 
+const datedRegionDetails = {
+  SI032: {
+    ...regionDetails.SI032,
+    latest_measurement: {
+      ...regionDetails.SI032.latest_measurement,
+      value_mean: 0.000044,
+      measurement_start_time: '2026-05-08T12:03:11+00:00',
+      measurement_end_time: '2026-05-08T13:01:35+00:00',
+      processing_run_id: 15,
+      source_product_id: 'product-si032-20260508',
+    },
+  },
+}
+
+const olderDatedRegionDetails = {
+  SI032: {
+    ...regionDetails.SI032,
+    latest_measurement: {
+      ...regionDetails.SI032.latest_measurement,
+      value_mean: 0.000029,
+      measurement_start_time: '2026-05-07T12:02:11+00:00',
+      measurement_end_time: '2026-05-07T13:00:35+00:00',
+      processing_run_id: 16,
+      source_product_id: 'product-si032-20260507',
+    },
+  },
+}
+
 const regionGeometries = [
   {
     region_code: 'SI031',
@@ -178,9 +224,18 @@ describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
-    getRegionalLatestMeasurements.mockResolvedValue(regionSummaries)
+    getRegionalMeasurementDates.mockResolvedValue(['2026-05-08', '2026-05-07', '2025-03-11'])
+    getRegionalLatestMeasurements.mockImplementation(({ date } = {}) => {
+      if (date === '2026-05-08') return Promise.resolve(datedRegionSummaries)
+      if (date === '2026-05-07') return Promise.resolve(olderDatedRegionSummaries)
+      return Promise.resolve(regionSummaries)
+    })
     getRegionComparison.mockResolvedValue(regionComparison)
-    getRegionDetails.mockImplementation(regionCode => Promise.resolve(regionDetails[regionCode]))
+    getRegionDetails.mockImplementation((regionCode, options = {}) => {
+      if (options.date === '2026-05-08') return Promise.resolve(datedRegionDetails[regionCode])
+      if (options.date === '2026-05-07') return Promise.resolve(olderDatedRegionDetails[regionCode])
+      return Promise.resolve(regionDetails[regionCode])
+    })
     getRegionGeometries.mockResolvedValue(regionGeometries)
     getRegionHistory.mockResolvedValue({ measurements: [] })
     getRegionCsvExportUrl.mockImplementation(
@@ -260,6 +315,49 @@ describe('Dashboard', () => {
       expect(getRegionDetails).toHaveBeenLastCalledWith('SI031')
     })
     expect(screen.getByRole('button', { name: /Statistična regija/i })).toHaveTextContent('SI031')
+  })
+
+  it('overview: lets users choose an available measurement date from the calendar', async () => {
+    const user = userEvent.setup()
+    renderDashboard('overview')
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Izberi datum meritve' }))
+    const calendar = await screen.findByRole('dialog', { name: 'Datumi z meritvami' })
+    const availableDateButton = within(calendar).getByRole('button', { name: '8' })
+
+    expect(availableDateButton).toHaveClass('measurement-calendar-day--available')
+    await user.click(availableDateButton)
+
+    await waitFor(() => {
+      expect(getRegionalLatestMeasurements).toHaveBeenLastCalledWith({ date: '2026-05-08' })
+    })
+    await waitFor(() => {
+      expect(getRegionDetails).toHaveBeenLastCalledWith('SI032', { date: '2026-05-08' })
+    })
+    expect(await screen.findByText(/8. maj 2026/)).toBeInTheDocument()
+  })
+
+  it('overview: labels older selected dates as measurement instead of latest measurement', async () => {
+    const user = userEvent.setup()
+    renderDashboard('overview')
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Statisti.*na regija/i })).toHaveTextContent('Podravska')
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Izberi datum meritve' }))
+    const calendar = await screen.findByRole('dialog', { name: 'Datumi z meritvami' })
+    await user.click(within(calendar).getByRole('button', { name: '7' }))
+
+    await waitFor(() => {
+      expect(getRegionDetails).toHaveBeenLastCalledWith('SI032', { date: '2026-05-07' })
+    })
+    expect(await screen.findByText(/Meritev: 7. maj 2026/)).toBeInTheDocument()
+    expect(screen.queryByText(/Zadnja meritev: 7. maj 2026/)).not.toBeInTheDocument()
   })
 
   it('overview: shows the NO₂ value gradient legend', async () => {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   getAllRegionsCsvExportUrl,
@@ -7,10 +7,12 @@ import {
   getRegionDetails,
   getRegionGeometries,
   getRegionHistoryCsvExportUrl,
+  getRegionalMeasurementDates,
   getRegionalLatestMeasurements,
 } from '../api/airwatchApi'
 import LatestMeasurementCard from '../components/LatestMeasurementCard'
 import LearnCard from '../components/LearnCard'
+import MeasurementDatePicker from '../components/MeasurementDatePicker'
 import MethodologyCard from '../components/MethodologyCard'
 import RegionComparisonCard from '../components/RegionComparisonCard'
 import RegionDetailsCard from '../components/RegionDetailsCard'
@@ -22,47 +24,78 @@ import { useLanguage } from '../i18n'
 
 function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
   const { t } = useLanguage()
-  const tRef = useRef(t)
   const [regionSummaries, setRegionSummaries] = useState([])
   const [regionGeometries, setRegionGeometries] = useState([])
   const [regionComparison, setRegionComparison] = useState([])
   const [selectedRegionCode, setSelectedRegionCode] = useState('')
   const [isLoadingRegions, setIsLoadingRegions] = useState(true)
   const [isLoadingGeometries, setIsLoadingGeometries] = useState(true)
-  const [regionsError, setRegionsError] = useState('')
-  const [geometriesError, setGeometriesError] = useState('')
+  const [regionsErrorKey, setRegionsErrorKey] = useState('')
+  const [geometriesErrorKey, setGeometriesErrorKey] = useState('')
+  const [availableMeasurementDates, setAvailableMeasurementDates] = useState([])
+  const [selectedMeasurementDate, setSelectedMeasurementDate] = useState(null)
+  const [isLoadingMeasurementDates, setIsLoadingMeasurementDates] = useState(true)
+  const [measurementDatesErrorKey, setMeasurementDatesErrorKey] = useState('')
   const [isLoadingComparison, setIsLoadingComparison] = useState(false)
-  const [comparisonError, setComparisonError] = useState('')
+  const [comparisonErrorKey, setComparisonErrorKey] = useState('')
   const [regionDetail, setRegionDetail] = useState(null)
   const [isLoadingDetail, setIsLoadingDetail] = useState(false)
-  const [detailError, setDetailError] = useState('')
+  const [detailErrorKey, setDetailErrorKey] = useState('')
 
   useEffect(() => {
-    tRef.current = t
-  }, [t])
+    let isMounted = true
+
+    async function loadMeasurementDates() {
+      setIsLoadingMeasurementDates(true)
+      setMeasurementDatesErrorKey('')
+
+      try {
+        const dates = await getRegionalMeasurementDates()
+        if (!isMounted) return
+        setAvailableMeasurementDates(normalizeMeasurementDates(dates))
+      } catch (error) {
+        if (!isMounted) return
+        setAvailableMeasurementDates([])
+        setMeasurementDatesErrorKey('measurementDatesLoadError')
+      } finally {
+        if (isMounted) setIsLoadingMeasurementDates(false)
+      }
+    }
+
+    loadMeasurementDates()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   useEffect(() => {
     let isMounted = true
 
     async function loadRegionSummaries() {
       setIsLoadingRegions(true)
-      setRegionsError('')
+      setRegionsErrorKey('')
 
       try {
-        const summaries = await getRegionalLatestMeasurements()
+        const summaries = selectedMeasurementDate
+          ? await getRegionalLatestMeasurements({ date: selectedMeasurementDate })
+          : await getRegionalLatestMeasurements()
         if (!isMounted) return
 
         const safeSummaries = Array.isArray(summaries) ? summaries : []
         setRegionSummaries(safeSummaries)
 
-        const firstValid = safeSummaries.find(item => item.quality_status === 'valid')
-        const defaultRegion = firstValid?.region_code || safeSummaries[0]?.region_code || ''
-        setSelectedRegionCode(defaultRegion)
+        setSelectedRegionCode(currentRegionCode => {
+          const selectedStillAvailable = safeSummaries.some(item => item.region_code === currentRegionCode)
+          if (selectedStillAvailable) return currentRegionCode
+
+          const firstValid = safeSummaries.find(item => item.quality_status === 'valid')
+          return firstValid?.region_code || safeSummaries[0]?.region_code || ''
+        })
       } catch (error) {
         if (!isMounted) return
         setRegionSummaries([])
         setSelectedRegionCode('')
-        setRegionsError(tRef.current('regionLoadError'))
+        setRegionsErrorKey('regionLoadError')
       } finally {
         if (isMounted) setIsLoadingRegions(false)
       }
@@ -72,14 +105,14 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
     return () => {
       isMounted = false
     }
-  }, [])
+  }, [selectedMeasurementDate])
 
   useEffect(() => {
     let isMounted = true
 
     async function loadRegionGeometries() {
       setIsLoadingGeometries(true)
-      setGeometriesError('')
+      setGeometriesErrorKey('')
 
       try {
         const geometries = await getRegionGeometries()
@@ -88,7 +121,7 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
       } catch (error) {
         if (!isMounted) return
         setRegionGeometries([])
-        setGeometriesError(tRef.current('geometryLoadError'))
+        setGeometriesErrorKey('geometryLoadError')
       } finally {
         if (isMounted) setIsLoadingGeometries(false)
       }
@@ -107,13 +140,13 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
     async function loadRegionComparison() {
       if (regionCodes.length < 2) {
         setRegionComparison([])
-        setComparisonError('')
+        setComparisonErrorKey('')
         setIsLoadingComparison(false)
         return
       }
 
       setIsLoadingComparison(true)
-      setComparisonError('')
+      setComparisonErrorKey('')
 
       try {
         const comparison = await getRegionComparison(regionCodes)
@@ -122,7 +155,7 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
       } catch (error) {
         if (!isMounted) return
         setRegionComparison([])
-        setComparisonError(tRef.current('comparisonLoadError'))
+        setComparisonErrorKey('comparisonLoadError')
       } finally {
         if (isMounted) setIsLoadingComparison(false)
       }
@@ -140,22 +173,24 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
     async function loadRegionDetail() {
       if (!selectedRegionCode) {
         setRegionDetail(null)
-        setDetailError('')
+        setDetailErrorKey('')
         return
       }
 
       setIsLoadingDetail(true)
       setRegionDetail(null)
-      setDetailError('')
+      setDetailErrorKey('')
 
       try {
-        const detail = await getRegionDetails(selectedRegionCode)
+        const detail = selectedMeasurementDate
+          ? await getRegionDetails(selectedRegionCode, { date: selectedMeasurementDate })
+          : await getRegionDetails(selectedRegionCode)
         if (!isMounted) return
         setRegionDetail(detail)
       } catch (error) {
         if (!isMounted) return
         setRegionDetail(null)
-        setDetailError(tRef.current('detailLoadError'))
+        setDetailErrorKey('detailLoadError')
       } finally {
         if (isMounted) setIsLoadingDetail(false)
       }
@@ -165,7 +200,7 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
     return () => {
       isMounted = false
     }
-  }, [selectedRegionCode])
+  }, [selectedMeasurementDate, selectedRegionCode])
 
   const measurement = useMemo(() => {
     if (!regionDetail || !regionDetail.latest_measurement) return null
@@ -187,6 +222,13 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
   const allRegionsCsvExportUrl = getAllRegionsCsvExportUrl()
 
   const displayRegionName = measurement?.region_name || selectedSummary?.region_name || ''
+  const regionsError = regionsErrorKey ? t(regionsErrorKey) : ''
+  const geometriesError = geometriesErrorKey ? t(geometriesErrorKey) : ''
+  const measurementDatesError = measurementDatesErrorKey ? t(measurementDatesErrorKey) : ''
+  const comparisonError = comparisonErrorKey ? t(comparisonErrorKey) : ''
+  const detailError = detailErrorKey ? t(detailErrorKey) : ''
+  const latestAvailableMeasurementDate = availableMeasurementDates[0] || null
+  const isLatestMeasurementView = !selectedMeasurementDate || selectedMeasurementDate === latestAvailableMeasurementDate
 
   const concentrationLevel = useMemo(() => {
     if (!measurement || measurement.quality_status !== 'valid') return null
@@ -257,6 +299,16 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
           dropUp
         />
       }
+      datePicker={
+        <MeasurementDatePicker
+          availableDates={availableMeasurementDates}
+          selectedDate={selectedMeasurementDate}
+          onDateChange={setSelectedMeasurementDate}
+          isLoading={isLoadingMeasurementDates}
+          error={measurementDatesError}
+        />
+      }
+      timestampLabelKey={isLatestMeasurementView ? 'lastMeasurement' : 'measurement'}
     />
   )
 
@@ -380,6 +432,18 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
       )}
     </main>
   )
+}
+
+function normalizeMeasurementDates(dates) {
+  if (!Array.isArray(dates)) return []
+
+  return Array.from(
+    new Set(
+      dates
+        .map(date => String(date || '').slice(0, 10))
+        .filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date)),
+    ),
+  ).sort((left, right) => right.localeCompare(left))
 }
 
 export default Dashboard

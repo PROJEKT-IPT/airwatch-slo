@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -79,6 +79,18 @@ SAMPLE_REGION_LATEST_MEASUREMENT = {
     "source_product_name": (
         "S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_"
         "38393_03_020800_20250313T042301.nc"
+    ),
+}
+
+SAMPLE_REGION_DATED_MEASUREMENT = {
+    **SAMPLE_REGION_LATEST_MEASUREMENT,
+    "value_mean": 4.4e-05,
+    "measurement_start_time": datetime(2026, 5, 8, 12, 3, 11, tzinfo=timezone.utc),
+    "measurement_end_time": datetime(2026, 5, 8, 13, 1, 35, tzinfo=timezone.utc),
+    "processing_run_id": 15,
+    "source_product_name": (
+        "S5P_OFFL_L2__NO2____20260508T114137_20260508T132308_"
+        "44394_03_020901_20260510T052830.nc"
     ),
 }
 
@@ -216,10 +228,20 @@ class FakeSprint1Session:
         if "FROM region" in query and "ORDER BY region_name" in query:
             return FakeMappingResult([SAMPLE_REGION])
 
+        if "SELECT DISTINCT" in query and "AS measurement_date" in query:
+            return FakeMappingResult(
+                [
+                    {"measurement_date": date(2026, 5, 8)},
+                    {"measurement_date": date(2025, 3, 11)},
+                ]
+            )
+
         if "WITH latest_region_measurements AS" in query and "i.indicator_name" in query:
             return FakeMappingResult([SAMPLE_REGION_CSV_EXPORT_ROW])
 
         if "WITH latest_region_measurements AS" in query:
+            if params.get("measurement_date") == date(2026, 5, 8):
+                return FakeMappingResult([SAMPLE_REGION_DATED_MEASUREMENT])
             return FakeMappingResult([SAMPLE_REGION_LATEST_MEASUREMENT])
 
         if "r.region_code = ANY(:region_codes)" in query:
@@ -327,6 +349,26 @@ class FakeSprint1Session:
                     return FakeMappingResult(rows)
                 if "r.region_code" in query and "i.indicator_name" in query:
                     return FakeMappingResult([SAMPLE_REGION_CSV_EXPORT_ROW])
+                if params.get("measurement_date") == date(2026, 5, 8):
+                    return FakeMappingResult(
+                        [
+                            {
+                                **SAMPLE_REGION_DETAIL_MEASUREMENT,
+                                "value_mean": SAMPLE_REGION_DATED_MEASUREMENT["value_mean"],
+                                "measurement_start_time": SAMPLE_REGION_DATED_MEASUREMENT[
+                                    "measurement_start_time"
+                                ],
+                                "measurement_end_time": SAMPLE_REGION_DATED_MEASUREMENT[
+                                    "measurement_end_time"
+                                ],
+                                "processing_run_id": 15,
+                                "source_product_id": "1cee3f1c-b237-4532-9505-d20f9baf7daf",
+                                "source_product_name": SAMPLE_REGION_DATED_MEASUREMENT[
+                                    "source_product_name"
+                                ],
+                            }
+                        ]
+                    )
                 return FakeMappingResult([SAMPLE_REGION_DETAIL_MEASUREMENT])
             return FakeMappingResult([])
 
@@ -399,6 +441,48 @@ def test_get_latest_region_measurements_returns_statistical_region_rows(client):
             "source_product_name": SAMPLE_REGION_LATEST_MEASUREMENT["source_product_name"],
         }
     ]
+
+
+def test_get_latest_region_measurements_accepts_measurement_date(client):
+    response = client.get("/api/v1/regions/latest-measurements?date=2026-05-08")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data == [
+        {
+            "region_code": "SI032",
+            "region_name": "Podravska",
+            "region_type": "statistical_region",
+            "value_mean": SAMPLE_REGION_DATED_MEASUREMENT["value_mean"],
+            "value_min": SAMPLE_REGION_DATED_MEASUREMENT["value_min"],
+            "value_max": SAMPLE_REGION_DATED_MEASUREMENT["value_max"],
+            "pixel_count_valid": 41,
+            "quality_status": "valid",
+            "unit": "mol/m2",
+            "measurement_start_time": "2026-05-08T12:03:11Z",
+            "measurement_end_time": "2026-05-08T13:01:35Z",
+            "processing_run_id": 15,
+            "source_product_name": SAMPLE_REGION_DATED_MEASUREMENT["source_product_name"],
+        }
+    ]
+
+
+def test_get_region_measurement_dates_returns_available_netcdf_dates(client):
+    response = client.get("/api/v1/regions/measurement-dates")
+
+    assert response.status_code == 200
+    assert response.json() == ["2026-05-08", "2025-03-11"]
+
+
+def test_get_region_details_accepts_measurement_date(client):
+    response = client.get("/api/v1/regions/SI032?date=2026-05-08")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["region_code"] == "SI032"
+    assert data["latest_measurement"]["value_mean"] == SAMPLE_REGION_DATED_MEASUREMENT["value_mean"]
+    assert data["latest_measurement"]["measurement_end_time"] == "2026-05-08T13:01:35Z"
+    assert data["latest_measurement"]["processing_run_id"] == 15
 
 
 def test_compare_regions_returns_requested_statistical_regions_sorted_by_value(client):

@@ -32,6 +32,7 @@ skrivnosti.
 |---|---|---|
 | GET | `/health` | ne (health check) |
 | GET | `/api/v1/regions/latest-measurements` | da |
+| GET | `/api/v1/regions/measurement-dates` | da |
 | GET | `/api/v1/regions/geometries` | da |
 | GET | `/api/v1/regions/compare` | da |
 | GET | `/api/v1/regions/export.csv` | da |
@@ -81,6 +82,20 @@ Zadnja NO₂ meritev za vsako statistično regijo (osnova za izbirnik regij,
 zemljevid in značko svežine). Urejeno po `region_code`. `SI_BBOX` izločen.
 Vrnjene so le regije, ki imajo meritev (tudi `no_valid_pixels` z `null` vrednostmi).
 
+- **Parametri:** `date` (neobvezno, `YYYY-MM-DD`). Brez parametra endpoint vrne
+  zadnjo razpolozljivo meritev. Z `date` vrne zadnjo meritev znotraj izbranega
+  UTC dneva, npr. glede na datum Sentinel-5P `.nc` produkta.
+
+```bash
+curl "http://localhost:8000/api/v1/regions/latest-measurements?date=2026-05-08"
+```
+
+### `GET /api/v1/regions/measurement-dates`
+
+Vrne seznam razpolozljivih datumov meritev (`YYYY-MM-DD`) za obdelane javne
+statisticne regije, izpeljan iz shranjenih NetCDF (`.nc`) Sentinel-5P produktov.
+Frontend ga uporablja za koledar v zavihku Pregled.
+
 ### `GET /api/v1/regions/geometries`
 
 GeoJSON meje vseh statističnih regij v enem klicu za prikaz na zemljevidu.
@@ -104,7 +119,8 @@ curl "http://localhost:8000/api/v1/regions/compare?region_codes=SI032&region_cod
 
 Metapodatki regije (vključno z geometrijo) + zadnja meritev in sledljivost.
 
-- **Parametri:** `include_test_region` (privzeto `false`).
+- **Parametri:** `include_test_region` (privzeto `false`), `date` (neobvezno,
+  `YYYY-MM-DD`; vrne meritev znotraj izbranega UTC dneva).
 - **Napake:** `404` "Region not found." / "No NO2 measurement found for the
   requested region.".
 

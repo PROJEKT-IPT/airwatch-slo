@@ -346,6 +346,30 @@ Primer:
 curl http://localhost:8000/api/v1/regions/latest-measurements
 ```
 
+Optional date filter:
+
+```http
+GET /api/v1/regions/latest-measurements?date=YYYY-MM-DD
+```
+
+When `date` is omitted, the endpoint returns the latest available processed
+measurement. When `date` is provided, it returns the latest measurement within
+that UTC day, matching the dates represented by ingested Sentinel-5P `.nc`
+products.
+
+```bash
+curl "http://localhost:8000/api/v1/regions/latest-measurements?date=2026-05-08"
+```
+
+Available measurement dates for the overview calendar:
+
+```http
+GET /api/v1/regions/measurement-dates
+```
+
+Returns `YYYY-MM-DD` values derived from ingested NetCDF (`.nc`) Sentinel-5P
+products.
+
 Primer odgovora:
 
 ```json
