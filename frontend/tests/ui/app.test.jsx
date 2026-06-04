@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 
 import App from '../../src/App'
 import {
+  clearAdminAuth,
   getAllRegionsCsvExportUrl,
   getProcessingHistory,
   getProcessingStatus,
@@ -13,9 +14,15 @@ import {
   getRegionHistoryCsvExportUrl,
   getRegionHistory,
   getRegionalLatestMeasurements,
+  hasAdminAuth,
+  setAdminPassword,
+  verifyAdminPassword,
 } from '../../src/api/airwatchApi'
 
 vi.mock('../../src/api/airwatchApi', () => ({
+  AdminDisabledError: class AdminDisabledError extends Error {},
+  AdminUnauthorizedError: class AdminUnauthorizedError extends Error {},
+  clearAdminAuth: vi.fn(),
   getAllRegionsCsvExportUrl: vi.fn(),
   getProcessingHistory: vi.fn(),
   getProcessingStatus: vi.fn(),
@@ -26,6 +33,9 @@ vi.mock('../../src/api/airwatchApi', () => ({
   getRegionHistoryCsvExportUrl: vi.fn(),
   getRegionHistory: vi.fn(),
   getRegionalLatestMeasurements: vi.fn(),
+  hasAdminAuth: vi.fn(),
+  setAdminPassword: vi.fn(),
+  verifyAdminPassword: vi.fn(),
 }))
 
 describe('App navigation', () => {
@@ -92,6 +102,10 @@ describe('App navigation', () => {
       'https://airwatch-slo-production.up.railway.app/api/v1/regions/export.csv',
     )
     getRegionHistory.mockResolvedValue({ measurements: [] })
+    hasAdminAuth.mockReturnValue(true)
+    verifyAdminPassword.mockResolvedValue(true)
+    setAdminPassword.mockImplementation(() => {})
+    clearAdminAuth.mockImplementation(() => {})
     getProcessingStatus.mockResolvedValue({
       id_processing_run: 22,
       run_status: 'success',
