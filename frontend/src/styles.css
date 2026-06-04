@@ -3264,7 +3264,7 @@ html.a11y-high-contrast .test-region-badge {
     left: var(--mobile-nav-side);
     z-index: 1306;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 72px minmax(0, 1fr) minmax(0, 1fr);
     gap: 7px;
     padding: 6px;
     border: 1px solid rgba(245, 246, 243, 0.14);
@@ -3535,7 +3535,7 @@ html.a11y-high-contrast .test-region-badge {
     display: grid;
     width: 520px;
     max-width: calc(100vw - 36px);
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 78px minmax(0, 1fr) minmax(0, 1fr);
     gap: 9px;
     padding: 7px;
     border: 1px solid rgba(245, 246, 243, 0.14);
