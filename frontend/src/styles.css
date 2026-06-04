@@ -2070,15 +2070,23 @@ select {
 
 .map-state {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 900;
-  width: min(100%, 360px);
-  margin: auto;
-  padding: 18px;
+  width: min(360px, calc(100% - 32px));
+  min-height: 168px;
+  padding: 22px 24px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
   align-content: center;
   justify-items: center;
+  box-shadow: 0 16px 38px rgba(29, 61, 41, 0.14);
+}
+
+.map-state .loading-line {
+  width: min(100%, 280px);
 }
 
 .map-state h3,
