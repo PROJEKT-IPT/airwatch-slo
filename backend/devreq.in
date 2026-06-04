@@ -1,4 +1,4 @@
 -r req.in
-httpx2
+httpx
 pytest>=9.0.3
 pytest-cov
