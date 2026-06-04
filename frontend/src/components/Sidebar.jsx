@@ -234,6 +234,21 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
       </div>
 
       <div className="mobile-brand-popover" id="mobile-brand-popover" hidden={!mobileSettingsOpen}>
+        <div className="mobile-language-switcher" role="group" aria-label={t('languageToggleLabel')}>
+          {supportedLanguages.map((option, index) => (
+            <Fragment key={option.code}>
+              {index > 0 ? <span className="language-sep" aria-hidden="true">Â·</span> : null}
+              <button
+                type="button"
+                className={language === option.code ? 'language-option language-option-active' : 'language-option'}
+                aria-pressed={language === option.code}
+                onClick={() => setLanguage(option.code)}
+              >
+                {option.label}
+              </button>
+            </Fragment>
+          ))}
+        </div>
         <section className="mobile-accessibility-panel" aria-label={t('accessibilityTitle')}>
           <button
             type="button"
