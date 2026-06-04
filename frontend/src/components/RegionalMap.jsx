@@ -462,7 +462,10 @@ function getResponsiveFitBoundsOptions(mapElement) {
   const rect = mapElement?.getBoundingClientRect()
   const width = rect?.width || 360
   const height = rect?.height || 260
-  const isMobileViewport = typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+  const isMobileViewport =
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(max-width: 720px)').matches
 
   if (isMobileViewport) {
     const horizontalPadding = Math.round(Math.min(Math.max(width * 0.13, 36), 64))
