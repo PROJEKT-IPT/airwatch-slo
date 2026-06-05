@@ -429,12 +429,12 @@ function toUtcEndOfDay(dateString) {
 
 function useCompactChartLayout() {
   const [matches, setMatches] = useState(() => {
-    if (typeof window === 'undefined') return false
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false
     return window.matchMedia('(max-width: 1080px)').matches
   })
 
   useEffect(() => {
-    if (typeof window === 'undefined') return undefined
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined
 
     const media = window.matchMedia('(max-width: 1080px)')
     const updateMatches = () => setMatches(media.matches)
