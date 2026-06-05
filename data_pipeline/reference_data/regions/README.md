@@ -1,30 +1,34 @@
-# Slovenian Statistical Region Boundaries
+# Meje slovenskih statističnih regij
 
-This folder is reserved for region boundary reference data used by the AirWatch SLO data pipeline.
+Ta mapa je namenjena referenčnim podatkom o mejah regij, ki jih uporablja
+data pipeline projekta AirWatch SLO.
 
-## Selected Source
+## Izbrani vir
 
-Use Eurostat GISCO NUTS 2024 region geometries as the Sprint 2 development source for Slovenian statistical regions.
+Kot razvojni vir za slovenske statistične regije se uporabljajo geometrije
+regij Eurostat GISCO NUTS 2024.
 
-- Source name: Eurostat GISCO NUTS 2024
-- Dataset family: Territorial units for statistics (NUTS)
-- Region level: NUTS 3, Slovenian statistical regions
-- Expected country filter: `CNTR_CODE = SI`
-- Expected level filter: `LEVL_CODE = 3`
-- Expected number of Slovenian regions: 12
-- Preferred format: GeoJSON
-- Preferred CRS: EPSG:4326
-- Geometry type: MultiPolygon / Polygon region geometries
+- Ime vira: Eurostat GISCO NUTS 2024
+- Družina podatkovnih nizov: Territorial units for statistics (NUTS)
+- Raven regij: NUTS 3, slovenske statistične regije
+- Pričakovani filter države: `CNTR_CODE = SI`
+- Pričakovani filter ravni: `LEVL_CODE = 3`
+- Pričakovano število slovenskih regij: 12
+- Prednostni format: GeoJSON
+- Prednostni CRS: EPSG:4326
+- Tip geometrije: MultiPolygon / Polygon geometrije regij
 
-Recommended source URL:
+Priporočeni URL vira:
 
 ```text
 https://gisco-services.ec.europa.eu/distribution/v2/nuts/geojson/NUTS_RG_20M_2024_4326_LEVL_3.geojson
 ```
 
-The full NUTS level 3 GeoJSON contains all European NUTS3 regions. Keep that file in `raw/` locally and do not commit it unless the team deliberately decides it is small enough and useful enough for version control.
+Celotni NUTS 3 GeoJSON vsebuje vse evropske NUTS3 regije. To datoteko hranite
+lokalno v `raw/` in je ne commitajte, razen če se ekipa namerno odloči, da je
+dovolj majhna in uporabna za hranjenje v sistemu za nadzor različic.
 
-## Local File Layout
+## Lokalna razporeditev datotek
 
 ```text
 data_pipeline/reference_data/regions/
@@ -34,18 +38,19 @@ data_pipeline/reference_data/regions/
     └── slovenia_nuts3_regions_2024.geojson
 ```
 
-`raw/` is for downloaded source files. `processed/` is for a future filtered Slovenian-only file.
+`raw/` je za prenesene izvorne datoteke. `processed/` je za prihodnjo
+filtrirano datoteko samo s slovenskimi regijami.
 
-## Fields To Use Later
+## Polja za kasnejšo uporabo
 
-- `region_name`: use `NUTS_NAME`; fallback to `NAME_LATN` if needed.
-- `region_code`: use `NUTS_ID`, for example `SI041`.
-- `region_type`: use `nuts3` or `statistical_region`.
-- `geometry`: use the GeoJSON geometry after confirming CRS is EPSG:4326.
+- `region_name`: uporabi `NUTS_NAME`; po potrebi `NAME_LATN`.
+- `region_code`: uporabi `NUTS_ID`, na primer `SI041`.
+- `region_type`: uporabi `nuts3` ali `statistical_region`.
+- `geometry`: uporabi GeoJSON geometrijo po potrditvi, da je CRS EPSG:4326.
 
-## Inspection
+## Pregled
 
-After downloading a file locally, inspect it with:
+Po lokalnem prenosu datoteke jo preglej z:
 
 ```bash
 python data_pipeline/scripts/inspect_region_boundaries.py \
@@ -54,4 +59,4 @@ python data_pipeline/scripts/inspect_region_boundaries.py \
   --level 3
 ```
 
-This script does not require a database connection.
+Ta skripta ne potrebuje povezave do baze.

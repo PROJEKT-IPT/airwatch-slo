@@ -1,176 +1,173 @@
-# Scheduled NO₂ refresh
+# Razporejeno osveževanje NO₂
 
-AirWatch SLO is not a real-time application — the dashboard shows the latest
-**processed** Sentinel-5P NO₂ measurement. Without a scheduler, that "latest"
-only advances when a developer runs `run_latest_no2_pipeline.py` by hand.
+AirWatch SLO ni aplikacija v realnem času — nadzorna plošča prikazuje zadnjo
+**obdelano** Sentinel-5P NO₂ meritev. Brez razporejevalnika se ta "zadnja"
+premakne le, ko razvijalec ročno zažene `run_latest_no2_pipeline.py`.
 
-This directory wires up a daily, unattended refresh of that orchestrator
-so the dashboard's freshness keeps pace with the upstream OFFL feed.
+Ta mapa vzpostavi dnevno, samodejno osveževanje tega orkestratorja, da svežost
+nadzorne plošče sledi viru OFFL produktov.
 
-## What it does
+## Kaj počne
 
-`refresh_latest_no2.sh` is a thin wrapper around
-`data_pipeline/scripts/run_latest_no2_pipeline.py`. Per run, it:
+`refresh_latest_no2.sh` je tanek ovoj okoli
+`data_pipeline/scripts/run_latest_no2_pipeline.py`. Ob vsakem zagonu:
 
-1. Sources the repo `.env` (Copernicus + Postgres credentials).
-2. Verifies the Docker daemon is reachable and that the `airwatch_db` and
-   `airwatch_backend` containers report `healthy`.
-3. Picks `.venv/bin/python` if present, otherwise system `python3`.
-4. Invokes the orchestrator, which searches CDSE for the newest OFFL S5P NO₂
-   product over Slovenia. The orchestrator is idempotent — if the newest is
-   already ingested it exits cleanly without re-downloading or re-ingesting.
-5. Appends a timestamped line to `logs/refresh_YYYY-MM-DD.log` and updates
-   the `logs/refresh_latest.log` symlink.
+1. Naloži repo `.env` (poverilnice Copernicus + Postgres).
+2. Preveri, da je Docker dosegljiv in da kontejnerja `airwatch_db` ter
+   `airwatch_backend` poročata `healthy`.
+3. Izbere `.venv/bin/python`, če obstaja, sicer sistemski `python3`.
+4. Pokliče orkestrator, ki na CDSE poišče najnovejši OFFL S5P NO₂ produkt nad
+   Slovenijo. Orkestrator je idempotenten — če je najnovejši že vnešen, se
+   zaključi čisto, brez ponovnega prenosa ali vnosa.
+5. Doda časovno označeno vrstico v `logs/refresh_YYYY-MM-DD.log` in posodobi
+   simbolno povezavo `logs/refresh_latest.log`.
 
-The dashboard reads its freshness directly from the database via
-`/api/v1/regions/latest-measurements`, so a successful run is observable
-end-to-end the next time the page is loaded.
+Nadzorna plošča bere svežost neposredno iz baze prek
+`/api/v1/regions/latest-measurements`, zato je uspešen zagon viden od konca do
+konca ob naslednjem nalaganju strani.
 
-## Cadence
+## Pogostost
 
-The launchd plist fires once a day at **06:15 local time**.
+launchd plist se sproži enkrat dnevno ob **06:15 po lokalnem času**.
 
-Why this timing:
+Zakaj ta čas:
 
-- Sentinel-5P TROPOMI overflies Slovenia once a day, around midday UTC.
-- The **OFFL** (offline) NO₂ product lands at Copernicus Data Space
-  ~2–3 days after the overpass.
-- One poll per day is the highest cadence that produces new data; polling
-  more frequently is wasted load on CDSE.
-- 06:15 local sits well clear of the OFFL processing window, so the newest
-  available product is reliably visible by the time the job runs.
+- Sentinel-5P TROPOMI preleti Slovenijo enkrat dnevno, okoli poldneva UTC.
+- Produkt **OFFL** (offline) NO₂ pride na Copernicus Data Space ~2–3 dni po
+  preletu.
+- Ena poizvedba na dan je najvišja pogostost, ki še prinese nove podatke;
+  pogostejše poizvedovanje je le nepotrebna obremenitev CDSE.
+- 06:15 je dovolj zunaj okna obdelave OFFL, zato je najnovejši razpoložljivi
+  produkt zanesljivo viden, ko se opravilo zažene.
 
-If you want sub-day latency, the NRTI (near-real-time) product ships within
-~3 hours but is not wired into this pipeline yet.
+Če želite zakasnitev pod en dan, produkt NRTI (near-real-time) pride v ~3 urah,
+a v ta pipeline še ni vključen.
 
-## Install (macOS, launchd)
+## Namestitev (macOS, launchd)
 
 ```bash
-# 1. Copy the plist into your LaunchAgents directory and substitute the
-#    repo path. <REPO_PATH> in the template must become the absolute path
-#    to this checkout.
-REPO_PATH="$(cd "$(dirname "$0")/../.." && pwd)"  # or: pwd from repo root
+# 1. Kopiraj plist v mapo LaunchAgents in zamenjaj pot do repozitorija.
+#    <REPO_PATH> v predlogi mora postati absolutna pot do tega checkouta.
+REPO_PATH="$(cd "$(dirname "$0")/../.." && pwd)"  # ali: pwd iz korena repozitorija
 sed "s|<REPO_PATH>|${REPO_PATH}|g" \
   data_pipeline/automation/com.airwatch-slo.refresh-no2.plist \
   > ~/Library/LaunchAgents/com.airwatch-slo.refresh-no2.plist
 
-# 2. Load the agent (registers it with launchd so it fires at 06:15).
+# 2. Naloži agenta (registracija v launchd, da se sproži ob 06:15).
 launchctl load ~/Library/LaunchAgents/com.airwatch-slo.refresh-no2.plist
 
-# 3. (Optional) Trigger a one-off run right now to verify the setup.
+# 3. (Neobvezno) Sproži enkraten zagon zdaj za preverjanje nastavitve.
 launchctl start com.airwatch-slo.refresh-no2
 tail -f data_pipeline/automation/logs/refresh_latest.log
 ```
 
-Uninstall:
+Odstranitev:
 
 ```bash
 launchctl unload ~/Library/LaunchAgents/com.airwatch-slo.refresh-no2.plist
 rm ~/Library/LaunchAgents/com.airwatch-slo.refresh-no2.plist
 ```
 
-## Install (Linux / server, systemd)
+## Namestitev (Linux / strežnik, systemd)
 
-Preferred for any real deploy. Unit files live in
-`data_pipeline/automation/systemd/`.
+Prednostno za pravo produkcijo. Enote so v `data_pipeline/automation/systemd/`.
 
 ```bash
-# 1. Copy the units. Edit the .service if your deploy path differs from
-#    /opt/airwatch-slo, or the runtime user differs from `airwatch`.
+# 1. Kopiraj enote. Uredi .service, če se pot namestitve razlikuje od
+#    /opt/airwatch-slo ali je uporabnik izvajanja drugačen od `airwatch`.
 sudo install -m 0644 \
   data_pipeline/automation/systemd/airwatch-refresh-no2.service \
   data_pipeline/automation/systemd/airwatch-refresh-no2.timer \
   /etc/systemd/system/
 
-# 2. Reload, enable, start the timer.
+# 2. Ponovno naloži, omogoči in zaženi časovnik.
 sudo systemctl daemon-reload
 sudo systemctl enable --now airwatch-refresh-no2.timer
 
-# 3. Verify.
-systemctl list-timers airwatch-refresh-no2.timer        # next fire time
+# 3. Preveri.
+systemctl list-timers airwatch-refresh-no2.timer        # naslednji sprožitveni čas
 systemctl status   airwatch-refresh-no2.timer
 journalctl -u airwatch-refresh-no2.service --since '24 hours ago'
 
-# 4. Fire once manually to validate the chain end-to-end.
+# 4. Enkrat ročno sproži za preverjanje celotne verige.
 sudo systemctl start airwatch-refresh-no2.service
 journalctl -u airwatch-refresh-no2.service -f
 ```
 
-Why systemd over plain cron: `Persistent=true` makes the unit catch up if
-the VM was down at 06:15, journald gives you proper log aggregation, and
-the timer survives reboots without a `crontab` edit.
+Zakaj systemd namesto navadnega crona: `Persistent=true` poskrbi, da enota
+nadoknadi zamujen zagon, če je bil VM ob 06:15 izklopljen, journald omogoča
+pravo združevanje dnevnikov, časovnik pa preživi ponovne zagone brez urejanja
+`crontab`.
 
-## Install (Linux / server, cron — fallback)
+## Namestitev (Linux / strežnik, cron — rezervna možnost)
 
-The wrapper script is plain bash and works under cron too. Sample crontab
-entry (daily at 06:15):
+Ovojna skripta je navaden bash in deluje tudi pod cronom. Primer vnosa v
+crontab (dnevno ob 06:15):
 
 ```
 15 6 * * * /absolute/path/to/airwatch-slo/data_pipeline/automation/refresh_latest_no2.sh
 ```
 
-cron does not need any of the launchd plist substitutions — the script
-resolves the repo root from its own location.
+cron ne potrebuje nobenih zamenjav iz launchd plista — skripta razreši koren
+repozitorija iz svoje lokacije.
 
-## Deploy-time activation of POST /admin/refresh-latest
+## Aktivacija POST /admin/refresh-latest ob namestitvi
 
-The repo also ships a dormant HTTP-trigger surface for the same orchestrator
-at `backend/admin_refresh.py`. It is **not wired into the live API** — the
-two `from admin_refresh import …` lines in `backend/main.py` are commented
-out. To activate it when you deploy the backend somewhere with no local
-launchd / systemd timer (or in addition to one):
+Repo vsebuje tudi mirujočo HTTP-sprožilno površino za isti orkestrator v
+`backend/admin_refresh.py`. **Ni vključena v živi API** — vrstici
+`from admin_refresh import …` v `backend/main.py` sta zakomentirani. Za
+aktivacijo, ko backend namestite nekam brez lokalnega launchd / systemd
+časovnika (ali poleg njega):
 
-1. Uncomment the two `register_admin_routes(app)` lines in
-   `backend/main.py`.
-2. Set `ADMIN_REFRESH_TOKEN=<long random string>` in the runtime env. If
-   the variable is missing the endpoint returns 503 — fail-closed.
-3. Add `xarray`, `numpy`, `netCDF4`, `requests` to
-   `backend/requirements.txt` so the orchestrator's deps are available
-   inside the backend image.
-4. Bundle the pipeline scripts into the backend image. In the deployment
-   Dockerfile, after the existing `COPY . .`:
+1. Odkomentirajte vrstici `register_admin_routes(app)` v `backend/main.py`.
+2. Nastavite `ADMIN_REFRESH_TOKEN=<long random string>` v okolju izvajanja. Če
+   spremenljivka manjka, endpoint vrne 503 — fail-closed.
+3. Dodajte `xarray`, `numpy`, `netCDF4`, `requests` v `backend/requirements.txt`,
+   da so odvisnosti orkestratorja na voljo v backend imageu.
+4. Vključite pipeline skripte v backend image. V produkcijskem Dockerfile, za
+   obstoječim `COPY . .`:
 
    ```Dockerfile
    COPY ../data_pipeline /app/data_pipeline
    ```
 
-   Plus a writable mount (or `RUN mkdir -p`) for
-   `/app/data_pipeline/sample_data/` so the ~600 MB `.nc` downloads land
-   somewhere with space.
-5. Refactor `data_pipeline/scripts/run_latest_no2_pipeline.py` to skip its
-   `docker compose` calls when `AIRWATCH_INCONTAINER=1` is set — replace
-   the `psql` ingestion-check with a direct SQLAlchemy lookup, and call
-   `backend/scripts/ingest_regional_no2_measurements.py` via
-   `sys.executable` instead of `docker compose run --rm backend …`.
+   Poleg tega zapisljiv mount (ali `RUN mkdir -p`) za
+   `/app/data_pipeline/sample_data/`, da ~600 MB `.nc` prenosi pristanejo nekam
+   s prostorom.
+5. Predelajte `data_pipeline/scripts/run_latest_no2_pipeline.py`, da preskoči
+   `docker compose` klice, ko je nastavljen `AIRWATCH_INCONTAINER=1` — zamenjajte
+   `psql` preverjanje vnosa z neposredno SQLAlchemy poizvedbo in pokličite
+   `backend/scripts/ingest_regional_no2_measurements.py` prek `sys.executable`
+   namesto `docker compose run --rm backend …`.
 
-After deploy, trigger from whatever scheduler your platform offers
-(GitHub Actions, k8s CronJob, Fly.io scheduled machines, etc.):
+Po namestitvi sprožite iz razporejevalnika, ki ga ponuja vaša platforma
+(GitHub Actions, k8s CronJob, Fly.io scheduled machines itd.):
 
 ```bash
 curl -X POST https://<host>/admin/refresh-latest \
   -H "X-Admin-Token: ${ADMIN_REFRESH_TOKEN}"
-# -> 202 Accepted; observe completion via the dashboard or:
+# -> 202 Accepted; zaključek spremljaj prek nadzorne plošče ali:
 curl https://<host>/api/v1/regions/latest-measurements
 ```
 
-## Prerequisites
+## Predpogoji
 
-The same prerequisites as `run_latest_no2_pipeline.py`:
+Enaki predpogoji kot za `run_latest_no2_pipeline.py`:
 
-- Docker Desktop / Docker Engine running, with `docker compose up -d db backend`
-  in a healthy state. **If Docker is closed at refresh time the run fails
-  cleanly with exit code 1**; this is logged but not retried.
-- Repo `.env` with `COPERNICUS_USERNAME`, `COPERNICUS_PASSWORD`, and
-  `POSTGRES_*` populated.
-- The GISCO NUTS3 GeoJSON present at the path the orchestrator expects
+- Docker Desktop / Docker Engine teče, z `docker compose up -d db backend` v
+  zdravem stanju. **Če je Docker ob času osveževanja zaprt, zagon čisto odpove z
+  izhodno kodo 1**; to je zabeleženo, a ni ponovljeno.
+- Repo `.env` z izpolnjenimi `COPERNICUS_USERNAME`, `COPERNICUS_PASSWORD` in
+  `POSTGRES_*`.
+- GISCO NUTS3 GeoJSON na poti, ki jo orkestrator pričakuje
   (`data_pipeline/reference_data/regions/raw/NUTS_RG_20M_2024_4326_LEVL_3.geojson`).
-- Python with `requests`, `python-dotenv`, `xarray`, `numpy`, `netCDF4` available
-  to the chosen interpreter.
+- Python z razpoložljivimi `requests`, `python-dotenv`, `xarray`, `numpy`,
+  `netCDF4` za izbrani interpreter.
 
-## Verifying it works
+## Preverjanje delovanja
 
-After a run, the dashboard's "Zadnja meritev" indicator (top-right
-of the header) should reflect the new `measurement_end_time`. From the shell:
+Po zagonu naj bo nova vrednost `measurement_end_time` vidna na nadzorni plošči
+(kartica meritve izbrane regije) oziroma prek API-ja. Iz lupine:
 
 ```bash
 curl -s http://localhost:8000/api/v1/regions/latest-measurements \
@@ -178,14 +175,14 @@ curl -s http://localhost:8000/api/v1/regions/latest-measurements \
                 print(max(r["measurement_end_time"] for r in d))'
 ```
 
-That value advancing day-over-day is the contract: "new data is ready
-to be displayed" = the API's latest `measurement_end_time` changed.
+Ta vrednost, ki se iz dneva v dan premika, je pogodba: "novi podatki so
+pripravljeni za prikaz" = zadnji `measurement_end_time` v API-ju se je spremenil.
 
-## Logs
+## Dnevniki
 
-- `logs/refresh_YYYY-MM-DD.log` — one file per UTC day, append-only.
-- `logs/refresh_latest.log` — symlink to today's log.
-- `logs/launchd.stdout.log` / `logs/launchd.stderr.log` — anything the wrapper
-  prints before its own logging is wired up (rare; mostly empty).
+- `logs/refresh_YYYY-MM-DD.log` — ena datoteka na UTC dan, samo dodajanje.
+- `logs/refresh_latest.log` — simbolna povezava na današnji dnevnik.
+- `logs/launchd.stdout.log` / `logs/launchd.stderr.log` — kar ovoj izpiše, preden
+  je njegovo lastno beleženje vzpostavljeno (redko; večinoma prazno).
 
-All log files are gitignored under `data_pipeline/automation/logs/`.
+Vse datoteke dnevnikov so gitignorirane pod `data_pipeline/automation/logs/`.

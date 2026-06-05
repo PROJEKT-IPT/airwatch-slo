@@ -42,7 +42,7 @@ uvicorn main:app --reload
 
 Backend bere konfiguracijo baze iz root `.env`. Za lokalno Docker okolje je glavni vir gesla `POSTGRES_PASSWORD`.
 
-## Endpoint: Health Check
+## Endpoint: Preverjanje delovanja (health check)
 
 Preveri, ali backend deluje.
 
@@ -64,7 +64,7 @@ Uspešen odgovor:
 }
 ```
 
-## Endpoint: Root
+## Endpoint: Koren (root)
 
 Vrne osnovno sporočilo API-ja.
 
@@ -267,7 +267,7 @@ Status:
 404 Not Found
 ```
 
-## Endpoint: Processing Status
+## Endpoint: Status obdelave
 
 Vrne zadnji zapis obdelave podatkov za admin/debug preverjanje.
 
@@ -332,7 +332,7 @@ unit = mol/m²
 
 Ti endpointi predstavljajo osnovo za dashboard funkcije: izbira regije, prikaz zadnje NO2 meritve, osnovne statistike in prikaz vira podatkov.
 
-## Endpoint: Latest Regional NO2 Measurements
+## Endpoint: Zadnje regionalne NO2 meritve
 
 Vrne najnovejšo razpoložljivo `NO2` meritev za vsako slovensko statistično regijo.
 
@@ -346,29 +346,28 @@ Primer:
 curl http://localhost:8000/api/v1/regions/latest-measurements
 ```
 
-Optional date filter:
+Neobvezni filter datuma:
 
 ```http
 GET /api/v1/regions/latest-measurements?date=YYYY-MM-DD
 ```
 
-When `date` is omitted, the endpoint returns the latest available processed
-measurement. When `date` is provided, it returns the latest measurement within
-that UTC day, matching the dates represented by ingested Sentinel-5P `.nc`
-products.
+Če je `date` izpuščen, endpoint vrne zadnjo razpoložljivo obdelano meritev. Če je
+`date` podan, vrne zadnjo meritev znotraj tega UTC dneva, skladno z datumi
+vnešenih Sentinel-5P `.nc` produktov.
 
 ```bash
 curl "http://localhost:8000/api/v1/regions/latest-measurements?date=2026-05-08"
 ```
 
-Available measurement dates for the overview calendar:
+Razpoložljivi datumi meritev za koledar v pregledu:
 
 ```http
 GET /api/v1/regions/measurement-dates
 ```
 
-Returns `YYYY-MM-DD` values derived from ingested NetCDF (`.nc`) Sentinel-5P
-products.
+Vrne vrednosti `YYYY-MM-DD`, izpeljane iz vnešenih NetCDF (`.nc`) Sentinel-5P
+produktov.
 
 Primer odgovora:
 
@@ -405,7 +404,7 @@ Pravila za izbor "latest" meritve:
 - pri izenačenju sledi `measurement_start_time DESC`,
 - zadnji tie-breaker je `id_region_measurement DESC`.
 
-## Endpoint: All Regions Latest CSV Export
+## Endpoint: CSV izvoz zadnjih meritev vseh regij
 
 Vrne najnovejšo razpoložljivo `NO2` meritev za vse javne statistične regije kot
 CSV.
@@ -423,7 +422,7 @@ curl -OJ http://localhost:8000/api/v1/regions/export.csv
 CSV vsebuje eno glavo in po eno vrstico na regijo, urejeno po `region_code`.
 Ime datoteke je `airwatch-regions-latest.csv`.
 
-## Endpoint: Region Details
+## Endpoint: Podrobnosti regije
 
 Vrne metapodatke regije in njeno najnovejšo `NO2` meritev.
 
@@ -474,7 +473,7 @@ Opombe:
   `404 No NO2 measurement found for the requested region.`,
 - `geometry` se vrne kot GeoJSON objekt, če je v bazi na voljo.
 
-## Endpoint: Region History
+## Endpoint: Zgodovina regije
 
 Vrne zgodovinske `NO2` meritve za eno statistično regijo, urejene naraščajoče po
 `measurement_end_time`.
@@ -491,7 +490,7 @@ curl http://localhost:8000/api/v1/regions/SI032/history
 
 Podprta sta neobvezna filtra `start_date` in `end_date` (`YYYY-MM-DD` ali ISO).
 
-## Endpoint: Region History CSV Export
+## Endpoint: CSV izvoz zgodovine regije
 
 Vrne celotno zgodovino izbrane regije kot CSV.
 

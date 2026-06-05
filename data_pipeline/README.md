@@ -1,19 +1,23 @@
-# AirWatch SLO Data Pipeline
+# AirWatch SLO – Data pipeline
 
-Sprint 1 data discovery scripts for Sentinel-5P NO2 products from the Copernicus Data Space Ecosystem.
+Skripte za odkrivanje in obdelavo podatkov Sentinel-5P NO₂ iz Copernicus Data
+Space Ecosystema.
 
-These scripts do not download anything automatically. They give you local commands to authenticate, search products over Slovenia, download one selected product, inspect the NetCDF structure, and calculate initial NO2 statistics for the Slovenia bounding box.
+Skripte ničesar ne prenašajo samodejno. Ponujajo lokalne ukaze za avtentikacijo,
+iskanje produktov nad Slovenijo, prenos enega izbranega produkta, pregled
+strukture NetCDF datoteke in izračun začetnih NO₂ statistik za omejitveni
+pravokotnik (bbox) Slovenije.
 
-## Setup
+## Priprava
 
-Create `.env` in the repository root:
+Ustvarite `.env` v korenu repozitorija:
 
 ```env
 COPERNICUS_USERNAME=your_email_here
 COPERNICUS_PASSWORD=your_password_here
 ```
 
-Install Python dependencies:
+Namestite Python odvisnosti:
 
 ```bash
 python3 -m venv .venv
@@ -21,55 +25,56 @@ source .venv/bin/activate
 pip install requests python-dotenv xarray numpy netCDF4
 ```
 
-`netCDF4` is needed by xarray to open Sentinel-5P NetCDF groups with `group="PRODUCT"`.
+`netCDF4` potrebuje xarray za odpiranje skupin Sentinel-5P NetCDF z
+`group="PRODUCT"`.
 
-## Slovenia Discovery Constants
+## Konstante za območje Slovenije
 
-- Latitude: `45.4` to `46.9`
-- Longitude: `13.4` to `16.6`
-- Initial quality filter: `qa_value >= 0.75`
-- Required NetCDF variables: `latitude`, `longitude`, `nitrogendioxide_tropospheric_column`, `qa_value`
+- Zemljepisna širina: `45.4` do `46.9`
+- Zemljepisna dolžina: `13.4` do `16.6`
+- Začetni kakovostni filter: `qa_value >= 0.75`
+- Potrebne NetCDF spremenljivke: `latitude`, `longitude`, `nitrogendioxide_tropospheric_column`, `qa_value`
 
-## Run Commands
+## Ukazi za zagon
 
-Check that credentials work without printing the full token:
+Preveri, da poverilnice delujejo, brez izpisa celotnega žetona:
 
 ```bash
 python data_pipeline/scripts/get_copernicus_token.py
 ```
 
-Search products over Slovenia:
+Iskanje produktov nad Slovenijo:
 
 ```bash
 python data_pipeline/scripts/search_s5p_no2_products.py --start-date 2024-01-01 --end-date 2024-01-31
 ```
 
-Download one selected product:
+Prenos enega izbranega produkta:
 
 ```bash
 python data_pipeline/scripts/download_s5p_no2_product.py --product-id PRODUCT_UUID_FROM_SEARCH
 ```
 
-Inspect the downloaded NetCDF PRODUCT group:
+Pregled skupine PRODUCT v preneseni NetCDF datoteki:
 
 ```bash
 python data_pipeline/scripts/inspect_s5p_no2_structure.py --file data_pipeline/sample_data/YOUR_PRODUCT.nc
 ```
 
-Calculate NO2 statistics for the Slovenia bounding box:
+Izračun NO₂ statistik za bbox Slovenije:
 
 ```bash
 python data_pipeline/scripts/process_no2_slovenia_bbox.py --file data_pipeline/sample_data/YOUR_PRODUCT.nc
 ```
 
-Crop/filter the selected Sprint 2 product to the Slovenia bounding box and apply the NO2 QA filter:
+Omejitev/filtriranje izbranega produkta na bbox Slovenije in uporaba NO₂ QA filtra:
 
 ```bash
 python data_pipeline/scripts/crop_filter_no2_slovenia.py \
   --file data_pipeline/sample_data/S5P_OFFL_L2__NO2____20250311T115807_20250311T133937_38393_03_020800_20250313T042301.nc
 ```
 
-Optionally save a small JSON summary:
+Po želji shrani kratek JSON povzetek:
 
 ```bash
 python data_pipeline/scripts/crop_filter_no2_slovenia.py \
@@ -77,7 +82,7 @@ python data_pipeline/scripts/crop_filter_no2_slovenia.py \
   --output data_pipeline/outputs/no2_crop_filter/slovenia_no2_crop_filter_summary.json
 ```
 
-Aggregate valid NO2 pixels by Slovenian NUTS3/statistical region:
+Agregacija veljavnih NO₂ pikslov po slovenskih statističnih regijah (NUTS3):
 
 ```bash
 python data_pipeline/scripts/aggregate_no2_by_region.py \
@@ -89,7 +94,7 @@ python data_pipeline/scripts/aggregate_no2_by_region.py \
   --measurement-end-time 2025-03-11T13:18:05Z
 ```
 
-Validate the generated regional NO2 output:
+Validacija ustvarjenega regionalnega NO₂ izhoda:
 
 ```bash
 python data_pipeline/scripts/validate_regional_no2_output.py \
@@ -99,33 +104,35 @@ python data_pipeline/scripts/validate_regional_no2_output.py \
   --expected-assigned-valid-pixels 46
 ```
 
-Run lightweight pipeline tests:
+Zagon lahkih pipeline testov:
 
 ```bash
 python -m pip install -r data_pipeline/requirements-dev.txt
 python -m pytest data_pipeline/tests
 ```
 
-The tests use synthetic arrays, polygons and temporary JSON files. They do not require Copernicus credentials, network access, a real `.nc` product or a database connection. More detail is in [`docs/pipeline_tests.md`](../docs/pipeline_tests.md).
+Testi uporabljajo sintetične matrike, poligone in začasne JSON datoteke. Ne
+potrebujejo Copernicus poverilnic, omrežnega dostopa, prave `.nc` datoteke ali
+povezave do baze. Več podrobnosti je v [`docs/archive/pipeline_tests.md`](../docs/archive/pipeline_tests.md).
 
-## Run end-to-end against the newest available OFFL product
+## Zagon celotne verige na najnovejšem razpoložljivem OFFL produktu
 
-Once Docker is up and migrations have been applied, the orchestrator script
-runs the full chain (search → download → aggregate → validate → ingest →
-API verification) for the newest available Sentinel-5P OFFL NO₂ product over
-Slovenia:
+Ko Docker teče in so migracije izvedene, orkestratorska skripta zažene celotno
+verigo (iskanje → prenos → agregacija → validacija → vnos → preverjanje API-ja)
+za najnovejši razpoložljivi Sentinel-5P OFFL NO₂ produkt nad Slovenijo:
 
 ```bash
 python data_pipeline/scripts/run_latest_no2_pipeline.py
 ```
 
-It is idempotent — if the newest product is already ingested it exits cleanly
-without touching the database. Use `--dry-run` to preview the candidate
-without downloading, `--start-date` / `--end-date` to widen the search
-window, `--product-id` to force a specific UUID, and `--force` to re-ingest a
-product that is already present. The script does not poll or schedule; to run
-it periodically, wrap it in cron / launchd / GitHub Actions.
+Skripta je idempotentna — če je najnovejši produkt že vnešen, se zaključi čisto,
+brez dotikanja baze. Uporabite `--dry-run` za predogled kandidata brez prenosa,
+`--start-date` / `--end-date` za razširitev iskalnega okna, `--product-id` za
+prisilo določenega UUID-ja in `--force` za ponoven vnos že prisotnega produkta.
+Skripta sama ne razporeja zagonov; za periodični zagon jo ovijte v cron /
+launchd / GitHub Actions.
 
-## Data Safety
+## Varnost podatkov
 
-Do not commit `.env`, `.nc`, `.zip`, or downloaded Copernicus products. The `sample_data/` directory is ignored except for `.gitkeep`.
+Ne commitajte `.env`, `.nc`, `.zip` ali prenesenih Copernicus produktov. Mapa
+`sample_data/` je ignorirana, razen `.gitkeep`.
