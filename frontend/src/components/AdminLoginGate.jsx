@@ -49,7 +49,14 @@ function AdminLoginGate({ children }) {
   return (
     <main className="dashboard-main admin-login-main">
       <div className="admin-login-card card" role="dialog" aria-labelledby="admin-login-title">
-        <p className="eyebrow">Admin/debug</p>
+        <div className="admin-login-brand">
+          <img src="/logo_airwatch.png" alt="" className="admin-login-logo" width="44" height="44" />
+          <div className="admin-login-brand-text">
+            <span className="admin-login-brand-name">AirWatch SLO</span>
+            <span className="admin-login-brand-tag">{t('adminLoginBrandTag')}</span>
+          </div>
+        </div>
+
         <h1 id="admin-login-title">{t('adminLoginTitle')}</h1>
         <p className="dashboard-subtitle">{t('adminLoginSubtitle')}</p>
 
@@ -83,6 +90,16 @@ function AdminLoginGate({ children }) {
         </form>
 
         <p className="admin-login-hint">{t('adminLoginHint')}</p>
+
+        <button
+          type="button"
+          className="admin-login-back"
+          onClick={() => {
+            window.location.hash = ''
+          }}
+        >
+          ← {t('backToDashboard')}
+        </button>
       </div>
     </main>
   )

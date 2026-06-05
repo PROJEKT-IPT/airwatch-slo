@@ -1440,6 +1440,117 @@ select {
   margin: 4px 0 0;
 }
 
+/* Admin login: brand header + back link */
+.admin-login-main {
+  align-items: center;
+  min-height: 70vh;
+}
+
+.admin-login-card {
+  box-shadow: 0 24px 60px rgba(22, 41, 29, 0.16);
+  border-top: 3px solid var(--accent-green);
+}
+
+.admin-login-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-login-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+}
+
+.admin-login-brand-text {
+  display: grid;
+  gap: 1px;
+}
+
+.admin-login-brand-name {
+  font-weight: 850;
+  font-size: 1.02rem;
+  color: var(--blueberry-skin);
+}
+
+.admin-login-brand-tag {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--stem-grey);
+}
+
+.admin-login-back {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 2px 0;
+  margin: 2px auto 0;
+  color: var(--berry-bloom);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-login-back:hover {
+  color: var(--blueberry-skin);
+  text-decoration: underline;
+}
+
+/* Admin page: header with logo + ghost actions */
+.admin-header {
+  align-items: center;
+}
+
+.admin-header-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.admin-header-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.admin-ghost-button {
+  appearance: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--blueberry-skin);
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-ghost-button:hover:not(:disabled) {
+  background: rgba(47, 110, 72, 0.08);
+  border-color: rgba(47, 110, 72, 0.3);
+}
+
+.admin-ghost-button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.admin-ghost-button:focus-visible,
+.admin-login-back:focus-visible {
+  outline: 2px solid var(--blueberry-skin);
+  outline-offset: 2px;
+}
+
 .admin-summary-grid {
   margin-top: 18px;
   display: grid;

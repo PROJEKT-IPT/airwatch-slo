@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import {
   AdminUnauthorizedError,
@@ -18,56 +18,56 @@ function AdminProcessingStatusPage() {
   const [history, setHistory] = useState([])
   const [isHistoryLoading, setIsHistoryLoading] = useState(true)
   const [historyError, setHistoryError] = useState('')
+  const mountedRef = useRef(true)
+
+  useEffect(() => () => {
+    mountedRef.current = false
+  }, [])
+
+  const loadProcessingData = useCallback(async () => {
+    setIsLoading(true)
+    setIsHistoryLoading(true)
+    setError('')
+    setHistoryError('')
+
+    const [statusResult, historyResult] = await Promise.allSettled([
+      getProcessingStatus(),
+      getProcessingHistory({ limit: HISTORY_LIMIT }),
+    ])
+
+    if (!mountedRef.current) return
+
+    const unauthorized =
+      (statusResult.status === 'rejected' && statusResult.reason instanceof AdminUnauthorizedError) ||
+      (historyResult.status === 'rejected' && historyResult.reason instanceof AdminUnauthorizedError)
+
+    if (unauthorized) {
+      clearAdminAuth()
+      window.location.reload()
+      return
+    }
+
+    if (statusResult.status === 'fulfilled') {
+      setStatus(statusResult.value)
+    } else {
+      setStatus(null)
+      setError(t('processingStatusLoadError'))
+    }
+
+    if (historyResult.status === 'fulfilled') {
+      setHistory(historyResult.value || [])
+    } else {
+      setHistory([])
+      setHistoryError(t('processingHistoryLoadError'))
+    }
+
+    setIsLoading(false)
+    setIsHistoryLoading(false)
+  }, [t])
 
   useEffect(() => {
-    let isMounted = true
-
-    async function loadProcessingData() {
-      setIsLoading(true)
-      setIsHistoryLoading(true)
-      setError('')
-      setHistoryError('')
-
-      const [statusResult, historyResult] = await Promise.allSettled([
-        getProcessingStatus(),
-        getProcessingHistory({ limit: HISTORY_LIMIT }),
-      ])
-
-      if (!isMounted) return
-
-      const unauthorized =
-        (statusResult.status === 'rejected' && statusResult.reason instanceof AdminUnauthorizedError) ||
-        (historyResult.status === 'rejected' && historyResult.reason instanceof AdminUnauthorizedError)
-
-      if (unauthorized) {
-        clearAdminAuth()
-        window.location.reload()
-        return
-      }
-
-      if (statusResult.status === 'fulfilled') {
-        setStatus(statusResult.value)
-      } else {
-        setStatus(null)
-        setError(t('processingStatusLoadError'))
-      }
-
-      if (historyResult.status === 'fulfilled') {
-        setHistory(historyResult.value || [])
-      } else {
-        setHistory([])
-        setHistoryError(t('processingHistoryLoadError'))
-      }
-
-      setIsLoading(false)
-      setIsHistoryLoading(false)
-    }
-
     loadProcessingData()
-    return () => {
-      isMounted = false
-    }
-  }, [t])
+  }, [loadProcessingData])
 
   const statusInfo = getRunStatusInfo(status?.run_status, t)
   const latestRunAt = status ? formatDateTime(getRunTimestamp(status), t, locale) : t('noData')
@@ -76,11 +76,14 @@ function AdminProcessingStatusPage() {
 
   return (
     <main className="dashboard-main admin-main">
-      <header className="dashboard-header">
-        <div>
-          <p className="eyebrow">Admin/debug</p>
-          <h1>{t('adminTitle')}</h1>
-          <p className="dashboard-subtitle">{t('adminSubtitle')}</p>
+      <header className="dashboard-header admin-header">
+        <div className="admin-header-title">
+          <img src="/logo_airwatch.png" alt="" className="admin-header-logo" width="40" height="40" />
+          <div>
+            <p className="eyebrow">AirWatch SLO · Admin</p>
+            <h1>{t('adminTitle')}</h1>
+            <p className="dashboard-subtitle">{t('adminSubtitle')}</p>
+          </div>
         </div>
         <div className="admin-header-actions">
           {status ? (
@@ -89,6 +92,23 @@ function AdminProcessingStatusPage() {
               <span>{statusInfo.label}</span>
             </div>
           ) : null}
+          <button
+            type="button"
+            className="admin-ghost-button"
+            onClick={loadProcessingData}
+            disabled={isLoading || isHistoryLoading}
+          >
+            {t('refresh')}
+          </button>
+          <button
+            type="button"
+            className="admin-ghost-button"
+            onClick={() => {
+              window.location.hash = ''
+            }}
+          >
+            ← {t('backToDashboard')}
+          </button>
           <button
             type="button"
             className="admin-logout-button"
