@@ -4,19 +4,15 @@ AirWatch SLO je spletna aplikacija za prikaz regionalnih vrednosti dušikovega
 dioksida (NO₂) nad Slovenijo na podlagi satelitskih podatkov Copernicus
 Sentinel-5P (instrument TROPOMI).
 
-Ta `README.md` je glavni dokument projekta. Namenjen je temu, da lahko nov
-razvijalec, profesor ali član ekipe iz enega dokumenta razume:
+Aplikacija prikazuje zadnje razpoložljive obdelane NO₂ podatke, agregirane po
+slovenskih statističnih regijah. Prikaz ni v realnem času in ne predstavlja
+uličnih meritev kakovosti zraka.
 
-- kaj projekt rešuje in česa namenoma ne rešuje,
-- kako tečejo podatki od satelitskega produkta do dashboarda,
-- kako so povezani frontend, backend, baza in data pipeline,
-- kako izgleda podatkovni model,
-- kako se projekt zažene, testira, deploya in vzdržuje,
-- kako je urejeno zagotavljanje kakovosti, CI in SonarQube.
+## Povezave
 
-Word dokument ni potreben; ta README skupaj s kodo, diagrami in povezanimi
-komponentnimi dokumenti predstavlja projektno dokumentacijo.
-
+- **Deployana rešitev:** https://airwatch-frontend-production.up.railway.app/
+- **Jira / projektno vodenje:** https://testnastran.atlassian.net/jira/software/projects/AIRSLO/boards/34
+  
 ## Kazalo
 
 1. [Povzetek projekta](#povzetek-projekta)
@@ -70,7 +66,7 @@ Uporabnik lahko:
 - pregleda zgodovinski trend izbrane regije,
 - izvozi CSV za izbrano regijo, zgodovino regije ali vse regije,
 - prebere metodologijo in omejitve,
-- pogleda interno stran `#admin` za status obdelave podatkov.
+- pogleda interno stran `#admin` za status obdelave podatkov, če je admin, se lahko tudi prijavi.
 
 ## Omejitve in interpretacija
 
@@ -799,12 +795,4 @@ README je glavni dokument. Za še več podrobnosti so na voljo:
 | `database/diagrams/` | ER in use-case diagrami |
 | `docs/archive/` | zgodovinski sprint zapisi in runbooki |
 
-## Kratka razlaga posebnosti
-
-- `Run 1` v admin zgodovini je legacy Sprint 1 POC za testno regijo `SI_BBOX`,
-  ne neuspeh 11 od 12 javnih regij.
-- Javni endpointi privzeto vračajo samo `region_type = statistical_region`.
-- Testna regija `SI_BBOX` ostaja v bazi zaradi zgodovinske sledljivosti in
-  zgodnjih testov.
-- Frontend produkcijski API base URL je v `frontend/src/api/airwatchApi.js` in
-  ga lahko prepišeš z `VITE_API_URL`.
+**Ekipa:** Maida Ćivić, Matija Čoh, Aleš Fon Cafnik
