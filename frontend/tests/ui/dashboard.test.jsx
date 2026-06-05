@@ -462,6 +462,35 @@ describe('Dashboard', () => {
     expect(screen.getByText('Za izbrano regijo trenutno ni zgodovinskih meritev NO₂.')).toBeInTheDocument()
   })
 
+  it('trend view: applies a date range and clears it', async () => {
+    const user = userEvent.setup()
+    getRegionHistory.mockResolvedValue(regionHistoryWithMeasurements)
+    renderDashboard('trend')
+
+    // The selectors populate from the available dates (first..last).
+    await screen.findByDisplayValue('2025-02-10')
+
+    // Applying re-queries history with an explicit start/end range.
+    getRegionHistory.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Prikaži' }))
+    await waitFor(() => {
+      expect(getRegionHistory).toHaveBeenCalledWith(
+        'SI032',
+        expect.objectContaining({ startDate: expect.any(String), endDate: expect.any(String) }),
+      )
+    })
+
+    // Clearing resets the range and re-queries without bounds.
+    getRegionHistory.mockClear()
+    await user.click(screen.getByRole('button', { name: 'Počisti' }))
+    await waitFor(() => {
+      expect(getRegionHistory).toHaveBeenCalledWith(
+        'SI032',
+        expect.objectContaining({ startDate: undefined, endDate: undefined }),
+      )
+    })
+  })
+
   it('data view: renders details, CSV exports and provenance; handles no-data region', async () => {
     const user = userEvent.setup()
     renderDashboard('data')
