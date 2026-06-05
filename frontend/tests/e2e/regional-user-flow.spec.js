@@ -177,14 +177,16 @@ test('covers the main regional dashboard flow', async ({ page }) => {
 
   await page.goto('/')
 
-  await expect(page.locator('.dashboard-header h1')).toContainText(/regijah/i)
+  await expect(page.getByRole('heading', { name: /regijah/i })).toBeAttached()
 
   const regionTrigger = page.getByRole('button', { name: /Statisti.*na regija/i })
   await expect(regionTrigger).toContainText('SI032')
   await expect(
     page.getByLabel('Interaktivni Leaflet zemljevid slovenskih statističnih regij'),
   ).toBeVisible()
-  await expect(page.locator('.map-selected-region')).toContainText('SI032')
+  await expect(
+    page.getByRole('button', { name: /Izberi regijo na zemljevidu Podravska/i }),
+  ).toHaveAttribute('aria-pressed', 'true')
 
   const latestMeasurementCard = page.locator('.metric-card')
   await expect(latestMeasurementCard.getByRole('heading', { name: 'Podravska' })).toBeVisible()
@@ -194,7 +196,9 @@ test('covers the main regional dashboard flow', async ({ page }) => {
   // Switch the focused region via the custom picker; selection persists across views.
   await regionTrigger.click()
   await page.getByRole('option', { name: /Pomurska/i }).click()
-  await expect(page.locator('.map-selected-region')).toContainText('SI031')
+  await expect(
+    page.getByRole('button', { name: /Izberi regijo na zemljevidu Pomurska/i }),
+  ).toHaveAttribute('aria-pressed', 'true')
   await expect(latestMeasurementCard.getByRole('heading', { name: 'Pomurska' })).toBeVisible()
   await expect(latestMeasurementCard).toContainText('Ni veljavnih podatkov za izbrano regijo')
 

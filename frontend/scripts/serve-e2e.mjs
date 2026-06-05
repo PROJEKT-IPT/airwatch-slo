@@ -33,7 +33,10 @@ await build({
   define: {
     // Mirror production: base URL = deployed backend, endpoint path = /api/v1/...
     // (single prefix). Playwright intercepts these requests with page.route.
-    'import.meta.env.VITE_API_URL': '"https://airwatch-slo-production.up.railway.app"',
+    'import.meta.env': JSON.stringify({
+      DEV: false,
+      VITE_API_URL: 'https://airwatch-slo-production.up.railway.app',
+    }),
   },
 })
 
