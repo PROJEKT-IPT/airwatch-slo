@@ -162,21 +162,6 @@ function formatCoordinate(value, positiveSuffix, negativeSuffix) {
   return `${Math.abs(value).toFixed(2)}° ${suffix}`
 }
 
-function formatUtcTime(date, locale) {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: 'short',
-    timeStyle: 'medium',
-    timeZone: 'UTC',
-  }).format(date)
-}
-
-function formatLocalTime(date, locale) {
-  return new Intl.DateTimeFormat(locale, {
-    dateStyle: 'short',
-    timeStyle: 'medium',
-  }).format(date)
-}
-
 function buildSatelliteIcon(satellite) {
   const variant = satellite.primary ? 'satellite-marker--primary' : 'satellite-marker--other'
   return L.divIcon({
@@ -464,7 +449,7 @@ function getSatelliteMapZoom(mapElement) {
 }
 
 function SatelliteCard() {
-  const { locale, t } = useLanguage()
+  const { t } = useLanguage()
   const [now, setNow] = useState(() => new Date())
 
   useEffect(() => {
@@ -477,7 +462,6 @@ function SatelliteCard() {
     [now],
   )
   const position = useMemo(() => getPrimary(satellites).position, [satellites])
-  const tleEpochLabel = formatUtcTime(position.epoch, locale)
 
   return (
     <section className="dashboard-view satellite-view" aria-label={t('navSatellite')}>
@@ -506,9 +490,6 @@ function SatelliteCard() {
               <strong>{position.velocity.toFixed(2)} km/s</strong>
             </div>
           </div>
-          <p className="provenance-note">
-            {t('satLiveSource', { time: formatLocalTime(now, locale), epoch: tleEpochLabel })}
-          </p>
         </div>
       </section>
 

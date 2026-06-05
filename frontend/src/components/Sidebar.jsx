@@ -120,16 +120,8 @@ function Icon({ name }) {
   }
 }
 
-// Localized date for the discreet "data updated" footer line (empty if absent).
-function formatUpdatedDate(value, locale) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
-}
-
-function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onToggleCollapse, dataUpdatedAt = null }) {
-  const { language, setLanguage, t, locale } = useLanguage()
+function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onToggleCollapse }) {
+  const { language, setLanguage, t } = useLanguage()
   const [accessibilitySettings, setAccessibilitySettings] = useState(readAccessibilitySettings)
   const [accessibilityOpen, setAccessibilityOpen] = useState(false)
   const [mobileSettingsOpen, setMobileSettingsOpen] = useState(false)
@@ -353,12 +345,6 @@ function Sidebar({ activeView = 'overview', onViewChange, collapsed = false, onT
 
       <div className="sidebar-footer">
         <div className="sidebar-divider" />
-        {formatUpdatedDate(dataUpdatedAt, locale) ? (
-          <p className="sidebar-data-updated" title={t('dataUpdatedHint')}>
-            <span className="sidebar-data-updated-label">{t('dataUpdated')}</span>
-            <span>{formatUpdatedDate(dataUpdatedAt, locale)}</span>
-          </p>
-        ) : null}
         <button
           type="button"
           className={`nav-item nav-footer-item ${activeView === 'about' ? 'nav-item-active' : ''}`}

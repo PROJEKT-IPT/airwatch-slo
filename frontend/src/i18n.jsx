@@ -50,8 +50,6 @@ const translations = {
     learnLimitsTitle: 'Na kaj moramo paziti?',
     learnLimitsText:
       'Prikaz ni v realnem času (podatki pridejo z nekajdnevnim zamikom) in ni meritev na ravni ulice. Kadar je nad regijo preveč oblakov ali premalo kakovostnih podatkov, je regija označena kot »ni podatkov«.',
-    dataUpdated: 'Podatki osveženi',
-    dataUpdatedHint: 'Datum zadnjega satelitskega preleta z razpoložljivimi podatki.',
     navAbout: 'O aplikaciji',
     collapseSidebar: 'Skrči',
     expandSidebar: 'Razširi stranski meni',
@@ -98,8 +96,6 @@ const translations = {
     satLongitude: 'Zemljepisna dolžina',
     satAltitude: 'Višina',
     satVelocity: 'Hitrost',
-    satLiveSource:
-      'Preračunano ob {time} po lokalnem času iz TLE elementov z epoho {epoch} UTC. Prikaz je informativen in se posodobi približno vsakih 15 sekund.',
     satMapAria: 'Leaflet zemljevid z ocenjeno trenutno lokacijo satelita Sentinel-5P',
     satOtherSats:
       'Za orientacijo so prikazani tudi nekateri drugi Copernicus sateliti in ISS. Naš satelit (Sentinel-5P) je posebej označen. Zemljevid lahko povečate in premikate; vse lokacije so približne.',
@@ -434,8 +430,6 @@ const translations = {
     learnLimitsTitle: 'What to keep in mind?',
     learnLimitsText:
       'The display is not real-time (data arrives with a few days’ delay) and is not a street-level measurement. When there are too many clouds or not enough good data over a region, it is marked as “no data”.',
-    dataUpdated: 'Data updated',
-    dataUpdatedHint: 'Date of the latest satellite overpass with available data.',
     navAbout: 'About',
     collapseSidebar: 'Collapse',
     expandSidebar: 'Expand sidebar',
@@ -482,8 +476,6 @@ const translations = {
     satLongitude: 'Longitude',
     satAltitude: 'Altitude',
     satVelocity: 'Velocity',
-    satLiveSource:
-      'Calculated at {time} local time from TLE elements with epoch {epoch} UTC. This is an informative display and updates about every 15 seconds.',
     satMapAria: 'Leaflet map showing the estimated current Sentinel-5P satellite location',
     satOtherSats:
       'A few other Copernicus satellites and the ISS are shown for orientation. Our satellite (Sentinel-5P) is highlighted. You can zoom and pan the map; all locations are approximate.',
@@ -816,8 +808,6 @@ const translations = {
     learnLimitsTitle: 'Worauf muss man achten?',
     learnLimitsText:
       'Die Anzeige ist nicht in Echtzeit (Daten kommen mit einigen Tagen Verzoegerung) und ist keine Messung auf Strassenebene. Wenn ueber einer Region zu viele Wolken oder zu wenige gute Daten vorliegen, wird sie als „keine Daten“ markiert.',
-    dataUpdated: 'Daten aktualisiert',
-    dataUpdatedHint: 'Datum des letzten Satellitenueberflugs mit verfuegbaren Daten.',
     navAbout: 'Über die App',
     collapseSidebar: 'Einklappen',
     expandSidebar: 'Seitenleiste ausklappen',
@@ -864,8 +854,6 @@ const translations = {
     satLongitude: 'Längengrad',
     satAltitude: 'Höhe',
     satVelocity: 'Geschwindigkeit',
-    satLiveSource:
-      'Berechnet um {time} Ortszeit aus TLE-Elementen mit Epoche {epoch} UTC. Die Anzeige ist informativ und aktualisiert sich etwa alle 15 Sekunden.',
     satMapAria: 'Leaflet-Karte mit der geschätzten aktuellen Position des Satelliten Sentinel-5P',
     satOtherSats:
       'Zur Orientierung werden auch einige andere Copernicus-Satelliten und die ISS angezeigt. Unser Satellit (Sentinel-5P) ist hervorgehoben. Die Karte lässt sich zoomen und verschieben; alle Positionen sind ungefähr.',

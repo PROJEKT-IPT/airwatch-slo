@@ -22,7 +22,7 @@ import SatelliteCard from '../components/SatelliteCard'
 import TrendChart from '../components/TrendChart'
 import { useLanguage } from '../i18n'
 
-function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
+function Dashboard({ activeView = 'overview' }) {
   const { t } = useLanguage()
   const [regionSummaries, setRegionSummaries] = useState([])
   const [regionGeometries, setRegionGeometries] = useState([])
@@ -247,18 +247,6 @@ function Dashboard({ activeView = 'overview', onDataUpdatedAt }) {
     if (ratio < 2 / 3) return 'moderate'
     return 'high'
   }, [measurement, regionSummaries])
-
-  // Report the most recent measurement date (ISO sorts chronologically) so the
-  // sidebar can show a discreet "data updated" line.
-  useEffect(() => {
-    if (!onDataUpdatedAt) return
-    const latest = regionSummaries
-      .map(region => region.measurement_end_time)
-      .filter(Boolean)
-      .sort()
-      .at(-1)
-    onDataUpdatedAt(latest || null)
-  }, [regionSummaries, onDataUpdatedAt])
 
   const viewMeta = {
     overview: { title: t('dashboardTitle'), lead: t('dashboardSubtitle') },
