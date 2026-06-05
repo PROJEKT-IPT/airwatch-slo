@@ -13,7 +13,8 @@ function TrendChart({ regionCode, regionName }) {
   const [endDate, setEndDate] = useState('')
   const [appliedRange, setAppliedRange] = useState({ start: null, end: null })
   const [availableDates, setAvailableDates] = useState([])
-  const [dateError, setDateError] = useState('')
+  const [dateErrorKey, setDateErrorKey] = useState('')
+  const isCompactChart = useCompactChartLayout()
 
   useEffect(() => {
     let isMounted = true
@@ -28,7 +29,7 @@ function TrendChart({ regionCode, regionName }) {
         setAppliedRange(prev =>
           prev.start === null && prev.end === null ? prev : { start: null, end: null },
         )
-        setDateError('')
+        setDateErrorKey('')
         return
       }
 
@@ -70,7 +71,7 @@ function TrendChart({ regionCode, regionName }) {
         setAppliedRange(prev =>
           prev.start === null && prev.end === null ? prev : { start: null, end: null },
         )
-        setDateError('')
+        setDateErrorKey('')
         return
       }
 
@@ -108,21 +109,21 @@ function TrendChart({ regionCode, regionName }) {
   }, [regionCode])
 
   function applyRange() {
-    setDateError('')
+    setDateErrorKey('')
     const start = startDate ? startDate : null
     const end = endDate ? endDate : null
 
     if (start && availableDates.length > 0 && !availableDates.includes(start)) {
-      setDateError(t('startDateUnavailable'))
+      setDateErrorKey('startDateUnavailable')
       return
     }
     if (end && availableDates.length > 0 && !availableDates.includes(end)) {
-      setDateError(t('endDateUnavailable'))
+      setDateErrorKey('endDateUnavailable')
       return
     }
 
     if (start && end && start > end) {
-      setDateError(t('startBeforeEnd'))
+      setDateErrorKey('startBeforeEnd')
       return
     }
 
@@ -141,7 +142,7 @@ function TrendChart({ regionCode, regionName }) {
       setEndDate('')
     }
     setAppliedRange({ start: null, end: null })
-    setDateError('')
+    setDateErrorKey('')
   }
 
   function renderDateSelectors() {
@@ -236,12 +237,15 @@ function TrendChart({ regionCode, regionName }) {
   }
 
   const displayExponent = getNo2DisplayExponent(chartData)
-  const axisLabel = `NO2 (x10^${displayExponent} mol/m2)`
   const yDomain = getZoomedNo2Domain(chartData)
   const availablePointCount = Math.max(availableDates.length, chartData.length)
   const canShowTrend = availablePointCount >= 2
   const singleDateLabel = chartData[0]?.date || availableDates[0] || ''
   const displayedRegion = regionName || history?.region_name || t('selectedRegion')
+  const chartMargin = isCompactChart
+    ? { top: 18, right: 8, left: 0, bottom: 18 }
+    : { top: 20, right: 16, left: 4, bottom: 20 }
+  const yAxisWidth = isCompactChart ? 36 : 44
 
   return (
     <section className="card trend-chart-card" id="trend-section">
@@ -250,13 +254,13 @@ function TrendChart({ regionCode, regionName }) {
       {canShowTrend ? (
         <>
           {renderDateSelectors()}
-          {dateError ? <div className="field-message-error">{dateError}</div> : null}
+          {dateErrorKey ? <div className="field-message-error">{t(dateErrorKey)}</div> : null}
           <p className="muted-text">{t('trendLead', { region: displayedRegion })}</p>
           {hasMeasurements ? (
             <>
               <div className="trend-chart-container">
                 <div className="trend-chart-axis-label" aria-hidden="true">
-                  {axisLabel}
+                  {formatAxisLabel(displayExponent)}
                 </div>
                 <div className="trend-chart-plot">
                   <ResponsiveContainer
@@ -264,18 +268,21 @@ function TrendChart({ regionCode, regionName }) {
                     height="100%"
                     initialDimension={{ width: 0, height: 300 }}
                   >
-                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <LineChart data={chartData} margin={chartMargin}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(47, 58, 85, 0.14)" />
                       <XAxis
                         dataKey="date"
                         stroke="#6e6f73"
                         fontSize={12}
+                        height={isCompactChart ? 32 : undefined}
+                        tickMargin={8}
                         tickLine={false}
                         axisLine={{ stroke: 'rgba(47, 58, 85, 0.14)' }}
                       />
                       <YAxis
                         stroke="#6e6f73"
                         fontSize={12}
+                        width={yAxisWidth}
                         tickLine={false}
                         axisLine={{ stroke: 'rgba(47, 58, 85, 0.14)' }}
                         domain={yDomain}
@@ -383,6 +390,31 @@ function formatScaledNo2Value(value, exponent, t, locale) {
   return `${scaledValue.toLocaleString(locale, { maximumFractionDigits: 2 })} x 10^${exponent}`
 }
 
+function formatAxisLabel(exponent) {
+  return `NO₂ (×10${toSuperscript(exponent)} mol/m²)`
+}
+
+function toSuperscript(value) {
+  const superscriptDigits = {
+    '-': '⁻',
+    0: '⁰',
+    1: '¹',
+    2: '²',
+    3: '³',
+    4: '⁴',
+    5: '⁵',
+    6: '⁶',
+    7: '⁷',
+    8: '⁸',
+    9: '⁹',
+  }
+
+  return String(value)
+    .split('')
+    .map((character) => superscriptDigits[character] || character)
+    .join('')
+}
+
 function toUtcStartOfDay(dateString) {
   if (!dateString) return dateString
   if (dateString.includes('T')) return dateString
@@ -393,4 +425,24 @@ function toUtcEndOfDay(dateString) {
   if (!dateString) return dateString
   if (dateString.includes('T')) return dateString
   return `${dateString}T23:59:59.999Z`
+}
+
+function useCompactChartLayout() {
+  const [matches, setMatches] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return window.matchMedia('(max-width: 1080px)').matches
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    const media = window.matchMedia('(max-width: 1080px)')
+    const updateMatches = () => setMatches(media.matches)
+
+    updateMatches()
+    media.addEventListener('change', updateMatches)
+    return () => media.removeEventListener('change', updateMatches)
+  }, [])
+
+  return matches
 }
